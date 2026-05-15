@@ -1,0 +1,1261 @@
+\documentclass[12pt, a4paper]{article}
+
+% ─── PAQUETES ────────────────────────────────────────────────────────────────
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{mdframed}
+\usepackage{tcolorbox}
+\usepackage{fontawesome5}
+\usepackage{parskip}
+\usepackage{microtype}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{tikz}
+
+% ─── GEOMETRÍA ───────────────────────────────────────────────────────────────
+\geometry{
+    top=2.5cm,
+    bottom=2.5cm,
+    left=2.8cm,
+    right=2.8cm
+}
+
+% ─── COLORES DEL PROYECTO ────────────────────────────────────────────────────
+\definecolor{cpAccent}{HTML}{6C63FF}       % Morado principal
+\definecolor{cpFondo}{HTML}{0F1117}        % Fondo oscuro
+\definecolor{cpTarjeta}{HTML}{1A1D27}      % Fondo tarjeta
+\definecolor{cpTextoClaro}{HTML}{8B8FA3}   % Texto secundario
+\definecolor{cpVerde}{HTML}{4CAF50}        % Verde
+\definecolor{cpAzul}{HTML}{2196F3}         % Azul
+\definecolor{cpNaranja}{HTML}{FF9800}      % Naranja
+\definecolor{cpKeyword}{HTML}{C792EA}      % Palabras clave (morado claro)
+\definecolor{cpString}{HTML}{C3E88D}       % Strings (verde claro)
+\definecolor{cpComment}{HTML}{546E7A}      % Comentarios (gris)
+\definecolor{cpFunction}{HTML}{82AAFF}     % Funciones (azul)
+\definecolor{cpNumber}{HTML}{F78C6C}       % Números (naranja)
+\definecolor{cpBuiltin}{HTML}{FFCB6B}      % Builtins (amarillo)
+\definecolor{cpDecorator}{HTML}{FF5370}    % Decoradores (rojo)
+\definecolor{cpWarn}{HTML}{FFF3CD}         % Fondo advertencia
+\definecolor{cpInfo}{HTML}{D1ECF1}         % Fondo info
+\definecolor{cpGray}{HTML}{F8F9FA}         % Fondo gris claro
+
+% ─── CAJAS DE COLORES ────────────────────────────────────────────────────────
+\tcbuselibrary{skins, breakable, listings}
+
+\newtcolorbox{cajaInfo}{
+    colback=cpInfo,
+    colframe=cpAzul,
+    fonttitle=\bfseries,
+    arc=4pt,
+    left=8pt, right=8pt, top=6pt, bottom=6pt
+}
+
+\newtcolorbox{cajaAviso}{
+    colback=cpWarn,
+    colframe=cpNaranja,
+    fonttitle=\bfseries,
+    arc=4pt,
+    left=8pt, right=8pt, top=6pt, bottom=6pt
+}
+
+\newtcolorbox{cajaCodigo}{
+    colback=cpGray,
+    colframe=black!15,
+    arc=4pt,
+    left=8pt, right=8pt, top=6pt, bottom=6pt,
+    fontupper=\ttfamily\small
+}
+
+% ─── CONFIGURACIÓN DE LISTINGS (código fuente) ───────────────────────────────
+\lstdefinestyle{htmlstyle}{
+    language=HTML,
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{cpKeyword}\bfseries,
+    stringstyle=\color{cpString},
+    commentstyle=\color{cpComment}\itshape,
+    backgroundcolor=\color{cpGray},
+    frame=single,
+    framesep=4pt,
+    rulecolor=\color{black!20},
+    breaklines=true,
+    breakatwhitespace=true,
+    showstringspaces=false,
+    tabsize=4,
+    numbers=left,
+    numberstyle=\tiny\color{cpTextoClaro},
+    numbersep=8pt,
+    xleftmargin=15pt,
+    captionpos=b
+}
+
+\lstdefinestyle{pythonstyle}{
+    language=Python,
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{cpKeyword}\bfseries,
+    stringstyle=\color{cpString},
+    commentstyle=\color{cpComment}\itshape,
+    backgroundcolor=\color{cpGray},
+    frame=single,
+    framesep=4pt,
+    rulecolor=\color{black!20},
+    breaklines=true,
+    breakatwhitespace=true,
+    showstringspaces=false,
+    tabsize=4,
+    numbers=left,
+    numberstyle=\tiny\color{cpTextoClaro},
+    numbersep=8pt,
+    xleftmargin=15pt,
+    captionpos=b
+}
+
+\lstdefinestyle{cssInline}{
+    language=HTML,
+    basicstyle=\ttfamily\footnotesize,
+    backgroundcolor=\color{cpGray},
+    frame=single,
+    framesep=4pt,
+    rulecolor=\color{black!20},
+    breaklines=true,
+    showstringspaces=false,
+    tabsize=2,
+    xleftmargin=10pt,
+    captionpos=b
+}
+
+% ─── ENCABEZADOS Y PIE ───────────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\textcolor{cpAccent}{\textbf{ConversionPulse}} \ -- \ Documentación Técnica}
+\fancyhead[R]{\textcolor{cpTextoClaro}{\small v1.0 · 2025}}
+\fancyfoot[C]{\textcolor{cpTextoClaro}{\small \thepage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{cpAccent}\leaders\hrule height\headrulewidth\hfill}}
+
+% ─── ESTILO DE SECCIONES ─────────────────────────────────────────────────────
+\titleformat{\section}
+    {\large\bfseries\color{cpAccent}}
+    {\thesection.}{0.6em}{}
+    [\vspace{-4pt}\textcolor{cpAccent}{\rule{\linewidth}{0.6pt}}]
+
+\titleformat{\subsection}
+    {\normalsize\bfseries\color{black!80}}
+    {\thesubsection.}{0.5em}{}
+
+\titleformat{\subsubsection}
+    {\small\bfseries\color{black!70}}
+    {\thesubsubsection.}{0.5em}{}
+
+% ─── HIPERLINKS ──────────────────────────────────────────────────────────────
+\hypersetup{
+    colorlinks=true,
+    linkcolor=cpAccent,
+    urlcolor=cpAzul,
+    citecolor=cpVerde,
+    pdftitle={ConversionPulse - Documentación Técnica},
+    pdfauthor={ConversionPulse Team},
+    pdfsubject={Repositorio interno de código HTML/CSS},
+}
+
+% ─── COMANDOS ÚTILES ─────────────────────────────────────────────────────────
+\newcommand{\archivo}[1]{\texttt{\textcolor{cpAccent}{#1}}}
+\newcommand{\clase}[1]{\texttt{\textcolor{cpAzul}{.#1}}}
+\newcommand{\etiquetaHtml}[1]{\texttt{\textcolor{cpKeyword}{<#1>}}}
+\newcommand{\variable}[1]{\texttt{\textcolor{cpNumber}{--#1}}}
+\newcommand{\codigo}[1]{\texttt{\small #1}}
+\newcommand{\badge}[2]{\fcolorbox{#1!40}{#1!15}{\textcolor{#1}{\small\textbf{#2}}}}
+
+
+% ═════════════════════════════════════════════════════════════════════════════
+%  DOCUMENTO
+% ═════════════════════════════════════════════════════════════════════════════
+\begin{document}
+
+% ─── PORTADA ─────────────────────────────────────────────────────────────────
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+
+    {\Huge\bfseries\color{cpAccent} ConversionPulse}\\[0.5em]
+    {\Large\color{black!70} Repositorio Interno de Código}
+
+    \vspace{1.5cm}
+    \noindent\textcolor{cpAccent}{\rule{10cm}{2pt}}
+    \vspace{1.5cm}
+
+    {\LARGE\bfseries Documentación Técnica Completa}\\[0.8em]
+    {\large Guía de Edición, Mantenimiento y Expansión}
+
+    \vspace{2cm}
+    \begin{tabular}{ll}
+        \textbf{Versión:}    & 1.0 \\[4pt]
+        \textbf{Fecha:}      & Mayo 2025 \\[4pt]
+        \textbf{Tecnologías:} & HTML5 · CSS3 · JavaScript (vanilla) \\[4pt]
+        \textbf{Códigos:}    & 16 entradas en 4 categorías \\[4pt]
+        \textbf{Propósito:}  & Uso interno — Repositorio de demos \\
+    \end{tabular}
+
+    \vspace{2cm}
+    \begin{cajaAviso}
+        \textbf{Importante:} Este documento es la guía de referencia para cualquier
+        persona que necesite agregar, editar o modificar el repositorio.
+        Léelo completo antes de hacer cualquier cambio.
+    \end{cajaAviso}
+
+    \vfill
+    {\small\color{cpTextoClaro} ConversionPulse · Repositorio Interno · 2025}
+\end{titlepage}
+
+% ─── TABLA DE CONTENIDOS ─────────────────────────────────────────────────────
+\tableofcontents
+\newpage
+
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Visión General del Proyecto}
+% ═════════════════════════════════════════════════════════════════════════════
+
+\subsection{¿Qué es ConversionPulse?}
+
+ConversionPulse es un \textbf{repositorio interno de código} presentado como un
+sitio web estático (sin servidor, sin base de datos, sin frameworks). Su propósito
+es centralizar, documentar y hacer accesibles snippets, scripts, notebooks y
+proyectos Python organizados por caso de uso, para que los equipos internos
+puedan consultarlos y reutilizarlos.
+
+El sitio funciona directamente en el navegador abriendo el archivo
+\archivo{index.html}. No requiere instalación, dependencias ni conexión a internet.
+
+\subsection{Características principales}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{16 códigos} distribuidos en 4 categorías de uso.
+    \item \textbf{Resaltado de sintaxis} manual con clases CSS (no requiere librerías externas).
+    \item \textbf{Botón de copiar} código con un clic.
+    \item \textbf{Soporte de video}: YouTube (iframe) o archivos \codigo{.mp4} locales.
+    \item \textbf{Diseño oscuro} consistente con variables CSS modificables.
+    \item \textbf{Buscador} en el sidebar (funcional con JavaScript).
+    \item \textbf{Responsive} en escritorio; el layout es sidebar fijo + contenido central.
+\end{itemize}
+
+\subsection{Tecnologías utilizadas}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Tecnología} & \textbf{Versión} & \textbf{Uso} \\
+\midrule
+HTML5  & --    & Estructura de todas las páginas \\
+CSS3   & --    & Estilos centralizados en \archivo{styles.css} \\
+JavaScript & Vanilla (sin librerías) & Botón copiar, buscador del sidebar \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{cajaInfo}
+    \textbf{Sin dependencias externas:} No se usa React, Vue, Bootstrap,
+    jQuery ni ninguna librería. Todo corre directamente en el navegador
+    sin necesidad de \texttt{npm install} ni servidores.
+\end{cajaInfo}
+
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Estructura de Archivos}
+% ═════════════════════════════════════════════════════════════════════════════
+
+\subsection{Árbol de directorios}
+
+\begin{cajaCodigo}
+repo-demos/\\
+\quad├── index.html             \textit{← Dashboard principal}\\
+\quad├── styles.css             \textit{← Todos los estilos del sitio}\\
+\quad├── PLANTILLA.html         \textit{← Plantilla para nuevos códigos}\\
+\quad├── documentacion.tex      \textit{← Este documento}\\
+\quad│\\
+\quad├── categorias/            \textit{← Páginas de cada categoría}\\
+\quad│   ├── analytics.html\\
+\quad│   ├── financial-crimes.html\\
+\quad│   ├── gobierno.html\\
+\quad│   └── retail.html\\
+\quad│\\
+\quad└── codigos/               \textit{← Una página por código}\\
+\quad    ├── ana-001.html        \textit{Pipeline de ETL Automatizado}\\
+\quad    ├── ana-002.html        \textit{A/B Testing Framework}\\
+\quad    ├── ana-003.html        \textit{Dashboard de Métricas en Tiempo Real}\\
+\quad    ├── ana-004.html        \textit{Modelo de Atribución Multi-Touch}\\
+\quad    ├── fc-001.html         \textit{Detección de Transacciones Anómalas}\\
+\quad    ├── fc-002.html         \textit{Red de Lavado de Dinero - Graph Analysis}\\
+\quad    ├── fc-003.html         \textit{Score de Riesgo - Credit Card Fraud}\\
+\quad    ├── fc-004.html         \textit{KYC Automation Pipeline}\\
+\quad    ├── gob-001.html        \textit{Análisis de Presupuesto Público}\\
+\quad    ├── gob-002.html        \textit{Predicción de Demanda de Servicios}\\
+\quad    ├── gob-003.html        \textit{Dashboard de Indicadores Socioeconómicos}\\
+\quad    ├── gob-004.html        \textit{Clasificación de Documentos Oficiales}\\
+\quad    ├── ret-003.html        \textit{Motor de Recomendaciones Colaborativo}\\
+\quad    ├── ret-004.html        \textit{Predicción de Demanda de Inventario}\\
+\quad    ├── ret-005.html        \textit{Segmentación de Clientes (RFM)}\\
+\quad    └── ret-006.html        \textit{Market Basket Analysis}
+\end{cajaCodigo}
+
+\subsection{Convención de nombres de archivos}
+
+Los archivos de la carpeta \archivo{codigos/} siguen el patrón:
+
+\begin{cajaCodigo}
+\textbf{[prefijo]-[número].html}\\[4pt]
+Ejemplos: \texttt{ana-001.html}, \texttt{fc-003.html}, \texttt{gob-002.html}
+\end{cajaCodigo}
+
+Los prefijos disponibles son:
+
+\begin{center}
+\begin{tabular}{cll}
+\toprule
+\textbf{Prefijo} & \textbf{Categoría} & \textbf{Icono} \\
+\midrule
+\texttt{ana} & Analytics           & 📈 \\
+\texttt{fc}  & Financial Crimes    & 🔒 \\
+\texttt{gob} & Gobierno            & 🏛️ \\
+\texttt{ret} & Retail              & 🛒 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{cajaAviso}
+    \textbf{Nota sobre Retail:} Los archivos de Retail inician en
+    \archivo{ret-003.html}. Los códigos \archivo{ret-001.html} y
+    \archivo{ret-002.html} no existen aún — están pendientes de crear.
+    Al agregar nuevos Retail, continúa desde \archivo{ret-007.html}.
+\end{cajaAviso}
+
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Catálogo de Códigos}
+% ═════════════════════════════════════════════════════════════════════════════
+
+\subsection{Analytics (ANA)}
+
+\begin{longtable}{lllp{5.5cm}}
+\toprule
+\textbf{ID} & \textbf{Tipo} & \textbf{Autor} & \textbf{Título / Tags} \\
+\midrule
+\endhead
+\texttt{ana-001} & Proyecto  & Data Engineering       & \textit{Pipeline de ETL Automatizado}\\
+                 &           &                        & \texttt{\#etl \#pipeline \#airflow} \\[6pt]
+\texttt{ana-002} & Notebook  & Experimentation Team   & \textit{A/B Testing Framework}\\
+                 &           &                        & \texttt{\#ab-testing \#statistics \#hypothesis-testing} \\[6pt]
+\texttt{ana-003} & Script    & Platform Team          & \textit{Dashboard de Métricas en Tiempo Real}\\
+                 &           &                        & \texttt{\#dashboard \#streaming \#kafka} \\[6pt]
+\texttt{ana-004} & Notebook  & Marketing Analytics    & \textit{Modelo de Atribución Multi-Touch}\\
+                 &           &                        & \texttt{\#attribution \#marketing \#multi-touch} \\
+\bottomrule
+\end{longtable}
+
+\subsection{Financial Crimes (FC)}
+
+\begin{longtable}{lllp{5.5cm}}
+\toprule
+\textbf{ID} & \textbf{Tipo} & \textbf{Autor} & \textbf{Título / Tags} \\
+\midrule
+\endhead
+\texttt{fc-001} & Notebook  & Data Science Team         & \textit{Detección de Transacciones Anómalas}\\
+                &           &                           & \texttt{\#fraud-detection \#anomaly-detection \#isolation-forest} \\[6pt]
+\texttt{fc-002} & Script    & Compliance Team           & \textit{Red de Lavado de Dinero --- Graph Analysis}\\
+                &           &                           & \texttt{\#money-laundering \#graph-analysis \#networkx} \\[6pt]
+\texttt{fc-003} & Proyecto  & ML Engineering            & \textit{Score de Riesgo --- Credit Card Fraud}\\
+                &           &                           & \texttt{\#credit-card \#risk-scoring \#real-time} \\[6pt]
+\texttt{fc-004} & Script    & Compliance Engineering    & \textit{KYC Automation Pipeline}\\
+                &           &                           & \texttt{\#kyc \#automation \#document-verification} \\
+\bottomrule
+\end{longtable}
+
+\subsection{Gobierno (GOB)}
+
+\begin{longtable}{lllp{5.5cm}}
+\toprule
+\textbf{ID} & \textbf{Tipo} & \textbf{Autor} & \textbf{Título / Tags} \\
+\midrule
+\endhead
+\texttt{gob-001} & Notebook & Policy Analytics      & \textit{Análisis de Presupuesto Público}\\
+                 &          &                       & \texttt{\#budget-analysis \#visualization \#pandas} \\[6pt]
+\texttt{gob-002} & Proyecto & Government Solutions  & \textit{Predicción de Demanda de Servicios}\\
+                 &          &                       & \texttt{\#demand-forecasting \#time-series \#arima} \\[6pt]
+\texttt{gob-003} & Script   & Data Governance       & \textit{Dashboard de Indicadores Socioeconómicos}\\
+                 &          &                       & \texttt{\#dashboard \#indicators \#plotly} \\[6pt]
+\texttt{gob-004} & Notebook & NLP Team              & \textit{Clasificación de Documentos Oficiales}\\
+                 &          &                       & \texttt{\#nlp \#text-classification \#transformers} \\
+\bottomrule
+\end{longtable}
+
+\subsection{Retail (RET)}
+
+\begin{longtable}{lllp{5.5cm}}
+\toprule
+\textbf{ID} & \textbf{Tipo} & \textbf{Autor} & \textbf{Título / Tags} \\
+\midrule
+\endhead
+\texttt{ret-003} & Proyecto & Personalization Team  & \textit{Motor de Recomendaciones Colaborativo}\\
+                 &          &                       & \texttt{\#recommendation-engine \#collaborative-filtering} \\[6pt]
+\texttt{ret-004} & Notebook & Supply Chain Team     & \textit{Predicción de Demanda de Inventario}\\
+                 &          &                       & \texttt{\#demand-forecast \#inventory \#prophet} \\[6pt]
+\texttt{ret-005} & Script   & CRM Analytics         & \textit{Segmentación de Clientes (RFM)}\\
+                 &          &                       & \texttt{\#rfm \#segmentation \#clustering} \\[6pt]
+\texttt{ret-006} & Notebook & Retail Analytics      & \textit{Market Basket Analysis}\\
+                 &          &                       & \texttt{\#market-basket \#apriori \#association-rules} \\
+\bottomrule
+\end{longtable}
+
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Anatomía de una Página de Código}
+% ═════════════════════════════════════════════════════════════════════════════
+
+Cada archivo en \archivo{codigos/} tiene la misma estructura HTML.
+Entenderla es fundamental para editar o crear entradas.
+
+\subsection{Estructura general del HTML}
+
+\begin{lstlisting}[style=htmlstyle, caption={Esqueleto de una página de código}]
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>ConversionPulse - NOMBRE DEL PROYECTO</title>
+    <link rel="stylesheet" href="../styles.css">   <!-- Nunca cambiar la ruta -->
+</head>
+<body>
+
+    <nav class="sidebar"> ... </nav>      <!-- Sidebar: NO tocar -->
+
+    <div class="zona-principal">
+        <div class="header"> ... </div>   <!-- Header: NO tocar -->
+
+        <div class="contenido">
+            <a class="boton-volver">...</a>        <!-- Volver al index -->
+
+            <div class="tarjeta">
+                <!-- [1] TITULO -->
+                <h1 class="tarjeta-titulo">NOMBRE DEL PROYECTO</h1>
+
+                <!-- [2] LENGUAJE Y TIPO -->
+                <span class="etiqueta-lenguaje">python</span>
+                <span>Proyecto</span>              <!-- o Notebook, Script -->
+
+                <!-- [3] DESCRIPCION -->
+                <p class="tarjeta-descripcion">...</p>
+
+                <!-- [4] ETIQUETAS / TAGS -->
+                <div class="etiquetas">
+                    <span class="etiqueta">#tag1</span>
+                </div>
+
+                <!-- [5] AUTOR Y FECHA -->
+                <div class="info-meta">
+                    <span><strong>Autor:</strong> Equipo</span>
+                    <span><strong>Fecha:</strong> 2025-01-01</span>
+                </div>
+
+                <!-- [6] INSTRUCCIONES -->
+                <div class="instrucciones">
+                    <h2>Instrucciones de Uso</h2>
+                    <p>...</p>
+                </div>
+
+                <!-- [7] BLOQUE DE CODIGO -->
+                <div class="bloque-codigo">
+                    <div class="barra-archivo">
+                        <span>nombre_archivo.py</span>
+                        <span onclick="copiarCodigo(this)">Copiar</span>
+                    </div>
+                    <pre><code>...codigo aqui...</code></pre>
+                </div>
+
+                <!-- [8] VIDEO (opcional) -->
+                <div class="seccion-video"> ... </div>
+            </div>
+        </div>
+
+        <div class="footer"> ... </div>
+    </div>
+
+    <script>
+        function copiarCodigo(boton) { ... }    <!-- No tocar -->
+    </script>
+</body>
+</html>
+\end{lstlisting}
+
+\subsection{Elementos obligatorios vs opcionales}
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Elemento} & \textbf{¿Obligatorio?} & \textbf{Notas} \\
+\midrule
+\etiquetaHtml{title} en \etiquetaHtml{head}     & Sí & \texttt{ConversionPulse - NOMBRE} \\
+\clase{tarjeta-titulo}                           & Sí & Título visible grande \\
+\clase{etiqueta-lenguaje}                        & Sí & \texttt{python}, \texttt{sql}, etc. \\
+Tipo (Proyecto / Notebook / Script)              & Sí & Texto simple entre spans \\
+\clase{tarjeta-descripcion}                      & Sí & 1--2 oraciones \\
+\clase{etiquetas}                                & Sí & Mínimo 1 etiqueta \\
+\clase{info-meta} (autor + fecha)                & Sí & Formato \texttt{YYYY-MM-DD} \\
+\clase{instrucciones}                            & Sí & Qué recibe, qué retorna \\
+\clase{bloque-codigo}                            & Sí & Al menos uno \\
+\clase{seccion-video}                            & No & Puede quedar el placeholder \\
+Múltiples bloques de código                      & No & Copiar el bloque y descomentar \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{El sidebar y qué clase ``activa'' usar}
+
+El sidebar aparece en todas las páginas. El único cambio que varía entre
+archivos es cuál categoría tiene la clase \codigo{activa}:
+
+\begin{lstlisting}[style=htmlstyle, caption={Activar la categoría correcta en el sidebar}]
+<!-- En una pagina de Analytics: -->
+<a href="../categorias/analytics.html" class="sidebar-categoria activa">
+
+<!-- En una pagina de Financial Crimes: -->
+<a href="../categorias/financial-crimes.html" class="sidebar-categoria activa">
+
+<!-- En una pagina de Gobierno: -->
+<a href="../categorias/gobierno.html" class="sidebar-categoria activa">
+
+<!-- En una pagina de Retail: -->
+<a href="../categorias/retail.html" class="sidebar-categoria activa">
+\end{lstlisting}
+
+\begin{cajaAviso}
+    \textbf{Rutas relativas:} Los archivos en \archivo{codigos/} usan
+    \texttt{../} para subir un nivel. Nunca uses rutas absolutas como
+    \texttt{/categorias/...} ya que romperán al abrir el sitio localmente.
+\end{cajaAviso}
+
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Sistema de Resaltado de Sintaxis}
+% ═════════════════════════════════════════════════════════════════════════════
+
+El sitio no usa ninguna librería de resaltado de sintaxis (como Prism.js o
+Highlight.js). En su lugar, el código se colorea manualmente envolviendo
+palabras en etiquetas \etiquetaHtml{span} con clases CSS específicas.
+
+\subsection{Tabla de clases de color}
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+\textbf{Clase CSS} & \textbf{Color} & \textbf{Hex} & \textbf{Usar para...} \\
+\midrule
+\clase{keyword}   & Morado claro & \texttt{\#C792EA} & \texttt{import, class, def, if, return, from, as, not, in, for} \\
+\clase{string}    & Verde claro  & \texttt{\#C3E88D} & Textos entre comillas simples o dobles \\
+\clase{comment}   & Gris         & \texttt{\#546E7A} & Líneas que empiezan con \texttt{\#} \\
+\clase{function}  & Azul         & \texttt{\#82AAFF} & Nombres de funciones y clases \\
+\clase{number}    & Naranja      & \texttt{\#F78C6C} & Valores numéricos (\texttt{42}, \texttt{3.14}, \texttt{True}, \texttt{False}, \texttt{None}) \\
+\clase{builtin}   & Amarillo     & \texttt{\#FFCB6B} & Funciones built-in: \texttt{print}, \texttt{len}, \texttt{range}, \texttt{float}, \texttt{int} \\
+\clase{decorator} & Rojo         & \texttt{\#FF5370} & Decoradores: \texttt{@staticmethod}, \texttt{@property} \\
+\clase{param}     & Rosa         & \texttt{\#F07178} & Parámetros de funciones \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Ejemplo de código coloreado}
+
+Así es como se escribe código coloreado dentro del HTML:
+
+\begin{lstlisting}[style=htmlstyle, caption={Ejemplo: función Python con colores}]
+<pre><code><span class="keyword">import</span> pandas <span class="keyword">as</span> pd
+
+<span class="keyword">class</span> <span class="function">MiClase</span>:
+    <span class="string">"""Docstring de la clase"""</span>
+
+    <span class="keyword">def</span> <span class="function">mi_metodo</span>(self, valor=<span class="number">10</span>):
+        <span class="comment"># Este es un comentario</span>
+        resultado = valor * <span class="number">2</span>
+        <span class="builtin">print</span>(<span class="string">"Resultado:"</span>, resultado)
+        <span class="keyword">return</span> resultado
+
+obj = <span class="function">MiClase</span>()
+obj.mi_metodo(<span class="number">5</span>)</code></pre>
+\end{lstlisting}
+
+\subsection{Estrategia para colorear código nuevo}
+
+Sigue este orden para colorear código de forma eficiente:
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item Pega el código limpio dentro de \etiquetaHtml{pre}\etiquetaHtml{code}.
+    \item Reemplaza los \textbf{comentarios} (líneas con \texttt{\#}) con \clase{comment}.
+    \item Reemplaza las \textbf{palabras clave} (\texttt{import}, \texttt{def}, \texttt{class}, etc.) con \clase{keyword}.
+    \item Reemplaza los \textbf{strings} (texto entre comillas) con \clase{string}.
+    \item Reemplaza los \textbf{nombres de funciones} con \clase{function}.
+    \item Reemplaza los \textbf{números} con \clase{number}.
+    \item Reemplaza las \textbf{funciones built-in} con \clase{builtin}.
+\end{enumerate}
+
+\begin{cajaInfo}
+    \textbf{¿El código no necesita colores?} Es válido pegar el código
+    directamente en texto plano dentro de \etiquetaHtml{pre}\etiquetaHtml{code}
+    sin ningún \texttt{span}. Se verá en gris claro sobre fondo oscuro,
+    lo cual es perfectamente legible.
+\end{cajaInfo}
+
+\subsection{Caracteres especiales en HTML}
+
+Si el código contiene los caracteres \texttt{<}, \texttt{>} o \texttt{\&},
+deben escaparse para que el navegador no los interprete como HTML:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Carácter} & \textbf{Código HTML} & \textbf{Ejemplo} \\
+\midrule
+\texttt{<}  & \texttt{\&lt;}   & \texttt{a \&lt; b} → muestra \texttt{a < b} \\
+\texttt{>}  & \texttt{\&gt;}   & \texttt{a \&gt; b} → muestra \texttt{a > b} \\
+\texttt{\&} & \texttt{\&amp;}  & \texttt{x \&amp;\&amp; y} → muestra \texttt{x \&\& y} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Agregar un Nuevo Código: Paso a Paso}
+% ═════════════════════════════════════════════════════════════════════════════
+
+\subsection{Paso 1: Copiar la plantilla}
+
+Copia el archivo \archivo{PLANTILLA.html} y renómbralo según la convención:
+
+\begin{cajaCodigo}
+\textbf{Formato:} \texttt{[prefijo]-[número].html}\\[4pt]
+Ejemplo: para el quinto Analytics → \texttt{ana-005.html}\\
+Guárdalo dentro de la carpeta \texttt{codigos/}
+\end{cajaCodigo}
+
+\subsection{Paso 2: Actualizar el \texttt{<title>}}
+
+En la línea del \etiquetaHtml{head}, cambia el título:
+
+\begin{lstlisting}[style=htmlstyle]
+<title>ConversionPulse - NOMBRE DE TU PROYECTO</title>
+\end{lstlisting}
+
+\subsection{Paso 3: Activar la categoría correcta en el sidebar}
+
+Busca la sección del sidebar y agrega \texttt{activa} al enlace de la categoría
+correspondiente (ver sección 4.3 de este documento).
+
+\subsection{Paso 4: Rellenar la tarjeta}
+
+Edita cada sección marcada con \texttt{CAMBIAR} en la plantilla:
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item \textbf{\clase{tarjeta-titulo}:} Nombre del proyecto (ej: ``Análisis de Churn'').
+    \item \textbf{\clase{etiqueta-lenguaje}:} Lenguaje de programación (ej: \texttt{python}, \texttt{sql}, \texttt{r}).
+    \item \textbf{Tipo:} Cambia el texto \texttt{Proyecto} por \texttt{Notebook} o \texttt{Script} según corresponda.
+    \item \textbf{\clase{tarjeta-descripcion}:} 1--2 oraciones que expliquen qué hace el código.
+    \item \textbf{\clase{etiquetas}:} 2--4 tags relevantes. Usa kebab-case: \texttt{\#machine-learning}.
+    \item \textbf{\clase{info-meta}:} Autor (nombre o equipo) y fecha en formato \texttt{YYYY-MM-DD}.
+    \item \textbf{\clase{instrucciones}:} Explica qué datos recibe, qué retorna, qué dependencias necesita.
+\end{enumerate}
+
+\subsection{Paso 5: Agregar el código}
+
+Dentro del \clase{bloque-codigo}:
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item Cambia el nombre del archivo en la \clase{barra-archivo}: \texttt{nombre\_archivo.py}
+    \item Pega tu código dentro de \etiquetaHtml{pre}\etiquetaHtml{code}...\etiquetaHtml{/code}\etiquetaHtml{/pre}
+    \item Opcionalmente, coloréalo con las clases de la sección 5.
+\end{enumerate}
+
+\textbf{¿Necesitas más de un bloque de código?} La plantilla incluye un segundo
+bloque comentado. Para activarlo, elimina los marcadores \texttt{<!--} y \texttt{-->}
+que lo rodean:
+
+\begin{lstlisting}[style=htmlstyle, caption={Activar un segundo bloque de código}]
+<!-- Antes (comentado = inactivo): -->
+<!--
+<div class="bloque-codigo">
+    ...
+</div>
+-->
+
+<!-- Despues (sin comentarios = activo): -->
+<div class="bloque-codigo">
+    ...
+</div>
+\end{lstlisting}
+
+\subsection{Paso 6: Agregar video (opcional)}
+
+Dentro de \clase{seccion-video}, reemplaza el \clase{video-placeholder}
+con una de estas dos opciones:
+
+\textbf{Opción A — Video de YouTube:}
+\begin{lstlisting}[style=htmlstyle]
+<div class="video-wrapper">
+    <iframe
+        src="https://www.youtube.com/embed/TU_VIDEO_ID"
+        allowfullscreen>
+    </iframe>
+</div>
+\end{lstlisting}
+
+\begin{cajaInfo}
+    Para obtener el ID del video de YouTube, toma la URL del video:
+    \texttt{https://www.youtube.com/watch?v=\textbf{dQw4w9WgXcQ}}
+    El ID es la parte después de \texttt{v=}: \texttt{dQw4w9WgXcQ}
+\end{cajaInfo}
+
+\textbf{Opción B — Archivo de video local:}
+\begin{lstlisting}[style=htmlstyle]
+<div class="video-wrapper">
+    <video controls>
+        <source src="../videos/mi_video.mp4" type="video/mp4">
+        Tu navegador no soporta video HTML5.
+    </video>
+</div>
+\end{lstlisting}
+
+\begin{cajaAviso}
+    Si usas videos locales, crea una carpeta \archivo{videos/} en la raíz
+    del proyecto y coloca los archivos \texttt{.mp4} ahí. El tamaño
+    recomendado es menor a 50 MB por video.
+\end{cajaAviso}
+
+\subsection{Paso 7: Registrar la entrada en la página de categoría}
+
+Ve al archivo correspondiente en \archivo{categorias/} (ej: \archivo{analytics.html})
+y agrega una tarjeta en el \clase{grid-proyectos}:
+
+\begin{lstlisting}[style=htmlstyle, caption={Agregar tarjeta en página de categoría}]
+<a href="../codigos/ana-005.html" class="proyecto-card">
+    <div class="card-top">
+        <span class="card-titulo">Nombre del Proyecto</span>
+        <span class="badge-tipo badge-notebook">Notebook</span>
+        <!-- Tipos de badge: badge-notebook | badge-script | badge-proyecto -->
+    </div>
+    <div class="card-desc">
+        Descripcion breve del proyecto (igual que la tarjeta-descripcion).
+    </div>
+    <div class="card-tags">
+        <span class="card-tag">tag1</span>
+        <span class="card-tag">tag2</span>
+        <span class="card-lang">
+            <span class="etiqueta-lenguaje">python</span>
+        </span>
+    </div>
+    <div class="card-footer">
+        <span>Nombre del Equipo</span>
+        <span>2025-01-01</span>
+    </div>
+</a>
+\end{lstlisting}
+
+\subsection{Paso 8: Actualizar los contadores}
+
+Hay \textbf{tres lugares} donde se muestra el número total de códigos.
+Actualízalos cuando agregues o elimines entradas:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Archivo} & \textbf{Elemento} & \textbf{Qué actualizar} \\
+\midrule
+\archivo{index.html}       & \clase{stat-numero} (primero)       & Total de códigos globales \\
+\archivo{index.html}       & \clase{sidebar-footer} → \clase{detalle} & Total en el sidebar \\
+\archivo{index.html}       & \clase{cat-count} de la categoría   & Cantidad por categoría \\
+\archivo{categorias/*.html} & \clase{categoria-contador}          & ``X códigos disponibles'' \\
+Todos los \archivo{codigos/*.html} & \clase{sidebar-footer} → \clase{detalle} & ``16 códigos disponibles'' \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{cajaAviso}
+    \textbf{Detalle importante:} El texto ``16 códigos disponibles'' aparece
+    en el \texttt{sidebar-footer} de \textbf{cada archivo} de código. Si
+    agregas un nuevo código y el total pasa a 17, debes editar ese texto
+    en todos los archivos de la carpeta \archivo{codigos/}.
+\end{cajaAviso}
+
+\subsection{Paso 9: Agregar a la lista de ``Códigos Recientes'' (opcional)}
+
+En \archivo{index.html}, la sección \clase{dash-recientes} muestra los 5 códigos
+más recientes. Si quieres que tu nuevo código aparezca ahí:
+
+\begin{lstlisting}[style=htmlstyle, caption={Agregar entrada a Códigos Recientes en index.html}]
+<li>
+    <a href="codigos/ana-005.html">
+        <span class="rec-icono">📊</span>   <!-- Elige un emoji relevante -->
+        <div class="rec-info">
+            <div class="rec-nombre">Nombre del Proyecto</div>
+            <div class="rec-desc">Descripcion breve que se corta con puntos suspensivos...</div>
+        </div>
+        <div class="rec-meta">
+            <span class="etiqueta-lenguaje">python</span>
+            <span class="rec-fecha">2025-01-01</span>
+        </div>
+    </a>
+</li>
+\end{lstlisting}
+
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Crear una Nueva Categoría}
+% ═════════════════════════════════════════════════════════════════════════════
+
+Si necesitas agregar una quinta categoría (ej: ``Machine Learning''), sigue
+estos pasos:
+
+\subsection{Paso 1: Crear el archivo de categoría}
+
+Copia cualquier archivo existente en \archivo{categorias/} (ej: \archivo{analytics.html})
+y renómbralo (ej: \archivo{machine-learning.html}). Luego edita:
+
+\begin{itemize}[leftmargin=1.5em]
+    \item El \etiquetaHtml{title}: \texttt{ConversionPulse - Machine Learning}
+    \item El \clase{categoria-icono}: cambia el emoji
+    \item El \etiquetaHtml{h1}: nombre de la categoría
+    \item La \clase{categoria-descripcion}: descripción de la categoría
+    \item Vacía el \clase{grid-proyectos}: elimina las tarjetas existentes
+    \item Actualiza el link activo en el sidebar
+\end{itemize}
+
+\subsection{Paso 2: Agregar la categoría al sidebar (en todos los archivos)}
+
+En \textbf{todos} los archivos HTML del proyecto, agrega el nuevo enlace al sidebar:
+
+\begin{lstlisting}[style=htmlstyle]
+<a href="../categorias/machine-learning.html" class="sidebar-categoria">
+    <span class="icono">🤖</span> Machine Learning
+</a>
+\end{lstlisting}
+
+\begin{cajaAviso}
+    Recuerda que en \archivo{index.html} la ruta es diferente (sin \texttt{../}):
+    \texttt{href="categorias/machine-learning.html"}
+\end{cajaAviso}
+
+\subsection{Paso 3: Agregar la tarjeta de categoría en el dashboard}
+
+En \archivo{index.html}, dentro de \clase{dash-categorias}:
+
+\begin{lstlisting}[style=htmlstyle]
+<a href="categorias/machine-learning.html" class="dash-cat-card">
+    <span class="cat-icono">🤖</span>
+    <span class="cat-nombre">Machine Learning</span>
+    <span class="cat-desc">Descripcion de lo que contiene esta categoria</span>
+    <span class="cat-count">0</span>   <!-- Se actualiza al agregar codigos -->
+</a>
+\end{lstlisting}
+
+\subsection{Paso 4: Definir el prefijo de la nueva categoría}
+
+Elige un prefijo de 2--4 letras para los archivos de código. Ejemplo:
+\texttt{ml} para Machine Learning → los archivos serán \archivo{ml-001.html},
+\archivo{ml-002.html}, etc.
+
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Guía de Estilos y CSS}
+% ═════════════════════════════════════════════════════════════════════════════
+
+Todo el diseño visual está controlado por un único archivo: \archivo{styles.css}.
+\textbf{Nunca uses estilos inline en los archivos HTML} (excepto en el sidebar
+donde ya existen algunos). Cualquier cambio visual debe hacerse en este archivo.
+
+\subsection{Variables de color (tema)}
+
+Al inicio de \archivo{styles.css} se definen las variables del tema en
+la pseudo-clase \texttt{:root}. Cambiar estos valores modifica el color
+en todo el sitio simultáneamente:
+
+\begin{lstlisting}[style=cssInline, caption={Variables de color en styles.css}]
+:root {
+    --color-fondo:          #0f1117;  /* Fondo general oscuro */
+    --color-fondo-tarjeta:  #1a1d27;  /* Fondo de tarjetas */
+    --color-fondo-codigo:   #12141c;  /* Fondo de bloques de código */
+    --color-borde:          #2a2d3a;  /* Color de los bordes */
+    --color-texto:          #e0e0e0;  /* Texto principal */
+    --color-texto-claro:    #8b8fa3;  /* Texto secundario/gris */
+    --color-acento:         #6c63ff;  /* Morado principal */
+    --color-acento-hover:   #5a52d5;  /* Morado al hover */
+    --color-verde:          #4caf50;  /* Verde (etiqueta de lenguaje) */
+    --color-azul:           #2196f3;  /* Azul (links) */
+    --color-naranja:        #ff9800;  /* Naranja (avisos) */
+}
+\end{lstlisting}
+
+\subsection{Cambiar el color principal del tema}
+
+Para cambiar el color morado/acento a otro color (ej: azul), cambia únicamente:
+
+\begin{lstlisting}[style=cssInline]
+--color-acento:        #2196F3;  /* Nuevo color primario */
+--color-acento-hover:  #1976D2;  /* Version oscura del nuevo color */
+\end{lstlisting}
+
+\subsection{Clases CSS importantes}
+
+\begin{longtable}{lp{9cm}}
+\toprule
+\textbf{Clase} & \textbf{Descripción} \\
+\midrule
+\endhead
+\clase{sidebar}              & Barra lateral fija de 240px \\
+\clase{zona-principal}       & Todo el contenido a la derecha del sidebar \\
+\clase{header}               & Barra superior con título \\
+\clase{contenido}            & Contenedor central (max-width: 1000px) \\
+\clase{tarjeta}              & Caja de contenido principal de un código \\
+\clase{tarjeta-titulo}       & Título grande del código \\
+\clase{tarjeta-descripcion}  & Descripción en gris \\
+\clase{etiquetas}            & Contenedor de los tags \\
+\clase{etiqueta}             & Tag individual (ej: \texttt{\#etl}) \\
+\clase{etiqueta-lenguaje}    & Badge verde del lenguaje (ej: python) \\
+\clase{info-meta}            & Fila de autor y fecha \\
+\clase{instrucciones}        & Sección de instrucciones \\
+\clase{bloque-codigo}        & Caja oscura con el código \\
+\clase{barra-archivo}        & Barra superior del bloque con nombre y botón copiar \\
+\clase{seccion-video}        & Sección del video \\
+\clase{video-wrapper}        & Contenedor responsive 16:9 \\
+\clase{video-placeholder}    & Mensaje cuando no hay video \\
+\clase{footer}               & Pie de página \\
+\clase{grid-proyectos}       & Grid 2 columnas en páginas de categoría \\
+\clase{proyecto-card}        & Tarjeta clicable de proyecto \\
+\clase{badge-tipo}           & Base del badge de tipo \\
+\clase{badge-notebook}       & Badge azul ``Notebook'' \\
+\clase{badge-script}         & Badge naranja ``Script'' \\
+\clase{badge-proyecto}       & Badge verde ``Proyecto'' \\
+\clase{stats-grid}           & Grid de 3 estadísticas en el dashboard \\
+\clase{dash-categorias}      & Grid 2×2 de categorías en el dashboard \\
+\clase{dash-recientes}       & Lista de códigos recientes en el dashboard \\
+\clase{sidebar-categoria}    & Link de categoría en el sidebar \\
+\clase{sidebar-categoria activa} & Link resaltado (categoría activa) \\
+\bottomrule
+\end{longtable}
+
+\subsection{Tipos de proyecto y sus badges}
+
+Existen exactamente tres tipos de proyecto. Usa el que corresponda:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Tipo} & \textbf{Clase CSS} & \textbf{Color} \\
+\midrule
+Proyecto  & \clase{badge-proyecto}  & Verde \\
+Notebook  & \clase{badge-notebook}  & Azul \\
+Script    & \clase{badge-script}    & Naranja \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+En la página de detalle del código, el tipo se pone como texto simple
+(sin clase de badge):
+
+\begin{lstlisting}[style=htmlstyle]
+<span class="etiqueta-lenguaje">python</span>
+<span style="color: #8b8fa3; font-size: 14px;">Notebook</span>
+\end{lstlisting}
+
+En la página de categoría, sí usa la clase de badge:
+
+\begin{lstlisting}[style=htmlstyle]
+<span class="badge-tipo badge-notebook">Notebook</span>
+\end{lstlisting}
+
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Modificar el Dashboard (index.html)}
+% ═════════════════════════════════════════════════════════════════════════════
+
+\subsection{Actualizar las estadísticas}
+
+Las tarjetas de estadísticas en el dashboard muestran 3 números:
+
+\begin{lstlisting}[style=htmlstyle]
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icono morado"></div>
+        <div>
+            <div class="stat-numero">16</div>         <!-- Total de codigos -->
+            <div class="stat-label">Códigos Totales</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        ...
+        <div class="stat-numero">4</div>              <!-- Total de categorias -->
+        ...
+    </div>
+    <div class="stat-card">
+        ...
+        <div class="stat-numero">2</div>              <!-- Total de lenguajes -->
+        ...
+    </div>
+</div>
+\end{lstlisting}
+
+\subsection{Cambiar el nombre del repositorio}
+
+El título que aparece en la barra superior del dashboard:
+
+\begin{lstlisting}[style=htmlstyle]
+<div class="header">
+    <span class="logo">Repositorio de Demos</span>      <!-- Cambiar aqui -->
+    <span class="descripcion">Repositorio Interno de Código</span>
+</div>
+\end{lstlisting}
+
+\subsection{Actualizar el conteo de las categorías}
+
+El número circular en cada tarjeta de categoría:
+
+\begin{lstlisting}[style=htmlstyle]
+<span class="cat-count">4</span>    <!-- Numero de codigos en esa categoria -->
+\end{lstlisting}
+
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Eliminar un Código}
+% ═════════════════════════════════════════════════════════════════════════════
+
+Para eliminar un código existente sin dejar referencias rotas:
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item Elimina el archivo \archivo{codigos/xxx-00N.html}.
+    \item En la página de categoría correspondiente (\archivo{categorias/xxx.html}),
+          elimina la tarjeta \clase{proyecto-card} que apuntaba a ese archivo.
+    \item En \archivo{index.html}, si el código aparecía en \clase{dash-recientes},
+          elimina también ese \etiquetaHtml{li}.
+    \item Actualiza todos los contadores mencionados en la sección 6.8.
+\end{enumerate}
+
+\begin{cajaAviso}
+    Antes de eliminar, verifica con \texttt{Ctrl+F} en todos los archivos HTML
+    si el nombre del archivo aparece referenciado en algún otro lugar.
+\end{cajaAviso}
+
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Buenas Prácticas de Edición}
+% ═════════════════════════════════════════════════════════════════════════════
+
+\subsection{Reglas generales}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Nunca edites \archivo{styles.css} para un caso específico.}
+          Los estilos son globales. Si necesitas algo puntual, usa un atributo
+          \texttt{style=""} solo como último recurso.
+    \item \textbf{No cambies la estructura del sidebar} en archivos individuales.
+          El sidebar es idéntico en todas las páginas (excepto la clase \texttt{activa}).
+    \item \textbf{Usa siempre rutas relativas.} Nunca rutas absolutas.
+    \item \textbf{No incluyas librerías externas} (CDN, npm, etc.) sin aprobación
+          del equipo. El sitio debe funcionar sin internet.
+    \item \textbf{Prueba siempre} abriendo el archivo en un navegador antes de
+          considerar el trabajo terminado.
+\end{itemize}
+
+\subsection{Consistencia de metadatos}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{Fechas:} Siempre en formato \texttt{YYYY-MM-DD} (ej: \texttt{2025-06-01}).
+    \item \textbf{Tags:} En minúsculas con guiones (kebab-case): \texttt{\#fraud-detection}.
+    \item \textbf{Autores:} Usa el nombre del equipo, no personas individuales
+          (ej: ``ML Engineering'', no ``Juan Pérez'').
+    \item \textbf{Títulos:} En español con mayúscula inicial. Sin punto final.
+    \item \textbf{Descripciones cortas:} 1--2 oraciones máximo. No repitas el título.
+    \item \textbf{Instrucciones:} Sé específico: qué formato de datos de entrada,
+          qué retorna, qué librerías necesita.
+\end{itemize}
+
+\subsection{Editores recomendados}
+
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{VS Code} con extensiones: \textit{Prettier}, \textit{HTML CSS Support}.
+    \item \textbf{Sublime Text} con paquete \textit{Emmet}.
+    \item Cualquier editor con soporte de HTML y vista previa (o usa la extensión
+          \textit{Live Server} en VS Code para previsualizar en tiempo real).
+\end{itemize}
+
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Problemas Comunes y Soluciones}
+% ═════════════════════════════════════════════════════════════════════════════
+
+\begin{longtable}{p{5.5cm}p{8.5cm}}
+\toprule
+\textbf{Problema} & \textbf{Causa / Solución} \\
+\midrule
+\endhead
+
+El CSS no carga (página sin estilos)
+&
+La ruta en \texttt{<link rel="stylesheet">} es incorrecta.
+En \archivo{codigos/}, debe ser \texttt{href="../styles.css"}.
+En \archivo{categorias/}, también \texttt{href="../styles.css"}.
+En \archivo{index.html}, solo \texttt{href="styles.css"}.
+\\[8pt]
+
+Los links del sidebar llevan a páginas en blanco
+&
+La ruta en los \texttt{href} es incorrecta. Desde \archivo{codigos/},
+las categorías se acceden con \texttt{../categorias/analytics.html}.
+\\[8pt]
+
+El código aparece como texto plano sin colores
+&
+Es comportamiento esperado si no se agregaron los \texttt{<span>}.
+Para colorear, sigue la guía de la sección 5.
+\\[8pt]
+
+El botón ``Copiar'' no funciona
+&
+El sitio debe abrirse desde un servidor (o \texttt{localhost}), no
+directamente desde el sistema de archivos (\texttt{file://}) en algunos navegadores.
+Usa la extensión \textit{Live Server} de VS Code, o instala Python y ejecuta
+\texttt{python -m http.server 8000}.
+\\[8pt]
+
+El video de YouTube no carga
+&
+Verifica que usas la URL de \textbf{embed} (\texttt{youtube.com/embed/ID})
+y no la URL normal (\texttt{youtube.com/watch?v=ID}).
+\\[8pt]
+
+Aparecen caracteres como ``<'' o ``>'' rotos en el código
+&
+Son caracteres especiales HTML. Usa \texttt{\&lt;} para \texttt{<}
+y \texttt{\&gt;} para \texttt{>}. Ver sección 5.4.
+\\[8pt]
+
+La página de categoría no muestra el nuevo código
+&
+No se agregó la tarjeta en el \clase{grid-proyectos} del archivo
+de categoría correspondiente. Ver sección 6.7.
+\\[8pt]
+
+El número de códigos en el sidebar es incorrecto
+&
+El texto ``N códigos disponibles'' es estático y debe actualizarse
+manualmente en todos los archivos. Ver sección 6.8.
+\\[8pt]
+
+El video local no reproduce
+&
+Verifica que el archivo \texttt{.mp4} existe en \archivo{videos/}
+y que la ruta en \texttt{<source src="">} es correcta (\texttt{../videos/mi\_video.mp4}).
+\\
+
+\bottomrule
+\end{longtable}
+
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Servidor Local de Desarrollo}
+% ═════════════════════════════════════════════════════════════════════════════
+
+Aunque el sitio es estático, algunas funciones (como el botón Copiar)
+requieren que se sirva a través de un servidor HTTP en lugar de abrir los
+archivos directamente con el explorador de archivos.
+
+\subsection{Opción A: Python (recomendado, sin instalación extra)}
+
+Si tienes Python instalado, ejecuta desde la raíz del proyecto:
+
+\begin{cajaCodigo}
+\# Python 3:\\
+\texttt{python -m http.server 8000}\\[4pt]
+\# Python 2:\\
+\texttt{python -m SimpleHTTPServer 8000}
+\end{cajaCodigo}
+
+Luego abre el navegador en: \texttt{http://localhost:8000}
+
+\subsection{Opción B: VS Code Live Server}
+
+\begin{enumerate}[leftmargin=1.5em]
+    \item Instala la extensión \textit{Live Server} de Ritwick Dey.
+    \item Abre la carpeta del proyecto en VS Code.
+    \item Haz clic derecho en \archivo{index.html} → \textit{Open with Live Server}.
+    \item El sitio abre automáticamente en \texttt{http://127.0.0.1:5500}.
+\end{enumerate}
+
+\subsection{Opción C: Node.js}
+
+\begin{cajaCodigo}
+\texttt{npx serve .}
+\end{cajaCodigo}
+
+
+% ═════════════════════════════════════════════════════════════════════════════
+\section{Lista de Verificación para Nuevas Entradas}
+% ═════════════════════════════════════════════════════════════════════════════
+
+Usa esta lista antes de considerar completo cualquier nuevo código:
+
+\textbf{Archivo de código (\archivo{codigos/xxx-00N.html}):}
+\begin{itemize}[leftmargin=1.5em, label={\(\square\)}]
+    \item El \texttt{<title>} tiene el nombre correcto del proyecto.
+    \item El sidebar tiene la categoría correcta marcada como \texttt{activa}.
+    \item El \clase{tarjeta-titulo} está completo.
+    \item El lenguaje en \clase{etiqueta-lenguaje} es correcto.
+    \item El tipo (Proyecto / Notebook / Script) está correcto.
+    \item La descripción en \clase{tarjeta-descripcion} es clara y concisa.
+    \item Hay al menos 2 etiquetas en \clase{etiquetas}.
+    \item El autor y la fecha en \clase{info-meta} son correctos (\texttt{YYYY-MM-DD}).
+    \item Las instrucciones de uso explican entradas, salidas y dependencias.
+    \item El nombre del archivo en \clase{barra-archivo} es el correcto (\texttt{.py}).
+    \item El código es el real (no el placeholder del motor de recomendaciones).
+    \item Si hay video: la URL de YouTube o la ruta del \texttt{.mp4} son correctas.
+    \item El botón ``Copiar'' funciona al abrir en el navegador.
+\end{itemize}
+
+\textbf{Página de categoría:}
+\begin{itemize}[leftmargin=1.5em, label={\(\square\)}]
+    \item Se agregó la tarjeta en \clase{grid-proyectos}.
+    \item El \texttt{href} de la tarjeta apunta al archivo correcto.
+    \item El badge de tipo (\texttt{badge-notebook}, etc.) es correcto.
+    \item El contador \clase{categoria-contador} se actualizó.
+\end{itemize}
+
+\textbf{Dashboard (\archivo{index.html}):}
+\begin{itemize}[leftmargin=1.5em, label={\(\square\)}]
+    \item El número total en \clase{stat-numero} se actualizó.
+    \item El \clase{cat-count} de la categoría se actualizó.
+    \item El texto ``N códigos disponibles'' en el sidebar footer se actualizó.
+\end{itemize}
+
+\textbf{Todos los archivos:}
+\begin{itemize}[leftmargin=1.5em, label={\(\square\)}]
+    \item El texto ``N códigos disponibles'' en el \clase{sidebar-footer}
+          de todos los archivos de \archivo{codigos/} se actualizó.
+\end{itemize}
+
+
+% ─── FIN DEL DOCUMENTO ───────────────────────────────────────────────────────
+\vspace{2cm}
+\noindent\textcolor{cpAccent}{\rule{\linewidth}{0.6pt}}
+
+\vspace{0.5cm}
+\begin{center}
+    {\small\color{cpTextoClaro}
+    ConversionPulse · Repositorio Interno de Código · 2025 \\[4pt]
+    Documentación generada para uso interno del equipo.}
+\end{center}
+
+\end{document}

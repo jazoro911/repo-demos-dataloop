@@ -1,0 +1,863 @@
+/* ==========================================================
+   ESTILOS DEL REPOSITORIO DE DEMOS - ConversionPulse
+   ==========================================================
+   Este archivo controla TODOS los colores, tamaños y diseño
+   del sitio. Si quieres cambiar algo visual, hazlo aquí.
+   ========================================================== */
+
+
+/* --- COLORES PRINCIPALES (cambia estos valores para cambiar el tema) --- */
+:root {
+    --color-fondo:          #0f1117;    /* Fondo general oscuro */
+    --color-fondo-tarjeta:  #1a1d27;    /* Fondo de las tarjetas */
+    --color-fondo-codigo:   #12141c;    /* Fondo de bloques de código */
+    --color-borde:          #2a2d3a;    /* Color de los bordes */
+    --color-texto:          #e0e0e0;    /* Texto principal */
+    --color-texto-claro:    #8b8fa3;    /* Texto secundario/gris */
+    --color-acento:         #6c63ff;    /* Color morado principal */
+    --color-acento-hover:   #5a52d5;    /* Morado al pasar el mouse */
+    --color-verde:          #4caf50;    /* Verde para etiquetas */
+    --color-azul:           #2196f3;    /* Azul para links */
+    --color-naranja:        #ff9800;    /* Naranja para avisos */
+}
+
+
+/* --- ESTILOS BASE (aplican a toda la página) --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+    line-height: 1.6;
+    display: flex;              /* Sidebar + contenido lado a lado */
+    min-height: 100vh;
+}
+
+
+/* --- BARRA LATERAL / SIDEBAR --- */
+.sidebar {
+    width: 240px;
+    min-width: 240px;
+    background-color: var(--color-fondo-tarjeta);
+    border-right: 1px solid var(--color-borde);
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    position: fixed;            /* Se queda fija al hacer scroll */
+    top: 0;
+    left: 0;
+    bottom: 0;
+    overflow-y: auto;
+}
+
+/* Logo del sidebar */
+.sidebar .sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 20px 20px 20px;
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-borde);
+    margin-bottom: 15px;
+}
+
+.sidebar .sidebar-logo .logo-icono {
+    color: var(--color-acento);
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.sidebar .sidebar-logo .logo-texto {
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Buscador dentro del sidebar */
+.sidebar .sidebar-buscador {
+    margin: 0 15px 15px 15px;
+    padding: 8px 12px;
+    background-color: var(--color-fondo);
+    border: 1px solid var(--color-borde);
+    border-radius: 6px;
+    color: var(--color-texto);
+    font-size: 13px;
+    width: calc(100% - 30px);
+}
+
+.sidebar .sidebar-buscador:focus {
+    outline: none;
+    border-color: var(--color-acento);
+}
+
+.sidebar .sidebar-buscador::placeholder {
+    color: var(--color-texto-claro);
+}
+
+/* Link de Dashboard */
+.sidebar .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    color: var(--color-texto-claro);
+    text-decoration: none;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.sidebar .sidebar-link:hover {
+    background-color: rgba(108, 99, 255, 0.1);
+    color: var(--color-texto);
+}
+
+.sidebar .sidebar-link.activa {
+    background-color: rgba(108, 99, 255, 0.1);
+    color: #ffffff;
+    border-radius: 6px;
+    margin: 0 10px;
+    padding: 10px;
+}
+
+/* Título de sección "CASOS DE USO" */
+.sidebar .sidebar-seccion {
+    padding: 15px 20px 8px 20px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-texto-claro);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Links de categorías */
+.sidebar .sidebar-categoria {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    color: var(--color-texto-claro);
+    text-decoration: none;
+    font-size: 14px;
+    transition: background-color 0.2s;
+    border-left: 3px solid transparent;
+}
+
+.sidebar .sidebar-categoria:hover {
+    background-color: rgba(108, 99, 255, 0.1);
+    color: var(--color-texto);
+}
+
+/* Categoría activa/seleccionada */
+.sidebar .sidebar-categoria.activa {
+    background-color: rgba(108, 99, 255, 0.1);
+    color: #ffffff;
+    border-left-color: var(--color-acento);
+}
+
+.sidebar .sidebar-categoria .icono {
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+}
+
+/* Parte inferior del sidebar (admin) */
+.sidebar .sidebar-footer {
+    margin-top: auto;
+    padding: 15px 20px;
+    border-top: 1px solid var(--color-borde);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sidebar .sidebar-footer .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--color-acento);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: #ffffff;
+}
+
+.sidebar .sidebar-footer .admin-info {
+    font-size: 13px;
+}
+
+.sidebar .sidebar-footer .admin-info .nombre {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.sidebar .sidebar-footer .admin-info .detalle {
+    color: var(--color-texto-claro);
+    font-size: 11px;
+}
+
+
+/* --- ZONA PRINCIPAL (todo lo que está a la derecha del sidebar) --- */
+.zona-principal {
+    margin-left: 240px;         /* Mismo ancho que el sidebar */
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+
+/* --- ENCABEZADO / HEADER (barra superior) --- */
+.header {
+    background-color: var(--color-fondo-tarjeta);
+    border-bottom: 1px solid var(--color-borde);
+    padding: 15px 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header .logo {
+    font-size: 22px;
+    font-weight: bold;
+    color: var(--color-acento);
+    text-decoration: none;
+}
+
+.header .descripcion {
+    color: var(--color-texto-claro);
+    font-size: 14px;
+}
+
+
+/* --- CONTENIDO PRINCIPAL --- */
+.contenido {
+    max-width: 1000px;
+    margin: 30px auto;
+    padding: 0 20px;
+    width: 100%;
+}
+
+
+/* --- BOTÓN "VOLVER" --- */
+.boton-volver {
+    display: inline-block;
+    color: var(--color-acento);
+    text-decoration: none;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.boton-volver:hover {
+    text-decoration: underline;
+}
+
+
+/* --- TARJETAS DE PROYECTO (las cajas que muestran cada código) --- */
+.tarjeta {
+    background-color: var(--color-fondo-tarjeta);
+    border: 1px solid var(--color-borde);
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 25px;
+}
+
+.tarjeta-titulo {
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: #ffffff;
+}
+
+.tarjeta-descripcion {
+    color: var(--color-texto-claro);
+    margin-bottom: 15px;
+    font-size: 15px;
+}
+
+
+/* --- ETIQUETAS / TAGS (ej: #python, #recommendation-engine) --- */
+.etiquetas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.etiqueta {
+    background-color: rgba(108, 99, 255, 0.15);
+    color: var(--color-acento);
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+}
+
+.etiqueta-lenguaje {
+    background-color: rgba(76, 175, 80, 0.15);
+    color: var(--color-verde);
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+
+/* --- INFORMACIÓN DEL AUTOR Y FECHA --- */
+.info-meta {
+    display: flex;
+    gap: 25px;
+    color: var(--color-texto-claro);
+    font-size: 13px;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--color-borde);
+}
+
+.info-meta strong {
+    color: var(--color-texto);
+}
+
+
+/* --- SECCIÓN DE INSTRUCCIONES --- */
+.instrucciones {
+    margin-bottom: 25px;
+}
+
+.instrucciones h2 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #ffffff;
+}
+
+.instrucciones p {
+    color: var(--color-texto-claro);
+    font-size: 14px;
+}
+
+
+/* --- BLOQUES DE CÓDIGO --- */
+.bloque-codigo {
+    background-color: var(--color-fondo-codigo);
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+/* Barra superior del bloque de código (nombre del archivo) */
+.bloque-codigo .barra-archivo {
+    background-color: var(--color-fondo-tarjeta);
+    padding: 8px 15px;
+    font-size: 13px;
+    color: var(--color-texto-claro);
+    border-bottom: 1px solid var(--color-borde);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* El código en sí */
+.bloque-codigo pre {
+    padding: 20px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.bloque-codigo code {
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--color-texto);
+}
+
+
+/* --- COLORES PARA EL CÓDIGO (resaltado de sintaxis manual) --- */
+.keyword   { color: #c792ea; }  /* Palabras clave: import, class, def, if, return */
+.string    { color: #c3e88d; }  /* Textos entre comillas */
+.comment   { color: #546e7a; }  /* Comentarios: líneas con # */
+.function  { color: #82aaff; }  /* Nombres de funciones */
+.number    { color: #f78c6c; }  /* Números */
+.builtin   { color: #ffcb6b; }  /* Funciones built-in: print, len, range */
+.decorator { color: #ff5370; }  /* Decoradores: @algo */
+.param     { color: #f07178; }  /* Parámetros */
+
+
+/* --- GRID DE CATEGORÍAS (página principal) --- */
+.grid-categorias {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.categoria-card {
+    background-color: var(--color-fondo-tarjeta);
+    border: 1px solid var(--color-borde);
+    border-radius: 10px;
+    padding: 20px;
+    text-decoration: none;
+    color: var(--color-texto);
+    transition: border-color 0.2s;
+}
+
+.categoria-card:hover {
+    border-color: var(--color-acento);
+}
+
+.categoria-card h3 {
+    color: #ffffff;
+    margin-bottom: 8px;
+}
+
+.categoria-card p {
+    color: var(--color-texto-claro);
+    font-size: 14px;
+}
+
+.categoria-card .cantidad {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--color-acento);
+}
+
+
+/* --- LISTA DE PROYECTOS (dentro de una categoría) --- */
+.lista-proyectos {
+    list-style: none;
+}
+
+.lista-proyectos li {
+    margin-bottom: 10px;
+}
+
+.lista-proyectos a {
+    display: block;
+    background-color: var(--color-fondo-tarjeta);
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    padding: 15px 20px;
+    text-decoration: none;
+    color: var(--color-texto);
+    transition: border-color 0.2s;
+}
+
+.lista-proyectos a:hover {
+    border-color: var(--color-acento);
+}
+
+.lista-proyectos .proyecto-nombre {
+    font-weight: bold;
+    color: #ffffff;
+}
+
+.lista-proyectos .proyecto-desc {
+    font-size: 13px;
+    color: var(--color-texto-claro);
+    margin-top: 4px;
+}
+
+
+/* --- BUSCADOR --- */
+.buscador {
+    width: 100%;
+    padding: 12px 18px;
+    background-color: var(--color-fondo-tarjeta);
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    color: var(--color-texto);
+    font-size: 15px;
+    margin-bottom: 25px;
+}
+
+.buscador:focus {
+    outline: none;
+    border-color: var(--color-acento);
+}
+
+.buscador::placeholder {
+    color: var(--color-texto-claro);
+}
+
+
+/* --- ENCABEZADO DE CATEGORÍA (título + descripción + contador) --- */
+.categoria-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 5px;
+}
+
+.categoria-header .categoria-icono {
+    font-size: 36px;
+    background-color: rgba(108, 99, 255, 0.15);
+    width: 55px;
+    height: 55px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.categoria-header h1 {
+    font-size: 28px;
+    color: #ffffff;
+}
+
+.categoria-descripcion {
+    color: var(--color-texto-claro);
+    font-size: 15px;
+    margin-bottom: 8px;
+}
+
+.categoria-contador {
+    color: var(--color-texto-claro);
+    font-size: 13px;
+    margin-bottom: 25px;
+}
+
+
+/* --- GRID DE TARJETAS DE PROYECTO (vista categoría) --- */
+.grid-proyectos {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+/* Cada tarjeta de proyecto en el grid */
+.proyecto-card {
+    background-color: var(--color-fondo-tarjeta);
+    border: 1px solid var(--color-borde);
+    border-radius: 10px;
+    padding: 22px;
+    text-decoration: none;
+    color: var(--color-texto);
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.2s;
+}
+
+.proyecto-card:hover {
+    border-color: var(--color-acento);
+}
+
+/* Fila superior: título + badge tipo */
+.proyecto-card .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.proyecto-card .card-titulo {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    flex: 1;
+    margin-right: 10px;
+}
+
+/* Badge de tipo: Notebook, Script, Proyecto */
+.badge-tipo {
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge-notebook {
+    background-color: rgba(33, 150, 243, 0.2);
+    color: #64b5f6;
+}
+
+.badge-script {
+    background-color: rgba(255, 152, 0, 0.2);
+    color: #ffb74d;
+}
+
+.badge-proyecto {
+    background-color: rgba(76, 175, 80, 0.2);
+    color: #81c784;
+}
+
+/* Descripción de la tarjeta */
+.proyecto-card .card-desc {
+    color: var(--color-texto-claro);
+    font-size: 13px;
+    margin-bottom: 15px;
+    flex: 1;
+}
+
+/* Fila de tags + lenguaje */
+.proyecto-card .card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.proyecto-card .card-tag {
+    background-color: rgba(255, 255, 255, 0.06);
+    color: var(--color-texto-claro);
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+}
+
+.proyecto-card .card-lang {
+    margin-left: auto;
+}
+
+/* Fila inferior: autor + fecha */
+.proyecto-card .card-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--color-texto-claro);
+    padding-top: 10px;
+    border-top: 1px solid var(--color-borde);
+}
+
+
+/* --- DASHBOARD: Tarjetas de estadísticas --- */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background-color: var(--color-fondo-tarjeta);
+    border: 1px solid var(--color-borde);
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.stat-card .stat-icono {
+    width: 45px;
+    height: 45px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.stat-card .stat-icono.morado { background-color: rgba(108, 99, 255, 0.15); }
+.stat-card .stat-icono.verde  { background-color: rgba(76, 175, 80, 0.15); }
+.stat-card .stat-icono.azul   { background-color: rgba(33, 150, 243, 0.15); }
+
+.stat-card .stat-numero {
+    font-size: 28px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.stat-card .stat-label {
+    font-size: 13px;
+    color: var(--color-texto-claro);
+}
+
+
+/* --- DASHBOARD: Sección título --- */
+.dash-seccion {
+    font-size: 18px;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 15px;
+}
+
+
+/* --- DASHBOARD: Grid de categorías clickeables --- */
+.dash-categorias {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 35px;
+}
+
+.dash-cat-card {
+    background-color: var(--color-fondo-tarjeta);
+    border: 1px solid var(--color-borde);
+    border-radius: 10px;
+    padding: 20px;
+    text-decoration: none;
+    color: var(--color-texto);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: border-color 0.2s;
+    position: relative;
+}
+
+.dash-cat-card:hover {
+    border-color: var(--color-acento);
+}
+
+.dash-cat-card .cat-icono {
+    font-size: 28px;
+    margin-bottom: 4px;
+}
+
+.dash-cat-card .cat-nombre {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.dash-cat-card .cat-desc {
+    font-size: 13px;
+    color: var(--color-texto-claro);
+}
+
+.dash-cat-card .cat-count {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    background-color: rgba(108, 99, 255, 0.2);
+    color: var(--color-acento);
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+
+/* --- DASHBOARD: Lista de códigos recientes --- */
+.dash-recientes {
+    list-style: none;
+}
+
+.dash-recientes li {
+    margin-bottom: 2px;
+}
+
+.dash-recientes a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background-color: var(--color-fondo-tarjeta);
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--color-texto);
+    transition: border-color 0.2s;
+}
+
+.dash-recientes a:hover {
+    border-color: var(--color-acento);
+}
+
+.dash-recientes .rec-icono {
+    font-size: 18px;
+    width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.dash-recientes .rec-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.dash-recientes .rec-nombre {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.dash-recientes .rec-desc {
+    font-size: 12px;
+    color: var(--color-texto-claro);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dash-recientes .rec-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.dash-recientes .rec-fecha {
+    font-size: 12px;
+    color: var(--color-texto-claro);
+}
+
+
+/* --- SECCIÓN DE VIDEO --- */
+.seccion-video {
+    margin-top: 25px;
+    margin-bottom: 25px;
+}
+
+.seccion-video h2 {
+    font-size: 18px;
+    margin-bottom: 12px;
+    color: #ffffff;
+}
+
+.video-container {
+    background-color: var(--color-fondo-codigo);
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Hace que el video sea responsivo (16:9) */
+.video-wrapper {
+    position: relative;
+    padding-bottom: 56.25%;   /* Proporción 16:9 */
+    height: 0;
+    overflow: hidden;
+}
+
+.video-wrapper iframe,
+.video-wrapper video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* Mensaje cuando no hay video */
+.video-placeholder {
+    padding: 40px;
+    text-align: center;
+    color: var(--color-texto-claro);
+    font-size: 14px;
+}
+
+.video-placeholder .placeholder-icono {
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+
+/* --- PIE DE PÁGINA --- */
+.footer {
+    text-align: center;
+    padding: 30px;
+    color: var(--color-texto-claro);
+    font-size: 12px;
+    border-top: 1px solid var(--color-borde);
+    margin-top: 50px;
+}

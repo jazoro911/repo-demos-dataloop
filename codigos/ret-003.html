@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConversionPulse - Motor de Recomendaciones Colaborativo</title>
+
+    <!-- Los estilos están en la carpeta padre (un nivel arriba) -->
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+    <!-- ============================================
+         BARRA LATERAL (SIDEBAR)
+         ============================================ -->
+    <nav class="sidebar">
+        <a href="../index.html" class="sidebar-logo">
+            <span class="logo-icono">&lt;/&gt;</span>
+            <span class="logo-texto">ConversionPulse</span>
+        </a>
+        <input type="text" class="sidebar-buscador" placeholder="🔍 Buscar código...">
+        <a href="../index.html" class="sidebar-link">
+            <span class="icono">📊</span> Dashboard
+        </a>
+        <div class="sidebar-seccion">Casos de Uso</div>
+        <a href="../categorias/financial-crimes.html" class="sidebar-categoria">
+            <span class="icono">🔒</span> Financial Crimes
+        </a>
+        <a href="../categorias/gobierno.html" class="sidebar-categoria">
+            <span class="icono">🏛️</span> Gobierno
+        </a>
+        <a href="../categorias/retail.html" class="sidebar-categoria activa">
+            <span class="icono">🛒</span> Retail
+        </a>
+        <a href="../categorias/analytics.html" class="sidebar-categoria">
+            <span class="icono">📈</span> Analytics
+        </a>
+        <div class="sidebar-footer">
+            <div class="avatar">R</div>
+            <div class="admin-info">
+                <div class="nombre">Repository Admin</div>
+                <div class="detalle">Uso interno</div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ZONA PRINCIPAL -->
+    <div class="zona-principal">
+
+    <!-- ENCABEZADO -->
+    <div class="header">
+        <span class="logo">Conversion Rate Analysis</span>
+        <span class="descripcion">Repositorio Interno de Código</span>
+    </div>
+
+
+    <!-- ============================================
+         CONTENIDO PRINCIPAL
+         ============================================ -->
+    <div class="contenido">
+
+        <!-- Botón para regresar a la página principal -->
+        <a href="../index.html" class="boton-volver">← Volver al repositorio</a>
+
+
+        <!-- ============================================
+             TARJETA DEL PROYECTO
+             Aquí va el título, descripción y etiquetas
+             ============================================ -->
+        <div class="tarjeta">
+
+            <!-- Título del proyecto -->
+            <h1 class="tarjeta-titulo">Motor de Recomendaciones Colaborativo</h1>
+
+            <!-- Etiqueta del lenguaje y descripción -->
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                <span class="etiqueta-lenguaje">python</span>
+                <span style="color: #8b8fa3; font-size: 14px;">Proyecto</span>
+            </div>
+
+            <p class="tarjeta-descripcion">
+                Sistema de recomendación de productos usando filtrado colaborativo con factorización de matrices.
+            </p>
+
+            <!-- Etiquetas / Tags del proyecto -->
+            <div class="etiquetas">
+                <span class="etiqueta">#recommendation-engine</span>
+                <span class="etiqueta">#collaborative-filtering</span>
+                <span class="etiqueta">#matrix-factorization</span>
+            </div>
+
+            <!-- Autor y fecha -->
+            <div class="info-meta">
+                <span><strong>Autor:</strong> Personalization Team</span>
+                <span><strong>Fecha:</strong> 2025-04-25</span>
+            </div>
+
+
+            <!-- ============================================
+                 INSTRUCCIONES DE USO
+                 ============================================ -->
+            <div class="instrucciones">
+                <h2>📋 Instrucciones de Uso</h2>
+                <p>
+                    API que recibe un customer_id y retorna top-N productos recomendados 
+                    basados en comportamiento similar.
+                </p>
+            </div>
+
+
+            <!-- ============================================
+                 BLOQUE DE CÓDIGO
+                 ============================================
+                 
+                 CÓMO RESALTAR CÓDIGO CON COLORES:
+                 Envuelve las palabras en <span class="TIPO">palabra</span>
+                 
+                 Tipos disponibles:
+                   keyword  = morado  (import, class, def, if, return, from, as)
+                   string   = verde   ("textos entre comillas")
+                   comment  = gris    (# comentarios)
+                   function = azul    (nombres de funciones)
+                   number   = naranja (42, 3.14)
+                   builtin  = amarillo (print, len, range, float, int)
+                   
+                 Si no quieres colorear, simplemente escribe el código
+                 normal y se verá en gris claro.
+                 ============================================ -->
+            <div class="bloque-codigo">
+                <div class="barra-archivo">
+                    <span>motor_de_recomendaciones_colaborativo.py</span>
+                    <span style="cursor: pointer;" onclick="copiarCodigo(this)">📋 Copiar</span>
+                </div>
+                <pre><code><span class="keyword">import</span> numpy <span class="keyword">as</span> np
+<span class="keyword">from</span> scipy.sparse <span class="keyword">import</span> csr_matrix
+<span class="keyword">from</span> sklearn.decomposition <span class="keyword">import</span> TruncatedSVD
+<span class="keyword">from</span> collections <span class="keyword">import</span> defaultdict
+
+<span class="keyword">class</span> <span class="function">RecommendationEngine</span>:
+    <span class="string">"""Motor de recomendaciones por filtrado colaborativo"""</span>
+    
+    <span class="keyword">def</span> <span class="function">__init__</span>(self, n_factors=<span class="number">50</span>):
+        self.n_factors = n_factors
+        self.model = <span class="keyword">None</span>
+        self.user_map = {}
+        self.item_map = {}
+        self.item_reverse_map = {}
+    
+    <span class="keyword">def</span> <span class="function">fit</span>(self, interactions_df):
+        <span class="string">"""Entrenar modelo con interacciones usuario-producto"""</span>
+        <span class="comment"># Crear mappings</span>
+        users = interactions_df[<span class="string">'customer_id'</span>].unique()
+        items = interactions_df[<span class="string">'product_id'</span>].unique()
+        
+        self.user_map = {u: i <span class="keyword">for</span> i, u <span class="keyword">in</span> <span class="builtin">enumerate</span>(users)}
+        self.item_map = {p: i <span class="keyword">for</span> i, p <span class="keyword">in</span> <span class="builtin">enumerate</span>(items)}
+        self.item_reverse_map = {i: p <span class="keyword">for</span> p, i <span class="keyword">in</span> self.item_map.items()}
+        
+        <span class="comment"># Matriz sparse de interacciones</span>
+        rows = interactions_df[<span class="string">'customer_id'</span>].map(self.user_map)
+        cols = interactions_df[<span class="string">'product_id'</span>].map(self.item_map)
+        values = interactions_df[<span class="string">'rating'</span>]
+        
+        self.matrix = csr_matrix(
+            (values, (rows, cols)),
+            shape=(<span class="builtin">len</span>(users), <span class="builtin">len</span>(items))
+        )
+        
+        <span class="comment"># Factorización SVD</span>
+        self.model = TruncatedSVD(n_components=self.n_factors)
+        self.user_factors = self.model.fit_transform(self.matrix)
+        self.item_factors = self.model.components_.T
+        
+        <span class="keyword">return</span> self
+    
+    <span class="keyword">def</span> <span class="function">recommend</span>(self, customer_id, n=<span class="number">10</span>, exclude_purchased=<span class="keyword">True</span>):
+        <span class="string">"""Generar recomendaciones para un usuario"""</span>
+        <span class="keyword">if</span> customer_id <span class="keyword">not</span> <span class="keyword">in</span> self.user_map:
+            <span class="keyword">return</span> self._cold_start_recommendations(n)
+        
+        user_idx = self.user_map[customer_id]
+        scores = np.dot(self.user_factors[user_idx], self.item_factors.T)
+        
+        <span class="keyword">if</span> exclude_purchased:
+            purchased = self.matrix[user_idx].nonzero()[<span class="number">1</span>]
+            scores[purchased] = -np.inf
+        
+        top_indices = np.argsort(scores)[::-<span class="number">1</span>][:n]
+        
+        recommendations = []
+        <span class="keyword">for</span> idx <span class="keyword">in</span> top_indices:
+            recommendations.append({
+                <span class="string">'product_id'</span>: self.item_reverse_map[idx],
+                <span class="string">'score'</span>: <span class="builtin">round</span>(<span class="builtin">float</span>(scores[idx]), <span class="number">4</span>)
+            })
+        
+        <span class="keyword">return</span> recommendations
+    
+    <span class="keyword">def</span> <span class="function">_cold_start_recommendations</span>(self, n):
+        <span class="string">"""Recomendaciones para usuarios nuevos (popularidad)"""</span>
+        popularity = np.array(self.matrix.sum(axis=<span class="number">0</span>)).flatten()
+        top_indices = np.argsort(popularity)[::-<span class="number">1</span>][:n]
+        <span class="keyword">return</span> [{<span class="string">'product_id'</span>: self.item_reverse_map[i], 
+                 <span class="string">'score'</span>: <span class="builtin">float</span>(popularity[i])} <span class="keyword">for</span> i <span class="keyword">in</span> top_indices]
+
+<span class="comment"># Uso</span>
+<span class="keyword">import</span> pandas <span class="keyword">as</span> pd
+df = pd.read_csv(<span class="string">'user_product_ratings.csv'</span>)
+engine = RecommendationEngine(n_factors=<span class="number">30</span>)
+engine.fit(df)
+recs = engine.recommend(<span class="string">'CUST-12345'</span>, n=<span class="number">5</span>)
+<span class="builtin">print</span>(<span class="string">"Recomendaciones:"</span>, recs)</code></pre>
+            </div>
+            <!-- FIN del bloque de código -->
+
+
+            <!-- ============================================
+                 SECCIÓN DE VIDEO
+                 ============================================
+                 
+                 CÓMO AGREGAR UN VIDEO:
+                 
+                 Opción 1 - Video de YouTube:
+                 Reemplaza el contenido de "video-wrapper" con:
+                 <iframe src="https://www.youtube.com/embed/TU_ID_DE_VIDEO"></iframe>
+                 
+                 Opción 2 - Video local (archivo .mp4):
+                 Reemplaza el contenido de "video-wrapper" con:
+                 <video controls>
+                     <source src="../videos/mi_video.mp4" type="video/mp4">
+                 </video>
+                 
+                 Opción 3 - Video de Loom/Vimeo/otro:
+                 Usa el código embed que te da la plataforma
+                 dentro de "video-wrapper".
+                 
+                 Si no hay video, deja el placeholder.
+                 ============================================ -->
+            <div class="seccion-video">
+                <h2>🎬 Video Demo</h2>
+                <div class="video-container">
+                    <div class="video-wrapper">
+                        <!-- ⚡ REEMPLAZA ESTO con tu video (iframe o <video>) ⚡ -->
+                        <div class="video-placeholder">
+                            <div class="placeholder-icono">🎥</div>
+                            <p>No hay video disponible para este código.</p>
+                            <p style="font-size: 12px; margin-top: 5px;">Agrega un video pegando un iframe de YouTube o un archivo .mp4</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+        <!-- FIN de la tarjeta -->
+
+    </div>
+
+
+    <!-- ============================================
+         PIE DE PÁGINA
+         ============================================ -->
+    <div class="footer">
+        ConversionPulse · Repositorio Interno · 2025
+    </div>
+
+    </div> <!-- FIN de zona-principal -->
+
+
+    <!-- ============================================
+         BOTÓN COPIAR (JavaScript)
+         Permite copiar el código al portapapeles.
+         No necesitas modificar esto.
+         ============================================ -->
+    <script>
+        function copiarCodigo(boton) {
+            // Busca el bloque <code> más cercano y copia su texto
+            var codigo = boton.closest('.bloque-codigo').querySelector('code');
+            navigator.clipboard.writeText(codigo.textContent).then(function() {
+                boton.textContent = '✅ Copiado!';
+                setTimeout(function() {
+                    boton.textContent = '📋 Copiar';
+                }, 2000);
+            });
+        }
+    </script>
+
+</body>
+</html>

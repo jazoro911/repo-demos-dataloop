@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- ⚡ CAMBIAR: Pon el nombre de tu proyecto aquí ⚡ -->
+    <title>ConversionPulse - NOMBRE DEL PROYECTO</title>
+
+    <!-- No tocar: conecta los estilos -->
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+    <!-- ============================================
+         BARRA LATERAL (no necesitas cambiar esto)
+         ============================================ -->
+    <nav class="sidebar">
+        <a href="../index.html" class="sidebar-logo">
+            <span class="logo-icono">&lt;/&gt;</span>
+            <span class="logo-texto">ConversionPulse</span>
+        </a>
+        <input type="text" class="sidebar-buscador" placeholder="🔍 Buscar código...">
+        <a href="../index.html" class="sidebar-link">
+            <span class="icono">📊</span> Dashboard
+        </a>
+        <div class="sidebar-seccion">Casos de Uso</div>
+        <a href="../categorias/financial-crimes.html" class="sidebar-categoria">
+            <span class="icono">🔒</span> Financial Crimes
+        </a>
+        <a href="../categorias/gobierno.html" class="sidebar-categoria">
+            <span class="icono">🏛️</span> Gobierno
+        </a>
+        <a href="../categorias/retail.html" class="sidebar-categoria">
+            <span class="icono">🛒</span> Retail
+        </a>
+        <a href="../categorias/analytics.html" class="sidebar-categoria">
+            <span class="icono">📈</span> Analytics
+        </a>
+        <div class="sidebar-footer">
+            <div class="avatar">R</div>
+            <div class="admin-info">
+                <div class="nombre">Repository Admin</div>
+                <div class="detalle">Uso interno</div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ZONA PRINCIPAL -->
+    <div class="zona-principal">
+
+    <!-- ENCABEZADO (no necesitas cambiar esto) -->
+    <div class="header">
+        <span class="logo">ConversionPulse</span>
+        <span class="descripcion">Repositorio Interno de Código</span>
+    </div>
+
+    <div class="contenido">
+
+        <a href="../index.html" class="boton-volver">← Volver al repositorio</a>
+
+        <div class="tarjeta">
+
+            <!-- ⚡ CAMBIAR: Título de tu proyecto ⚡ -->
+            <h1 class="tarjeta-titulo">NOMBRE DEL PROYECTO</h1>
+
+            <!-- ⚡ CAMBIAR: Lenguaje de programación ⚡ -->
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                <span class="etiqueta-lenguaje">python</span>
+                <span style="color: #8b8fa3; font-size: 14px;">Proyecto</span>
+            </div>
+
+            <!-- ⚡ CAMBIAR: Descripción corta del proyecto ⚡ -->
+            <p class="tarjeta-descripcion">
+                Escribe aquí una descripción breve de qué hace este código.
+            </p>
+
+            <!-- ⚡ CAMBIAR: Etiquetas para búsqueda (agrega o quita según necesites) ⚡ -->
+            <div class="etiquetas">
+                <span class="etiqueta">#etiqueta-1</span>
+                <span class="etiqueta">#etiqueta-2</span>
+                <span class="etiqueta">#etiqueta-3</span>
+            </div>
+
+            <!-- ⚡ CAMBIAR: Autor y fecha ⚡ -->
+            <div class="info-meta">
+                <span><strong>Autor:</strong> Tu Nombre o Equipo</span>
+                <span><strong>Fecha:</strong> 2025-00-00</span>
+            </div>
+
+            <!-- ⚡ CAMBIAR: Instrucciones de uso ⚡ -->
+            <div class="instrucciones">
+                <h2>📋 Instrucciones de Uso</h2>
+                <p>
+                    Explica aquí cómo se usa este código. Qué recibe, qué retorna,
+                    qué dependencias necesita, etc.
+                </p>
+            </div>
+
+
+            <!-- =============================================
+                 BLOQUE DE CÓDIGO
+                 =============================================
+                 
+                 ⚡ CAMBIAR: 
+                 1. El nombre del archivo en "barra-archivo"
+                 2. El código dentro de <pre><code>...</code></pre>
+                 
+                 PARA COLOREAR EL CÓDIGO (opcional):
+                 Envuelve palabras con: <span class="TIPO">palabra</span>
+                 
+                   keyword  = morado   → import, class, def, if, return
+                   string   = verde    → "textos"
+                   comment  = gris     → # comentarios
+                   function = azul     → nombres_de_funciones
+                   number   = naranja  → 42, 3.14
+                   builtin  = amarillo → print, len, range
+                 
+                 Si no quieres colorear, pega el código tal cual.
+                 ============================================= -->
+            <div class="bloque-codigo">
+                <div class="barra-archivo">
+                    <!-- ⚡ CAMBIAR: nombre del archivo ⚡ -->
+                    <span>nombre_del_archivo.py</span>
+                    <span style="cursor: pointer;" onclick="copiarCodigo(this)">📋 Copiar</span>
+                </div>
+                <pre><code><span class="comment"># Pega tu código aquí</span>
+<span class="comment"># Puedes colorearlo con spans o dejarlo en texto plano</span>
+
+<span class="keyword">def</span> <span class="function">mi_funcion</span>(parametro):
+    <span class="string">"""Descripción de la función"""</span>
+    resultado = parametro * <span class="number">2</span>
+    <span class="keyword">return</span> resultado
+
+<span class="builtin">print</span>(<span class="function">mi_funcion</span>(<span class="number">5</span>))</code></pre>
+            </div>
+
+
+            <!-- =============================================
+                 SECCIÓN DE VIDEO
+                 =============================================
+                 
+                 ⚡ PARA AGREGAR UN VIDEO:
+                 
+                 YouTube → Reemplaza el placeholder con:
+                 <iframe src="https://www.youtube.com/embed/TU_ID"></iframe>
+                 
+                 Archivo local → Reemplaza con:
+                 <video controls>
+                     <source src="../videos/mi_video.mp4" type="video/mp4">
+                 </video>
+                 
+                 Si no hay video, deja el placeholder.
+                 ============================================= -->
+            <div class="seccion-video">
+                <h2>🎬 Video Demo</h2>
+                <div class="video-container">
+                    <div class="video-wrapper">
+                        <!-- ⚡ REEMPLAZA ESTO con tu video ⚡ -->
+                        <div class="video-placeholder">
+                            <div class="placeholder-icono">🎥</div>
+                            <p>No hay video disponible para este código.</p>
+                            <p style="font-size: 12px; margin-top: 5px;">Agrega un video pegando un iframe de YouTube o un archivo .mp4</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- =============================================
+                 ¿NECESITAS MÁS BLOQUES DE CÓDIGO?
+                 Copia desde aquí...
+                 ============================================= -->
+            <!--
+            <div class="bloque-codigo">
+                <div class="barra-archivo">
+                    <span>otro_archivo.py</span>
+                    <span style="cursor: pointer;" onclick="copiarCodigo(this)">📋 Copiar</span>
+                </div>
+                <pre><code># Segundo bloque de código aquí</code></pre>
+            </div>
+            -->
+            <!-- ...hasta aquí. Quita los comentarios <!−− y −−> para activarlo -->
+
+
+        </div>
+        <!-- FIN de la tarjeta -->
+
+    </div>
+
+    <div class="footer">
+        ConversionPulse · Repositorio Interno · 2025
+    </div>
+
+    </div> <!-- FIN de zona-principal -->
+
+    <!-- Botón copiar (no tocar) -->
+    <script>
+        function copiarCodigo(boton) {
+            var codigo = boton.closest('.bloque-codigo').querySelector('code');
+            navigator.clipboard.writeText(codigo.textContent).then(function() {
+                boton.textContent = '✅ Copiado!';
+                setTimeout(function() {
+                    boton.textContent = '📋 Copiar';
+                }, 2000);
+            });
+        }
+    </script>
+
+</body>
+</html>

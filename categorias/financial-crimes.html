@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConversionPulse - Financial Crimes</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+        <a href="../index.html" class="sidebar-logo">
+            <span class="logo-icono">&lt;/&gt;</span>
+            <span class="logo-texto">ConversionPulse</span>
+        </a>
+        <input type="text" class="sidebar-buscador" placeholder="🔍 Buscar código...">
+        <a href="../index.html" class="sidebar-link">
+            <span class="icono">📊</span> Dashboard
+        </a>
+        <div class="sidebar-seccion">Casos de Uso</div>
+        <a href="financial-crimes.html" class="sidebar-categoria activa">
+            <span class="icono">🔒</span> Financial Crimes
+        </a>
+        <a href="gobierno.html" class="sidebar-categoria">
+            <span class="icono">🏛️</span> Gobierno
+        </a>
+        <a href="retail.html" class="sidebar-categoria">
+            <span class="icono">🛒</span> Retail
+        </a>
+        <a href="analytics.html" class="sidebar-categoria">
+            <span class="icono">📈</span> Analytics
+        </a>
+        <div class="sidebar-footer">
+            <div class="avatar">R</div>
+            <div class="admin-info">
+                <div class="nombre">Repository Admin</div>
+                <div class="detalle">16 códigos disponibles</div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ZONA PRINCIPAL -->
+    <div class="zona-principal">
+
+    <div class="header">
+        <span class="logo">Repositorio de Códigos</span>
+        <span class="descripcion">Repositorio Interno de Código</span>
+    </div>
+
+    <div class="contenido">
+
+        <!-- Encabezado de la categoría -->
+        <div class="categoria-header">
+            <div class="categoria-icono">🔒</div>
+            <h1>Financial Crimes</h1>
+        </div>
+        <p class="categoria-descripcion">Detección de fraude, lavado de dinero, análisis de transacciones sospechosas</p>
+        <p class="categoria-contador">4 códigos disponibles</p>
+
+
+        <!-- ============================================
+             GRID DE PROYECTOS
+             ============================================
+             Cada tarjeta es un <a class="proyecto-card">
+             Para agregar un nuevo proyecto:
+             1. Copia un bloque <a class="proyecto-card">...</a>
+             2. Pégalo dentro del div "grid-proyectos"
+             3. Cambia título, descripción, tags, autor, fecha
+             4. Actualiza el href al archivo HTML del código
+             ============================================ -->
+        <div class="grid-proyectos">
+
+            <!-- PROYECTO 1 -->
+            <a href="../codigos/fc-001.html" class="proyecto-card">
+                <div class="card-top">
+                    <span class="card-titulo">Detección de Transacciones Anómalas</span>
+                    <span class="badge-tipo badge-notebook">Notebook</span>
+                </div>
+                <div class="card-desc">
+                    Modelo de detección de anomalías usando Isolation Forest para identificar transacciones financieras sospechosas en tiempo real.
+                </div>
+                <div class="card-tags">
+                    <span class="card-tag">fraud-detection</span>
+                    <span class="card-tag">anomaly-detection</span>
+                    <span class="card-tag">isolation-forest</span>
+                    <span class="card-lang"><span class="etiqueta-lenguaje">python</span></span>
+                </div>
+                <div class="card-footer">
+                    <span>Data Science Team</span>
+                    <span>2025-04-12</span>
+                </div>
+            </a>
+
+            <!-- PROYECTO 2 -->
+            <a href="../codigos/fc-002.html" class="proyecto-card">
+                <div class="card-top">
+                    <span class="card-titulo">Red de Lavado de Dinero - Graph Analysis</span>
+                    <span class="badge-tipo badge-script">Script</span>
+                </div>
+                <div class="card-desc">
+                    Análisis de grafos para detectar redes de lavado de dinero mediante la identificación de patrones circulares en transferencias.
+                </div>
+                <div class="card-tags">
+                    <span class="card-tag">money-laundering</span>
+                    <span class="card-tag">graph-analysis</span>
+                    <span class="card-tag">networkx</span>
+                    <span class="card-lang"><span class="etiqueta-lenguaje">python</span></span>
+                </div>
+                <div class="card-footer">
+                    <span>Compliance Team</span>
+                    <span>2025-03-28</span>
+                </div>
+            </a>
+
+            <!-- PROYECTO 3 -->
+            <a href="../codigos/fc-003.html" class="proyecto-card">
+                <div class="card-top">
+                    <span class="card-titulo">Score de Riesgo - Credit Card Fraud</span>
+                    <span class="badge-tipo badge-proyecto">Proyecto</span>
+                </div>
+                <div class="card-desc">
+                    Sistema de scoring en tiempo real para evaluar el riesgo de fraude en transacciones con tarjeta de crédito.
+                </div>
+                <div class="card-tags">
+                    <span class="card-tag">credit-card</span>
+                    <span class="card-tag">risk-scoring</span>
+                    <span class="card-tag">real-time</span>
+                    <span class="card-lang"><span class="etiqueta-lenguaje">python</span></span>
+                </div>
+                <div class="card-footer">
+                    <span>ML Engineering</span>
+                    <span>2025-05-01</span>
+                </div>
+            </a>
+
+            <!-- PROYECTO 4 -->
+            <a href="../codigos/fc-004.html" class="proyecto-card">
+                <div class="card-top">
+                    <span class="card-titulo">KYC Automation Pipeline</span>
+                    <span class="badge-tipo badge-script">Script</span>
+                </div>
+                <div class="card-desc">
+                    Pipeline automatizado para verificación KYC (Know Your Customer) con extracción de documentos y validación cruzada.
+                </div>
+                <div class="card-tags">
+                    <span class="card-tag">kyc</span>
+                    <span class="card-tag">automation</span>
+                    <span class="card-tag">document-verification</span>
+                    <span class="card-lang"><span class="etiqueta-lenguaje">python</span></span>
+                </div>
+                <div class="card-footer">
+                    <span>Compliance Engineering</span>
+                    <span>2025-04-20</span>
+                </div>
+            </a>
+
+        </div>
+        <!-- FIN del grid -->
+
+    </div>
+
+    <div class="footer">
+        ConversionPulse · Repositorio Interno · 2025
+    </div>
+
+    </div> <!-- FIN zona-principal -->
+
+</body>
+</html>
