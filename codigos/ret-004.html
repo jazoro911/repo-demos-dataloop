@@ -80,87 +80,184 @@
             <div class="bloque-codigo">
                 <div class="barra-archivo">
                     <span>prediccion_demanda_inventario.py</span>
-                    <span style="cursor: pointer;" onclick="copiarCodigo(this)">📋 Copiar</span>
+                    <div style="display:flex; gap:12px; align-items:center;">
+                        <span style="cursor: pointer;" onclick="copiarCodigo(this)">📋 Copiar</span>
+                        <span style="cursor: pointer; background:#4caf50; color:#fff; padding:3px 10px; border-radius:4px; font-size:12px; font-weight:600;" onclick="ejecutarCodigo(this)">▶ Run</span>
+                    </div>
                 </div>
-                <pre><code><span class="keyword">import</span> numpy <span class="keyword">as</span> np
-<span class="keyword">from</span> scipy.sparse <span class="keyword">import</span> csr_matrix
-<span class="keyword">from</span> sklearn.decomposition <span class="keyword">import</span> TruncatedSVD
-<span class="keyword">from</span> collections <span class="keyword">import</span> defaultdict
+<!-- aqui empieza el codigo a mostrar -->
+                                <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="es"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+&lt;title&gt;Reporte CLV (contenido)&lt;/title&gt;
+&lt;style&gt;
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#fff;color:#333;line-height:1.45;}
+a{color:#0f3460;}
+.clv-reporte{max-width:1480px;margin:0 auto;padding:12px 8px 32px;}
 
-<span class="keyword">class</span> <span class="function">RecommendationEngine</span>:
-    <span class="string">"""Motor de recomendaciones por filtrado colaborativo"""</span>
-    
-    <span class="keyword">def</span> <span class="function">__init__</span>(self, n_factors=<span class="number">50</span>):
-        self.n_factors = n_factors
-        self.model = <span class="keyword">None</span>
-        self.user_map = {}
-        self.item_map = {}
-        self.item_reverse_map = {}
-    
-    <span class="keyword">def</span> <span class="function">fit</span>(self, interactions_df):
-        <span class="string">"""Entrenar modelo con interacciones usuario-producto"""</span>
-        <span class="comment"># Crear mappings</span>
-        users = interactions_df[<span class="string">'customer_id'</span>].unique()
-        items = interactions_df[<span class="string">'product_id'</span>].unique()
-        
-        self.user_map = {u: i <span class="keyword">for</span> i, u <span class="keyword">in</span> <span class="builtin">enumerate</span>(users)}
-        self.item_map = {p: i <span class="keyword">for</span> i, p <span class="keyword">in</span> <span class="builtin">enumerate</span>(items)}
-        self.item_reverse_map = {i: p <span class="keyword">for</span> p, i <span class="keyword">in</span> self.item_map.items()}
-        
-        <span class="comment"># Matriz sparse de interacciones</span>
-        rows = interactions_df[<span class="string">'customer_id'</span>].map(self.user_map)
-        cols = interactions_df[<span class="string">'product_id'</span>].map(self.item_map)
-        values = interactions_df[<span class="string">'rating'</span>]
-        
-        self.matrix = csr_matrix(
-            (values, (rows, cols)),
-            shape=(<span class="builtin">len</span>(users), <span class="builtin">len</span>(items))
-        )
-        
-        <span class="comment"># Factorización SVD</span>
-        self.model = TruncatedSVD(n_components=self.n_factors)
-        self.user_factors = self.model.fit_transform(self.matrix)
-        self.item_factors = self.model.components_.T
-        
-        <span class="keyword">return</span> self
-    
-    <span class="keyword">def</span> <span class="function">recommend</span>(self, customer_id, n=<span class="number">10</span>, exclude_purchased=<span class="keyword">True</span>):
-        <span class="string">"""Generar recomendaciones para un usuario"""</span>
-        <span class="keyword">if</span> customer_id <span class="keyword">not</span> <span class="keyword">in</span> self.user_map:
-            <span class="keyword">return</span> self._cold_start_recommendations(n)
-        
-        user_idx = self.user_map[customer_id]
-        scores = np.dot(self.user_factors[user_idx], self.item_factors.T)
-        
-        <span class="keyword">if</span> exclude_purchased:
-            purchased = self.matrix[user_idx].nonzero()[<span class="number">1</span>]
-            scores[purchased] = -np.inf
-        
-        top_indices = np.argsort(scores)[::-<span class="number">1</span>][:n]
-        
-        recommendations = []
-        <span class="keyword">for</span> idx <span class="keyword">in</span> top_indices:
-            recommendations.append({
-                <span class="string">'product_id'</span>: self.item_reverse_map[idx],
-                <span class="string">'score'</span>: <span class="builtin">round</span>(<span class="builtin">float</span>(scores[idx]), <span class="number">4</span>)
-            })
-        
-        <span class="keyword">return</span> recommendations
-    
-    <span class="keyword">def</span> <span class="function">_cold_start_recommendations</span>(self, n):
-        <span class="string">"""Recomendaciones para usuarios nuevos (popularidad)"""</span>
-        popularity = np.array(self.matrix.sum(axis=<span class="number">0</span>)).flatten()
-        top_indices = np.argsort(popularity)[::-<span class="number">1</span>][:n]
-        <span class="keyword">return</span> [{<span class="string">'product_id'</span>: self.item_reverse_map[i], 
-                 <span class="string">'score'</span>: <span class="builtin">float</span>(popularity[i])} <span class="keyword">for</span> i <span class="keyword">in</span> top_indices]
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;}
+.kpi{border-radius:10px;padding:16px 14px;text-align:center;color:#fff;}
+.kpi label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:2px;opacity:.9;margin-bottom:6px;}
+.kpi strong{font-size:1.35rem;font-weight:800;}
+.kpi.blue{background:linear-gradient(135deg,#0f3460,#1a6ba8);}
+.kpi.red{background:linear-gradient(135deg,#e94560,#c0392b);}
+.kpi.green{background:linear-gradient(135deg,#27ae60,#1e8449);}
+.kpi.purple{background:linear-gradient(135deg,#6c3483,#8e44ad);}
 
-<span class="comment"># Uso</span>
-<span class="keyword">import</span> pandas <span class="keyword">as</span> pd
-df = pd.read_csv(<span class="string">'user_product_ratings.csv'</span>)
-engine = RecommendationEngine(n_factors=<span class="number">30</span>)
-engine.fit(df)
-recs = engine.recommend(<span class="string">'CUST-12345'</span>, n=<span class="number">5</span>)
-<span class="builtin">print</span>(<span class="string">"Recomendaciones:"</span>, recs)</code></pre>
+.filters{width:100%;background:#fff;border:1px solid #e8ecf5;border-radius:10px;padding:12px;margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,.05);display:flex;flex-direction:column;justify-content:center;align-items:stretch;min-height:136px;gap:10px;}
+.filters-heading{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:#0f3460;margin:0;font-weight:700;flex-shrink:0;}
+.filter-toolbar{display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:8px;width:100%;overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;scrollbar-width:thin;}
+.filter-toolbar::-webkit-scrollbar{height:6px;}
+.filter-toolbar::-webkit-scrollbar-thumb{background:#c5cdd8;border-radius:3px;}
+.fg-dd{display:flex;flex-direction:column;justify-content:center;align-items:center;flex:1 1 0;min-width:88px;max-width:160px;text-align:center;}
+.fg-dd label{display:block;font-size:9px;font-weight:700;color:#555;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;}
+.fg-dd select{width:min(100%,128px);max-width:100%;align-self:center;padding:5px 8px;border:1px solid #d8dce8;border-radius:6px;font-size:11px;background:#fafbff;text-align:center;text-align-last:center;}
+.fg-dd select:focus{outline:2px solid #0f3460;outline-offset:1px;}
+.fg-slider{display:flex;flex-direction:column;justify-content:center;flex:1 1 0;min-width:104px;border:1px solid #eef0f5;border-radius:8px;padding:6px 8px;background:#fafbff;}
+.fg-slider-title{font-size:9px;font-weight:700;color:#0f3460;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.fg-slider-row{margin-bottom:3px;flex:0 0 auto;}
+.fg-slider-row:last-child{margin-bottom:0;}
+.fg-slider-row label{display:flex;align-items:center;justify-content:space-between;gap:4px;font-size:8px;color:#555;margin-bottom:2px;}
+.fg-slider-row .lbl-val{font-weight:700;color:#333;font-variant-numeric:tabular-nums;flex-shrink:0;font-size:8px;max-width:56%;overflow:hidden;text-overflow:ellipsis;}
+.fg-slider-row input[type=range]{width:100%;min-width:0;height:7px;accent-color:#0f3460;cursor:pointer;}
+.fg-reset-wrap{display:flex;align-items:center;justify-content:center;flex:0 0 auto;padding-left:4px;}
+.fg-reset-wrap .reset{width:auto;white-space:nowrap;padding:8px 10px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid #d8dce8;background:#eef0f5;color:#333;}
+.fg-reset-wrap .reset:hover{background:#e4e7f0;}
+
+.charts-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:stretch;margin-bottom:18px;}
+@media (max-width:1100px){.charts-row{grid-template-columns:1fr;}}
+.chart-wrap{background:#fff;border:1px solid #e8ecf5;border-radius:12px;padding:14px 16px 18px;box-shadow:0 4px 18px rgba(0,0,0,.06);display:flex;flex-direction:column;min-width:0;}
+.chart-wrap h2{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#0f3460;margin:0 0 6px 0;}
+.chart-desc{font-size:9px;color:#666;line-height:1.4;margin:0 0 12px 0;}
+#clvChart,#clvSegmentoChart,#generoPieChart{display:block;width:100%;max-width:100%;height:220px;flex:0 0 auto;background:#fff;}
+#generoPieChart{margin:0 auto;}
+.pie-legend{display:flex;flex-wrap:wrap;gap:8px 14px;justify-content:center;margin-top:10px;font-size:10px;color:#555;}
+.pie-legend span{display:flex;align-items:center;gap:5px;}
+.pie-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+
+.table-card{background:#fff;border:1px solid #e8ecf5;border-radius:12px;padding:14px 16px 18px;overflow:hidden;box-shadow:0 4px 18px rgba(0,0,0,.06);}
+.table-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;}
+.table-head h2{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#0f3460;}
+.pager{display:flex;align-items:center;gap:8px;font-size:13px;}
+.pager button{padding:6px 12px;border-radius:6px;border:1px solid #d8dce8;background:#fafbff;cursor:pointer;font-size:12px;}
+.pager button:disabled{opacity:.45;cursor:not-allowed;}
+.table-scroll{overflow:auto;max-height:62vh;border:1px solid #eee;border-radius:8px;}
+.data-table{width:100%;border-collapse:collapse;font-size:11px;min-width:940px;}
+.data-table th{background:#0f3460;color:#fff;padding:8px 6px;text-align:center;font-weight:600;position:sticky;top:0;z-index:1;white-space:nowrap;cursor:pointer;user-select:none;}
+.data-table th:hover{background:#1a4a7a;}
+.data-table td{padding:6px 6px;border-bottom:1px solid #f0f0f0;color:#444;text-align:center;}
+.data-table tr:nth-child(even) td{background:#f8f9ff;}
+.data-table td.num{text-align:center;font-variant-numeric:tabular-nums;}
+.data-table .seg-alto{color:#1e8449;font-weight:700;}
+.data-table .seg-medio{color:#b7950b;font-weight:700;}
+.data-table .seg-bajo{color:#c0392b;font-weight:700;}
+.foot-note{font-size:11px;color:#999;margin-top:14px;text-align:center;}
+.clv-sas-error{background:#fdecea;border:1px solid #f5c6cb;color:#721c24;padding:12px 14px;border-radius:8px;margin-bottom:14px;font-size:13px;line-height:1.4;}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;noscript&gt;
+    &lt;p style="padding:16px;background:#fff3cd;border:1px solid #ffc107;border-radius:8px;margin:12px;font-family:sans-serif;"&gt;
+        Activa JavaScript para ver el tablero CLV (KPIs, gráfico y tabla con datos de demo).
+    &lt;/p&gt;
+&lt;/noscript&gt;
+&lt;!-- Contenido del reporte (encabezado TOKA / pestañas ya en SAS VA) --&gt;
+&lt;div class="clv-reporte" id="clv-reporte"&gt;
+    &lt;div id="clv-sas-error" class="clv-sas-error" style="display:none;" role="alert"&gt;&lt;/div&gt;
+    &lt;div class="kpi-row"&gt;
+        &lt;div class="kpi blue"&gt;&lt;label&gt;Clientes&lt;/label&gt;&lt;strong id="kpiCount"&gt;—&lt;/strong&gt;&lt;/div&gt;
+        &lt;div class="kpi green"&gt;&lt;label&gt;CLV predicho promedio&lt;/label&gt;&lt;strong id="kpiMean"&gt;—&lt;/strong&gt;&lt;/div&gt;
+        &lt;div class="kpi purple"&gt;&lt;label&gt;CLV predicho mediana&lt;/label&gt;&lt;strong id="kpiMed"&gt;—&lt;/strong&gt;&lt;/div&gt;
+        &lt;div class="kpi red"&gt;&lt;label&gt;% segmento alto&lt;/label&gt;&lt;strong id="kpiAlto"&gt;—&lt;/strong&gt;&lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;section class="filters"&gt;
+        &lt;h2 class="filters-heading"&gt;Filtros&lt;/h2&gt;
+        &lt;div class="filter-toolbar"&gt;
+            &lt;div class="fg-dd"&gt;
+                &lt;label for="f_aprobado"&gt;Aprobado&lt;/label&gt;
+                &lt;select id="f_aprobado"&gt;
+                    &lt;option value=""&gt;Todos&lt;/option&gt;
+                    &lt;option value="1"&gt;Sí (1)&lt;/option&gt;
+                    &lt;option value="0"&gt;No (0)&lt;/option&gt;
+                &lt;/select&gt;
+            &lt;/div&gt;
+            &lt;div class="fg-dd"&gt;
+                &lt;label for="f_producto"&gt;Producto&lt;/label&gt;
+                &lt;select id="f_producto"&gt;
+                    &lt;option value=""&gt;Todos&lt;/option&gt;
+                    &lt;option value="1"&gt;1 · Toka Despensa&lt;/option&gt;
+                    &lt;option value="2"&gt;2 · Toka Despensa Virtual&lt;/option&gt;
+                    &lt;option value="3"&gt;3 · Toka Combustible&lt;/option&gt;
+                    &lt;option value="4"&gt;4 · Toka Connect&lt;/option&gt;
+                    &lt;option value="5"&gt;5 · Toka Total&lt;/option&gt;
+                &lt;/select&gt;
+            &lt;/div&gt;
+            &lt;div class="fg-dd"&gt;
+                &lt;label for="f_segmento"&gt;Segmento&lt;/label&gt;
+                &lt;select id="f_segmento"&gt;
+                    &lt;option value=""&gt;Todos&lt;/option&gt;
+                    &lt;option value="Alto"&gt;Alto&lt;/option&gt;
+                    &lt;option value="Medio"&gt;Medio&lt;/option&gt;
+                    &lt;option value="Bajo"&gt;Bajo&lt;/option&gt;
+                &lt;/select&gt;
+            &lt;/div&gt;
+            &lt;div class="fg-slider"&gt;
+                &lt;div class="fg-slider-title" title="CLV predicho"&gt;CLV pred.&lt;/div&gt;
+                &lt;div class="fg-slider-row"&gt;
+                    &lt;label&gt;Mín &lt;span class="lbl-val" id="lbl_clv_lo"&gt;—&lt;/span&gt;&lt;/label&gt;
+                    &lt;input type="range" id="f_clv_lo" class="rng-filter" data-pair="clv"&gt;
+                &lt;/div&gt;
+                &lt;div class="fg-slider-row"&gt;
+                    &lt;label&gt;Máx &lt;span class="lbl-val" id="lbl_clv_hi"&gt;—&lt;/span&gt;&lt;/label&gt;
+                    &lt;input type="range" id="f_clv_hi" class="rng-filter" data-pair="clv"&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div class="fg-slider"&gt;
+                &lt;div class="fg-slider-title" title="Utilización de crédito"&gt;Util. créd.&lt;/div&gt;
+                &lt;div class="fg-slider-row"&gt;
+                    &lt;label&gt;Mín &lt;span class="lbl-val" id="lbl_util_lo"&gt;—&lt;/span&gt;&lt;/label&gt;
+                    &lt;input type="range" id="f_util_lo" class="rng-filter" data-pair="util"&gt;
+                &lt;/div&gt;
+                &lt;div class="fg-slider-row"&gt;
+                    &lt;label&gt;Máx &lt;span class="lbl-val" id="lbl_util_hi"&gt;—&lt;/span&gt;&lt;/label&gt;
+                    &lt;input type="range" id="f_util_hi" class="rng-filter" data-pair="util"&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div class="fg-slider"&gt;
+                &lt;div class="fg-slider-title" title="Días desde última transacción"&gt;Días últ. tx&lt;/div&gt;
+                &lt;div class="fg-slider-row"&gt;
+                    &lt;label&gt;Mín &lt;span class="lbl-val" id="lbl_dias_lo"&gt;—&lt;/span&gt;&lt;/label&gt;
+                    &lt;input type="range" id="f_dias_lo" class="rng-filter" data-pair="dias"&gt;
+                &lt;/div&gt;
+                &lt;div class="fg-slider-row"&gt;
+                    &lt;label&gt;Máx &lt;span class="lbl-val" id="lbl_dias_hi"&gt;—&lt;/span&gt;&lt;/label&gt;
+                    &lt;input type="range" id="f_dias_hi" class="rng-filter" data-pair="dias"&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div class="fg-slider"&gt;
+                &lt;div class="fg-slider-title" title="Atraso en pagos"&gt;Atraso&lt;/div&gt;
+                &lt;div class="fg-slider-row"&gt;
+                    &lt;label&gt;Mín &lt;span class="lbl-val" id="lbl_atraso_lo"&gt;—&lt;/span&gt;&lt;/label&gt;
+                    &lt;input type="range" id="f_atraso_lo" class="rng-filter" data-pair="atraso"&gt;
+                &lt;/div&gt;
+                &lt;div class="fg-slider-row"&gt;
+                    &lt;label&gt;Máx &lt;span class="lbl-val" id="lbl_atraso_hi"&gt;—&lt;/span&gt;&lt;/label&gt;
+                    &lt;input type="range" id="f_atraso_hi" class="rng-filter" data-pair="atraso"&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div class="fg-reset-wrap"&gt;
+                &lt;button type="button" class="reset" id="btnReset" title="Restablecer todos los filtros"&gt;Limpiar&lt;/button&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/section&gt;
+
+    &lt;div class="...
+Contraer
+&nbsp;Falta texto en este fragmento; verlo entero&lt;/code&gt;&lt;/pre&gt;
             </div>
 
 
@@ -196,6 +293,16 @@ recs = engine.recommend(<span class="string">'CUST-12345'</span>, n=<span class=
                 }, 2000);
             });
         }
+
+        function ejecutarCodigo(boton) {
+            var codigo = boton.closest('.bloque-codigo').querySelector('code');
+            var html = codigo.textContent;
+            var nuevaVentana = window.open('', '_blank');
+            nuevaVentana.document.open();
+            nuevaVentana.document.write(html);
+            nuevaVentana.document.close();
+        }
+        
     </script>
 
 </body>
