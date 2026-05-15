@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ConversionPulse - Repositorio de Demos</title>
+
+    <!-- Aquí se conecta el archivo de estilos -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- ============================================
+         BARRA LATERAL (SIDEBAR)
+         ============================================
+         Para agregar una nueva categoría:
+         1. Copia un bloque <a class="sidebar-categoria">...</a>
+         2. Pégalo debajo de los existentes
+         3. Cambia el icono, nombre y href
+         
+         Para marcar una categoría como "seleccionada",
+         agrega la clase "activa" → class="sidebar-categoria activa"
+         ============================================ -->
+    <nav class="sidebar">
+
+        <!-- Logo -->
+        <a href="index.html" class="sidebar-logo">
+            <span class="logo-icono">&lt;/&gt;</span>
+            <span class="logo-texto">ConversionPulse</span>
+        </a>
+
+        <!-- Buscador del sidebar -->
+        <input type="text" class="sidebar-buscador" placeholder="🔍 Buscar código..." id="buscador-sidebar">
+
+        <!-- Link Dashboard -->
+        <a href="index.html" class="sidebar-link activa">
+            <span class="icono">📊</span> Dashboard
+        </a>
+
+        <!-- Título de sección -->
+        <div class="sidebar-seccion">Casos de Uso</div>
+
+        <!-- ── Categorías (agrega o quita según necesites) ── -->
+        <a href="categorias/financial-crimes.html" class="sidebar-categoria">
+            <span class="icono">🔒</span> Financial Crimes
+        </a>
+        <a href="categorias/gobierno.html" class="sidebar-categoria">
+            <span class="icono">🏛️</span> Gobierno
+        </a>
+        <a href="categorias/retail.html" class="sidebar-categoria">
+            <span class="icono">🛒</span> Retail
+        </a>
+        <a href="categorias/analytics.html" class="sidebar-categoria">
+            <span class="icono">📈</span> Analytics
+        </a>
+
+        <!-- Pie del sidebar -->
+        <div class="sidebar-footer">
+            <div class="avatar">R</div>
+            <div class="admin-info">
+                <div class="nombre">Repository Admin</div>
+                <div class="detalle">16 códigos disponibles</div>
+            </div>
+        </div>
+
+    </nav>
+
+
+    <!-- ============================================
+         ZONA PRINCIPAL (todo a la derecha del sidebar)
+         ============================================ -->
+    <div class="zona-principal">
+
+    <!-- ENCABEZADO superior -->
+    <div class="header">
+        <span class="logo">Repositorio de Demos</span>
+        <span class="descripcion">Repositorio Interno de Código</span>
+    </div>
+
+
+    <!-- ============================================
+         CONTENIDO PRINCIPAL - DASHBOARD
+         ============================================ -->
+    <div class="contenido">
+
+        <h1 style="margin-bottom: 8px;">Repositorio de Códigos</h1>
+        <p style="color: #8b8fa3; margin-bottom: 25px;">
+            Colección de soluciones y herramientas organizadas por caso de uso
+        </p>
+
+
+        <!-- TARJETAS DE ESTADÍSTICAS -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icono morado">&lt;/&gt;</div>
+                <div>
+                    <div class="stat-numero">16</div>
+                    <div class="stat-label">Códigos Totales</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icono verde">📁</div>
+                <div>
+                    <div class="stat-numero">4</div>
+                    <div class="stat-label">Casos de Uso</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icono azul">👤</div>
+                <div>
+                    <div class="stat-numero">2</div>
+                    <div class="stat-label">Lenguajes</div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- CASOS DE USO -->
+        <h2 class="dash-seccion">Casos de Uso</h2>
+        <div class="dash-categorias">
+            <a href="categorias/financial-crimes.html" class="dash-cat-card">
+                <span class="cat-icono">🔒</span>
+                <span class="cat-nombre">Financial Crimes</span>
+                <span class="cat-desc">Detección de fraude, lavado de dinero, análisis de transacciones sospechosas</span>
+                <span class="cat-count">4</span>
+            </a>
+            <a href="categorias/gobierno.html" class="dash-cat-card">
+                <span class="cat-icono">🏛️</span>
+                <span class="cat-nombre">Gobierno</span>
+                <span class="cat-desc">Análisis de datos gubernamentales, transparencia, gestión pública</span>
+                <span class="cat-count">4</span>
+            </a>
+            <a href="categorias/retail.html" class="dash-cat-card">
+                <span class="cat-icono">🛒</span>
+                <span class="cat-nombre">Retail</span>
+                <span class="cat-desc">Análisis de ventas, segmentación de clientes, predicción de demanda</span>
+                <span class="cat-count">4</span>
+            </a>
+            <a href="categorias/analytics.html" class="dash-cat-card">
+                <span class="cat-icono">📈</span>
+                <span class="cat-nombre">Analytics</span>
+                <span class="cat-desc">Modelos estadísticos, visualización de datos, machine learning</span>
+                <span class="cat-count">4</span>
+            </a>
+        </div>
+
+
+        <!-- CÓDIGOS RECIENTES -->
+        <h2 class="dash-seccion">Códigos Recientes</h2>
+        <ul class="dash-recientes">
+            <li>
+                <a href="codigos/fc-001.html">
+                    <span class="rec-icono">📓</span>
+                    <div class="rec-info">
+                        <div class="rec-nombre">Detección de Transacciones Anómalas</div>
+                        <div class="rec-desc">Modelo de detección de anomalías usando Isolation Forest para identificar transacciones financieras sospechosas...</div>
+                    </div>
+                    <div class="rec-meta">
+                        <span class="etiqueta-lenguaje">python</span>
+                        <span class="rec-fecha">2025-04-12</span>
+                    </div>
+                </a>
+            </li>
+            <li>
+                <a href="codigos/fc-002.html">
+                    <span class="rec-icono">📜</span>
+                    <div class="rec-info">
+                        <div class="rec-nombre">Red de Lavado de Dinero - Graph Analysis</div>
+                        <div class="rec-desc">Análisis de grafos para detectar redes de lavado de dinero mediante la identificación de patrones...</div>
+                    </div>
+                    <div class="rec-meta">
+                        <span class="etiqueta-lenguaje">python</span>
+                        <span class="rec-fecha">2025-03-28</span>
+                    </div>
+                </a>
+            </li>
+            <li>
+                <a href="codigos/fc-003.html">
+                    <span class="rec-icono">🛡️</span>
+                    <div class="rec-info">
+                        <div class="rec-nombre">Score de Riesgo - Credit Card Fraud</div>
+                        <div class="rec-desc">Sistema de scoring en tiempo real para evaluar el riesgo de fraude en transacciones...</div>
+                    </div>
+                    <div class="rec-meta">
+                        <span class="etiqueta-lenguaje">python</span>
+                        <span class="rec-fecha">2025-05-01</span>
+                    </div>
+                </a>
+            </li>
+            <li>
+                <a href="codigos/ret-003.html">
+                    <span class="rec-icono">🧠</span>
+                    <div class="rec-info">
+                        <div class="rec-nombre">Motor de Recomendaciones Colaborativo</div>
+                        <div class="rec-desc">Sistema de recomendación de productos usando filtrado colaborativo con factorización de matrices...</div>
+                    </div>
+                    <div class="rec-meta">
+                        <span class="etiqueta-lenguaje">python</span>
+                        <span class="rec-fecha">2025-04-25</span>
+                    </div>
+                </a>
+            </li>
+            <li>
+                <a href="codigos/ana-002.html">
+                    <span class="rec-icono">🧪</span>
+                    <div class="rec-info">
+                        <div class="rec-nombre">A/B Testing Framework</div>
+                        <div class="rec-desc">Framework estadístico para diseñar, ejecutar y analizar experimentos A/B con cálculo automático...</div>
+                    </div>
+                    <div class="rec-meta">
+                        <span class="etiqueta-lenguaje">python</span>
+                        <span class="rec-fecha">2025-03-22</span>
+                    </div>
+                </a>
+            </li>
+        </ul>
+
+    </div>
+
+
+    <!-- ============================================
+         PIE DE PÁGINA
+         ============================================ -->
+    <div class="footer">
+        ConversionPulse · Repositorio Interno · 2025
+    </div>
+
+    </div> <!-- FIN de zona-principal -->
+
+
+
+</body>
+</html>
