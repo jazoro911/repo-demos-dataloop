@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dataloop - Análisis de Presupuesto Público</title>
+    <title>Dataloop - Análisis de Potencial de Recaudación</title>
     <link rel="stylesheet" href="../styles.css">
 </head>
 <body>
@@ -52,117 +52,42 @@
 
         <div class="tarjeta">
 
-            <h1 class="tarjeta-titulo">Análisis de Presupuesto Público</h1>
+            <h1 class="tarjeta-titulo">Análisis de Potencial de Recaudación</h1>
 
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                <span class="etiqueta-lenguaje">python</span>
-                <span style="color: #64748b; font-size: 14px;">Notebook</span>
+                <span class="etiqueta-lenguaje">html</span>
+                <span style="color: #64748b; font-size: 14px;">Proyecto</span>
             </div>
 
-            <p class="tarjeta-descripcion">Análisis exploratorio y visualización del gasto público por sector, con detección de desviaciones presupuestarias.</p>
+            <p class="tarjeta-descripcion">
+                Tablero ejecutivo de impuestos y aduanas para visualizar montos de recaudación por nivel municipal, estatal y federal, orientado a altos mandos de la Secretaría de Finanzas.
+            </p>
 
             <div class="etiquetas">
-                <span class="etiqueta">#budget-analysis</span>
-                <span class="etiqueta">#visualization</span>
-                <span class="etiqueta">#pandas</span>
+                <span class="etiqueta">#recaudación</span>
+                <span class="etiqueta">#impuestos</span>
+                <span class="etiqueta">#aduanas</span>
             </div>
 
             <div class="info-meta">
-                <span><strong>Autor:</strong> Policy Analytics</span>
-                <span><strong>Fecha:</strong> 2025-03-15</span>
+                <span><strong>Autor:</strong> Secretaría de Finanzas</span>
+                <span><strong>Fecha:</strong> 2025-05-01</span>
             </div>
 
             <div class="instrucciones">
                 <h2>📋 Instrucciones de Uso</h2>
-                <p>Notebook que carga datos de presupuesto en CSV, genera visualizaciones por sector y detecta partidas con desviación significativa.</p>
+                <p>
+                    Tablero de lectura ejecutiva que muestra el monto de recaudaciones por nivel de gobierno (municipal, estatal y federal), diseñado para ser fácil de leer por altos mandos.
+                </p>
             </div>
 
             <div class="bloque-codigo">
                 <div class="barra-archivo">
-                    <span>analisis_presupuesto_publico.py</span>
+                    <span>analisis_potencial_recaudacion.html</span>
                     <span style="cursor: pointer;" onclick="copiarCodigo(this)">📋 Copiar</span>
                 </div>
-                <pre><code><span class="keyword">import</span> numpy <span class="keyword">as</span> np
-<span class="keyword">from</span> scipy.sparse <span class="keyword">import</span> csr_matrix
-<span class="keyword">from</span> sklearn.decomposition <span class="keyword">import</span> TruncatedSVD
-<span class="keyword">from</span> collections <span class="keyword">import</span> defaultdict
-
-<span class="keyword">class</span> <span class="function">RecommendationEngine</span>:
-    <span class="string">"""Motor de recomendaciones por filtrado colaborativo"""</span>
-    
-    <span class="keyword">def</span> <span class="function">__init__</span>(self, n_factors=<span class="number">50</span>):
-        self.n_factors = n_factors
-        self.model = <span class="keyword">None</span>
-        self.user_map = {}
-        self.item_map = {}
-        self.item_reverse_map = {}
-    
-    <span class="keyword">def</span> <span class="function">fit</span>(self, interactions_df):
-        <span class="string">"""Entrenar modelo con interacciones usuario-producto"""</span>
-        <span class="comment"># Crear mappings</span>
-        users = interactions_df[<span class="string">'customer_id'</span>].unique()
-        items = interactions_df[<span class="string">'product_id'</span>].unique()
-        
-        self.user_map = {u: i <span class="keyword">for</span> i, u <span class="keyword">in</span> <span class="builtin">enumerate</span>(users)}
-        self.item_map = {p: i <span class="keyword">for</span> i, p <span class="keyword">in</span> <span class="builtin">enumerate</span>(items)}
-        self.item_reverse_map = {i: p <span class="keyword">for</span> p, i <span class="keyword">in</span> self.item_map.items()}
-        
-        <span class="comment"># Matriz sparse de interacciones</span>
-        rows = interactions_df[<span class="string">'customer_id'</span>].map(self.user_map)
-        cols = interactions_df[<span class="string">'product_id'</span>].map(self.item_map)
-        values = interactions_df[<span class="string">'rating'</span>]
-        
-        self.matrix = csr_matrix(
-            (values, (rows, cols)),
-            shape=(<span class="builtin">len</span>(users), <span class="builtin">len</span>(items))
-        )
-        
-        <span class="comment"># Factorización SVD</span>
-        self.model = TruncatedSVD(n_components=self.n_factors)
-        self.user_factors = self.model.fit_transform(self.matrix)
-        self.item_factors = self.model.components_.T
-        
-        <span class="keyword">return</span> self
-    
-    <span class="keyword">def</span> <span class="function">recommend</span>(self, customer_id, n=<span class="number">10</span>, exclude_purchased=<span class="keyword">True</span>):
-        <span class="string">"""Generar recomendaciones para un usuario"""</span>
-        <span class="keyword">if</span> customer_id <span class="keyword">not</span> <span class="keyword">in</span> self.user_map:
-            <span class="keyword">return</span> self._cold_start_recommendations(n)
-        
-        user_idx = self.user_map[customer_id]
-        scores = np.dot(self.user_factors[user_idx], self.item_factors.T)
-        
-        <span class="keyword">if</span> exclude_purchased:
-            purchased = self.matrix[user_idx].nonzero()[<span class="number">1</span>]
-            scores[purchased] = -np.inf
-        
-        top_indices = np.argsort(scores)[::-<span class="number">1</span>][:n]
-        
-        recommendations = []
-        <span class="keyword">for</span> idx <span class="keyword">in</span> top_indices:
-            recommendations.append({
-                <span class="string">'product_id'</span>: self.item_reverse_map[idx],
-                <span class="string">'score'</span>: <span class="builtin">round</span>(<span class="builtin">float</span>(scores[idx]), <span class="number">4</span>)
-            })
-        
-        <span class="keyword">return</span> recommendations
-    
-    <span class="keyword">def</span> <span class="function">_cold_start_recommendations</span>(self, n):
-        <span class="string">"""Recomendaciones para usuarios nuevos (popularidad)"""</span>
-        popularity = np.array(self.matrix.sum(axis=<span class="number">0</span>)).flatten()
-        top_indices = np.argsort(popularity)[::-<span class="number">1</span>][:n]
-        <span class="keyword">return</span> [{<span class="string">'product_id'</span>: self.item_reverse_map[i], 
-                 <span class="string">'score'</span>: <span class="builtin">float</span>(popularity[i])} <span class="keyword">for</span> i <span class="keyword">in</span> top_indices]
-
-<span class="comment"># Uso</span>
-<span class="keyword">import</span> pandas <span class="keyword">as</span> pd
-df = pd.read_csv(<span class="string">'user_product_ratings.csv'</span>)
-engine = RecommendationEngine(n_factors=<span class="number">30</span>)
-engine.fit(df)
-recs = engine.recommend(<span class="string">'CUST-12345'</span>, n=<span class="number">5</span>)
-<span class="builtin">print</span>(<span class="string">"Recomendaciones:"</span>, recs)</code></pre>
+                <pre><code><span class="comment"># Código próximamente disponible</span></code></pre>
             </div>
-
 
             <div class="seccion-video">
                 <h2>🎬 Video Demo</h2>
