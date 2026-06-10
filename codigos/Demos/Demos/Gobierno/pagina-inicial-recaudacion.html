@@ -1,0 +1,953 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Análisis de Potencial de Recaudación</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+/* ════════════════════════════════
+   Variables globales
+   ════════════════════════════════ */
+:root {
+  --bg:           #ffffff;
+  --border:       #C5D5E8;
+  --muted:        #6B8AAB;
+  --navy:         #1C334F;
+  --green:        #1a7a4a;
+  --green-light:  #2ecc71;
+  --green-mid:    #27ae60;
+  --green-dark:   #1a5c36;
+  --red:          #c0392b;
+  --red-light:    #e74c3c;
+  --gold:         #b8860b;
+  --gold-light:   #f0c040;
+  --white:        #ffffff;
+  --offwhite:     #f4f7fb;
+  --track-bg:     #f0f4f8;
+  --text:         #1C334F;
+  --surface:      #ffffff;
+  --puebla-green: #006341; /* verde gobierno Puebla */
+  --puebla-red:   #9b1c2e; /* rojo gobierno Puebla */
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; padding: 0; }
+
+body {
+  background: var(--offwhite);
+  color: var(--text);
+  font-family: 'Open Sans', sans-serif;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ════════════════════════════════
+   HEADER — logo + textos + filtros + links
+   ════════════════════════════════ */
+.header {
+  background: var(--puebla-green);
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-shrink: 0;
+  border-bottom: 3px solid var(--puebla-red);
+}
+
+.header-logo {
+  width: 52px;
+  height: 52px;
+  background: var(--white);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+/* Logo placeholder SVG — reemplazar con <img src="logo-puebla.png"> */
+.header-logo svg { width: 40px; height: 40px; }
+
+.header-texts {
+  flex: 1;
+  min-width: 0;
+}
+
+.header-title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--white);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-subtitle {
+  font-size: 11px;
+  color: rgba(255,255,255,.75);
+  margin-top: 2px;
+}
+
+/* 2 textos de referencia adicionales */
+.header-meta {
+  display: flex;
+  gap: 18px;
+  flex-shrink: 0;
+}
+
+.header-meta-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.header-meta-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: rgba(255,255,255,.6);
+}
+
+.header-meta-value {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--white);
+}
+
+.header-meta-value.error { color: #ffb3b3; font-size: 10px; }
+
+/* Filtros */
+.header-filters {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.filter-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: rgba(255,255,255,.65);
+}
+
+.filter-select {
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.3);
+  border-radius: 5px;
+  color: var(--white);
+  font-size: 11px;
+  font-family: inherit;
+  padding: 4px 8px;
+  min-width: 130px;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='white' opacity='.7'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 24px;
+}
+
+.filter-select:focus { outline: none; border-color: rgba(255,255,255,.7); }
+.filter-select option { background: #1C334F; color: #fff; }
+
+/* Links de navegación */
+.header-links {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.nav-link {
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  font-family: 'Montserrat', sans-serif;
+  transition: opacity .15s;
+  white-space: nowrap;
+}
+
+.nav-link.primary   { background: var(--white); color: var(--puebla-green); }
+.nav-link.secondary { background: rgba(255,255,255,.15); color: var(--white); border: 1px solid rgba(255,255,255,.35); }
+.nav-link:hover     { opacity: .85; }
+
+/* ════════════════════════════════
+   CUERPO PRINCIPAL
+   ════════════════════════════════ */
+.main-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 18px;
+  gap: 14px;
+  overflow: hidden;
+}
+
+/* ════════════════════════════════
+   3 TEXTOS KPI (fila superior)
+   ════════════════════════════════ */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.kpi-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  border-left: 4px solid var(--puebla-green);
+}
+
+.kpi-card.alerta   { border-left-color: var(--puebla-red);  }
+.kpi-card.neutral  { border-left-color: var(--gold);        }
+
+.kpi-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.kpi-card:not(.alerta):not(.neutral) .kpi-icon { background: rgba(0,99,65,.1); }
+.kpi-card.alerta .kpi-icon  { background: rgba(155,28,46,.1); }
+.kpi-card.neutral .kpi-icon { background: rgba(184,134,11,.1); }
+
+.kpi-info { flex: 1; min-width: 0; }
+
+.kpi-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--muted);
+}
+
+.kpi-value {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--puebla-green);
+  line-height: 1.1;
+}
+
+.kpi-card.alerta  .kpi-value { color: var(--puebla-red); }
+.kpi-card.neutral .kpi-value { color: var(--gold); }
+
+.kpi-meta { font-size: 10px; color: var(--muted); margin-top: 1px; }
+.kpi-error { font-size: 10px; color: #b91c1c; display: none; }
+
+/* ════════════════════════════════
+   WATERFALL — área central
+   ════════════════════════════════ */
+.waterfall-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  overflow: hidden;
+}
+
+.waterfall-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.waterfall-title {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--navy);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+.waterfall-subtitle {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+.divider {
+  width: 28px; height: 3px;
+  background: linear-gradient(90deg, var(--puebla-green), var(--puebla-red));
+  border-radius: 2px;
+  margin: 4px 0 0;
+}
+
+/* Leyenda */
+.wf-legend {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.wf-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.wf-legend-dot {
+  width: 10px; height: 10px;
+  border-radius: 2px;
+}
+
+/* Contenedor SVG del waterfall */
+.waterfall-svg-wrap {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+#wf-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Tooltip del waterfall */
+.wf-tooltip {
+  position: absolute;
+  background: var(--navy);
+  color: var(--white);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s;
+  max-width: 240px;
+  line-height: 1.5;
+  z-index: 10;
+  box-shadow: 0 4px 16px rgba(0,0,0,.25);
+}
+
+.wf-tooltip.visible { opacity: 1; }
+
+.wf-tooltip-title {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.wf-tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.wf-tooltip-key   { color: rgba(255,255,255,.7); }
+.wf-tooltip-val   { font-weight: 700; }
+
+/* Estado vacío / error */
+.wf-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  gap: 8px;
+  font-size: 13px;
+}
+
+.wf-empty-icon { font-size: 36px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     HEADER
+     Variables SAS esperadas (postMessage):
+       parameters.headerTitle      → título principal
+       parameters.headerSubtitle   → subtítulo
+       parameters.linkBrecha       → URL brecha de recaudación
+       parameters.linkAnalisis     → URL análisis de recaudación
+       parameters.alertaOpciones   → JSON array de strings para filtro Alerta/Ley
+       parameters.impuestoOpciones → JSON array de strings para filtro Tipo de Impuesto
+     ══════════════════════════════════════════ -->
+<header class="header">
+
+  <!-- Logo Gobierno de Puebla -->
+  <div class="header-logo">
+    <!-- Reemplaza este SVG por <img src="logo-puebla.png" alt="Gobierno de Puebla"> -->
+    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="40" height="40" rx="6" fill="#006341"/>
+      <text x="20" y="26" text-anchor="middle" fill="white"
+            font-family="Montserrat, sans-serif" font-size="11" font-weight="800">GBP</text>
+    </svg>
+  </div>
+
+  <!-- Textos -->
+  <div class="header-texts">
+    <div class="header-title"  id="h-title">Análisis de Potencial de Recaudación</div>
+    <div class="header-subtitle" id="h-subtitle">Impuestos y Aduanas · Gobierno del Estado de Puebla</div>
+  </div>
+
+  <!-- 2 KPIs de referencia rápida en el header -->
+  <div class="header-meta">
+    <div class="header-meta-item">
+      <span class="header-meta-label" id="hm-label1">Ejercicio fiscal</span>
+      <span class="header-meta-value" id="hm-value1">—</span>
+    </div>
+    <div class="header-meta-item">
+      <span class="header-meta-label" id="hm-label2">Última actualización</span>
+      <span class="header-meta-value" id="hm-value2">—</span>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="header-filters">
+    <div class="filter-group">
+      <span class="filter-label">Alerta / Ley</span>
+      <!-- SAS llena las <option> vía postMessage.parameters.alertaOpciones -->
+      <select class="filter-select" id="filtro-alerta">
+        <option value="">Todas</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">Tipo de impuesto</span>
+      <select class="filter-select" id="filtro-impuesto">
+        <option value="">Todos</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Links de navegación -->
+  <div class="header-links">
+    <a class="nav-link primary"   id="link-brecha"  href="#" target="_parent">Brecha de Recaudación</a>
+    <a class="nav-link secondary" id="link-analisis" href="#" target="_parent">Análisis de Recaudación</a>
+  </div>
+
+</header>
+
+<!-- ══════════════════════════════════════════
+     CUERPO PRINCIPAL
+     ══════════════════════════════════════════ -->
+<div class="main-body">
+
+  <!-- ── 3 TEXTOS KPI ──
+       Variables SAS esperadas:
+         columns[]: TEXTO1_LABEL, TEXTO1_VALUE, TEXTO1_META
+                    TEXTO2_LABEL, TEXTO2_VALUE, TEXTO2_META
+                    TEXTO3_LABEL, TEXTO3_VALUE, TEXTO3_META
+       O bien via parameters:
+         parameters.kpi1Label / kpi1Value / kpi1Meta
+         parameters.kpi2Label / kpi2Value / kpi2Meta
+         parameters.kpi3Label / kpi3Value / kpi3Meta
+  ── -->
+  <div class="kpi-row">
+
+    <!-- KPI 1: recaudación total / potencial -->
+    <div class="kpi-card">
+      <div class="kpi-icon">💰</div>
+      <div class="kpi-info">
+        <div class="kpi-label" id="kpi1-label">Recaudación Potencial</div>
+        <div class="kpi-value" id="kpi1-value">—</div>
+        <div class="kpi-meta"  id="kpi1-meta">Monto estimado</div>
+        <div class="kpi-error" id="kpi1-error"></div>
+      </div>
+    </div>
+
+    <!-- KPI 2: contribuyentes en alerta -->
+    <div class="kpi-card alerta">
+      <div class="kpi-icon">⚠️</div>
+      <div class="kpi-info">
+        <div class="kpi-label" id="kpi2-label">Contribuyentes en Alerta</div>
+        <div class="kpi-value" id="kpi2-value">—</div>
+        <div class="kpi-meta"  id="kpi2-meta">Total identificados</div>
+        <div class="kpi-error" id="kpi2-error"></div>
+      </div>
+    </div>
+
+    <!-- KPI 3: brecha -->
+    <div class="kpi-card neutral">
+      <div class="kpi-icon">📊</div>
+      <div class="kpi-info">
+        <div class="kpi-label" id="kpi3-label">Brecha de Recaudación</div>
+        <div class="kpi-value" id="kpi3-value">—</div>
+        <div class="kpi-meta"  id="kpi3-meta">Diferencia vs. potencial</div>
+        <div class="kpi-error" id="kpi3-error"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── WATERFALL ──
+       Variables SAS esperadas (array de objetos en data[]):
+         CATEGORIA  : string — nombre de la barra (eje X)
+         MONTO      : number — valor absoluto de cada segmento
+         TIPO       : string — 'positivo' | 'negativo' | 'total' | 'inicio'
+                      positivo → verde (incremento)
+                      negativo → rojo  (decremento)
+                      total    → azul oscuro (barra de cierre / acumulado)
+                      inicio   → azul claro  (barra de apertura)
+         TOOLTIP_T1 : string — texto línea 1 del tooltip (hover en verde)
+         TOOLTIP_T2 : string — texto línea 2 del tooltip (hover en verde)
+  ── -->
+  <div class="waterfall-card">
+    <div class="waterfall-header">
+      <div>
+        <div class="waterfall-title" id="wf-title">Análisis de Brecha de Recaudación</div>
+        <div class="waterfall-subtitle" id="wf-subtitle">Desglose por categoría de impuesto · acumulado ejercicio</div>
+        <div class="divider"></div>
+      </div>
+      <div class="wf-legend">
+        <div class="wf-legend-item">
+          <div class="wf-legend-dot" style="background:#27ae60"></div>
+          <span>Incremento</span>
+        </div>
+        <div class="wf-legend-item">
+          <div class="wf-legend-dot" style="background:#e74c3c"></div>
+          <span>Decremento</span>
+        </div>
+        <div class="wf-legend-item">
+          <div class="wf-legend-dot" style="background:#1C334F"></div>
+          <span>Total</span>
+        </div>
+        <div class="wf-legend-item">
+          <div class="wf-legend-dot" style="background:#3A7BD5"></div>
+          <span>Base</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="waterfall-svg-wrap">
+      <svg id="wf-svg"></svg>
+      <div class="wf-tooltip" id="wf-tooltip">
+        <div class="wf-tooltip-title" id="tt-title">—</div>
+        <div class="wf-tooltip-row">
+          <span class="wf-tooltip-key" id="tt-key1">Monto:</span>
+          <span class="wf-tooltip-val" id="tt-val1">—</span>
+        </div>
+        <div class="wf-tooltip-row" id="tt-row2" style="display:none">
+          <span class="wf-tooltip-key" id="tt-key2"></span>
+          <span class="wf-tooltip-val" id="tt-val2"></span>
+        </div>
+      </div>
+      <div class="wf-empty" id="wf-empty" style="display:none">
+        <div class="wf-empty-icon">📈</div>
+        <span>Sin datos disponibles · esperando conexión SAS VA</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main-body -->
+
+<script>
+/* ════════════════════════════════════════════════════════
+   UTILIDADES GENERALES
+   ════════════════════════════════════════════════════════ */
+var fmtPesos = new Intl.NumberFormat('es-MX', {
+  style: 'currency', currency: 'MXN',
+  minimumFractionDigits: 0, maximumFractionDigits: 0
+});
+var fmtNum = new Intl.NumberFormat('es-MX', { maximumFractionDigits: 0 });
+
+function el(id)       { return document.getElementById(id); }
+function setText(id, v){ var e=el(id); if(e) e.textContent = v||'—'; }
+function setErr(id, m) {
+  var e=el(id); if(!e) return;
+  e.textContent = m||'';
+  e.style.display = m ? 'block' : 'none';
+}
+
+function normCol(s){ return String(s==null?'':s).trim().toUpperCase(); }
+function cellVal(x){
+  if(x&&typeof x==='object'){
+    if('value' in x)           return x.value;
+    if('formattedValue' in x)  return x.formattedValue;
+  }
+  return x;
+}
+function findIdx(cols, want){
+  var w = normCol(want);
+  return (cols||[]).findIndex(function(c){
+    var n = normCol(typeof c==='string'?c:(c.label||c.name||''));
+    return n===w;
+  });
+}
+function getNum(row, cols, name){
+  var i = findIdx(cols, name);
+  if(i<0||!Array.isArray(row)||i>=row.length) return null;
+  var v = cellVal(row[i]);
+  var n = typeof v==='number' ? v : Number(v);
+  return isFinite(n) ? n : null;
+}
+function getStr(row, cols, name){
+  var i = findIdx(cols, name);
+  if(i<0) return '';
+  var v = cellVal(row[i]);
+  return v==null ? '' : String(v).trim();
+}
+
+/* ════════════════════════════════════════════════════════
+   HEADER — textos, filtros, links
+   ════════════════════════════════════════════════════════ */
+function applyHeader(p){
+  if(!p) p={};
+  if(p.headerTitle)    setText('h-title',    p.headerTitle);
+  if(p.headerSubtitle) setText('h-subtitle', p.headerSubtitle);
+  if(p.hmLabel1)       setText('hm-label1', p.hmLabel1);
+  if(p.hmValue1)       setText('hm-value1', p.hmValue1);
+  if(p.hmLabel2)       setText('hm-label2', p.hmLabel2);
+  if(p.hmValue2)       setText('hm-value2', p.hmValue2);
+  if(p.linkBrecha)     { var a=el('link-brecha');  if(a) a.href=p.linkBrecha;  }
+  if(p.linkAnalisis)   { var b=el('link-analisis');if(b) b.href=p.linkAnalisis;}
+
+  /* Opciones filtro Alerta/Ley */
+  if(p.alertaOpciones){
+    var sel=el('filtro-alerta');
+    if(sel){
+      var opts=Array.isArray(p.alertaOpciones)?p.alertaOpciones:JSON.parse(p.alertaOpciones);
+      sel.innerHTML='<option value="">Todas</option>';
+      opts.forEach(function(o){ var oe=document.createElement('option'); oe.value=o; oe.textContent=o; sel.appendChild(oe); });
+    }
+  }
+  /* Opciones filtro Tipo de Impuesto */
+  if(p.impuestoOpciones){
+    var sel2=el('filtro-impuesto');
+    if(sel2){
+      var opts2=Array.isArray(p.impuestoOpciones)?p.impuestoOpciones:JSON.parse(p.impuestoOpciones);
+      sel2.innerHTML='<option value="">Todos</option>';
+      opts2.forEach(function(o){ var oe=document.createElement('option'); oe.value=o; oe.textContent=o; sel2.appendChild(oe); });
+    }
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   KPIs — 3 textos superiores
+   Variables de columns: TEXTO1_LABEL, TEXTO1_VALUE, TEXTO1_META … (x3)
+   O bien parameters: kpi1Label, kpi1Value, kpi1Meta …
+   ════════════════════════════════════════════════════════ */
+function applyKPIs(rows, cols, p){
+  p = p||{};
+  /* Intenta primero desde la fila de datos */
+  var row = (rows&&rows.length)?rows[0]:[];
+
+  function kpi(n){
+    var lCol = 'TEXTO'+n+'_LABEL', vCol = 'TEXTO'+n+'_VALUE', mCol = 'TEXTO'+n+'_META';
+    var lP   = 'kpi'+n+'Label',   vP   = 'kpi'+n+'Value',   mP   = 'kpi'+n+'Meta';
+    var label = getStr(row,cols,lCol) || p[lP];
+    var val   = getNum(row,cols,vCol);
+    var valS  = val!==null ? fmtPesos.format(val) : (getStr(row,cols,vCol)||p[vP]||'—');
+    var meta  = getStr(row,cols,mCol) || p[mP];
+
+    if(label) setText('kpi'+n+'-label', label);
+    setText('kpi'+n+'-value', valS);
+    if(meta)  setText('kpi'+n+'-meta', meta);
+
+    var found = (findIdx(cols,vCol)>=0) || p[vP];
+    if(!found && cols.length) setErr('kpi'+n+'-error','Columna "'+vCol+'" no encontrada.');
+    else setErr('kpi'+n+'-error','');
+  }
+  [1,2,3].forEach(kpi);
+}
+
+/* ════════════════════════════════════════════════════════
+   WATERFALL — gráfico principal
+   Columnas esperadas en data[]:
+     CATEGORIA  : string  (label eje X)
+     MONTO      : number  (valor del segmento)
+     TIPO       : string  'positivo'|'negativo'|'total'|'inicio'
+     TOOLTIP_T1 : string  texto hover línea 1
+     TOOLTIP_T2 : string  texto hover línea 2
+   ════════════════════════════════════════════════════════ */
+var COLORS = {
+  positivo: '#27ae60',
+  negativo: '#e74c3c',
+  total:    '#1C334F',
+  inicio:   '#3A7BD5'
+};
+
+var COLOR_HOVER = {
+  positivo: '#1a7a4a',
+  negativo: '#c0392b',
+  total:    '#0d1e30',
+  inicio:   '#2563b0'
+};
+
+/* Datos demo (fallback si SAS no envía datos) */
+var DEMO_DATA = [
+  { CATEGORIA:'Recaudación\nBase',      MONTO:1200000, TIPO:'inicio',   TOOLTIP_T1:'',                               TOOLTIP_T2:'' },
+  { CATEGORIA:'ISR',                    MONTO:340000,  TIPO:'positivo', TOOLTIP_T1:'Contribuyentes: 1,240',          TOOLTIP_T2:'Variación: +22%' },
+  { CATEGORIA:'IVA',                    MONTO:280000,  TIPO:'positivo', TOOLTIP_T1:'Contribuyentes: 980',            TOOLTIP_T2:'Variación: +18%' },
+  { CATEGORIA:'IEPS',                   MONTO:-95000,  TIPO:'negativo', TOOLTIP_T1:'Devoluciones: $95,000',          TOOLTIP_T2:'Alertas activas: 34' },
+  { CATEGORIA:'Derechos\ny Producto',   MONTO:175000,  TIPO:'positivo', TOOLTIP_T1:'Contribuyentes: 560',            TOOLTIP_T2:'Variación: +8%' },
+  { CATEGORIA:'Recargos\ny Multas',     MONTO:88000,   TIPO:'positivo', TOOLTIP_T1:'Contribuyentes: 320',            TOOLTIP_T2:'Recuperación: 76%' },
+  { CATEGORIA:'Brecha\nIdentificada',   MONTO:-210000, TIPO:'negativo', TOOLTIP_T1:'Estimación de evasión fiscal',   TOOLTIP_T2:'Contribuyentes: 412' },
+  { CATEGORIA:'Total\nFinal',           MONTO:1778000, TIPO:'total',    TOOLTIP_T1:'',                               TOOLTIP_T2:'' }
+];
+
+var currentWFData = null;
+
+function parseWFData(rows, cols){
+  var iCat  = findIdx(cols,'CATEGORIA');
+  var iMon  = findIdx(cols,'MONTO');
+  var iTipo = findIdx(cols,'TIPO');
+  var iT1   = findIdx(cols,'TOOLTIP_T1');
+  var iT2   = findIdx(cols,'TOOLTIP_T2');
+  if(iCat<0||iMon<0||iTipo<0) return null;
+  return rows.map(function(row){
+    return {
+      CATEGORIA:  String(cellVal(row[iCat])||'').trim(),
+      MONTO:      parseFloat(cellVal(row[iMon]))||0,
+      TIPO:       String(cellVal(row[iTipo])||'positivo').toLowerCase(),
+      TOOLTIP_T1: iT1>=0 ? String(cellVal(row[iT1])||'') : '',
+      TOOLTIP_T2: iT2>=0 ? String(cellVal(row[iT2])||'') : ''
+    };
+  });
+}
+
+function renderWaterfall(data){
+  var svg   = el('wf-svg');
+  var wrap  = svg.parentElement;
+  var tip   = el('wf-tooltip');
+  var empty = el('wf-empty');
+
+  if(!data||!data.length){ svg.style.display='none'; empty.style.display='flex'; return; }
+  svg.style.display='block'; empty.style.display='none';
+
+  var W = wrap.clientWidth  || 800;
+  var H = wrap.clientHeight || 320;
+
+  var PAD_L=58, PAD_R=20, PAD_T=24, PAD_B=56;
+  var chartW = W - PAD_L - PAD_R;
+  var chartH = H - PAD_T - PAD_B;
+  if(chartH<60) chartH=60;
+
+  /* Calcular running total para las barras de tipo 'positivo'/'negativo' */
+  var bars = [];
+  var running = 0;
+  data.forEach(function(d){
+    var tipo = d.TIPO;
+    var monto = d.MONTO;
+    if(tipo==='inicio'){
+      bars.push({ cat:d.CATEGORIA, base:0,       top:monto,        val:monto,   tipo:tipo, t1:d.TOOLTIP_T1, t2:d.TOOLTIP_T2 });
+      running = monto;
+    } else if(tipo==='total'){
+      bars.push({ cat:d.CATEGORIA, base:0,       top:running,      val:running, tipo:tipo, t1:d.TOOLTIP_T1, t2:d.TOOLTIP_T2 });
+    } else if(tipo==='positivo'){
+      bars.push({ cat:d.CATEGORIA, base:running, top:running+monto, val:monto,  tipo:tipo, t1:d.TOOLTIP_T1, t2:d.TOOLTIP_T2 });
+      running += monto;
+    } else { /* negativo */
+      bars.push({ cat:d.CATEGORIA, base:running+monto, top:running, val:monto,  tipo:tipo, t1:d.TOOLTIP_T1, t2:d.TOOLTIP_T2 });
+      running += monto;
+    }
+  });
+
+  /* Escala Y */
+  var allVals = bars.reduce(function(a,b){ return a.concat([b.base,b.top]); },[]);
+  var maxV = Math.max.apply(null,allVals);
+  var minV = Math.min(0, Math.min.apply(null,allVals));
+  var range = maxV - minV; if(range===0) range=1;
+  function toY(v){ return PAD_T + chartH - ((v-minV)/range)*chartH; }
+
+  /* Escala X */
+  var n     = bars.length;
+  var bW    = Math.min(70, (chartW/n)*0.65);
+  var gap   = chartW/n;
+  function toX(i){ return PAD_L + gap*(i+0.5) - bW/2; }
+
+  /* Líneas de guía Y */
+  var steps = 5;
+  var gridLines = '';
+  var yLabels   = '';
+  for(var s=0;s<=steps;s++){
+    var v  = minV + (range/steps)*s;
+    var y  = toY(v);
+    var lv = Math.abs(v)>=1e6 ? (v/1e6).toFixed(1)+'M' :
+             Math.abs(v)>=1e3 ? (v/1e3).toFixed(0)+'K' : v.toFixed(0);
+    gridLines += '<line x1="'+PAD_L+'" y1="'+y+'" x2="'+(W-PAD_R)+'" y2="'+y+'" stroke="#e8ecf2" stroke-width="1"/>';
+    yLabels   += '<text x="'+(PAD_L-6)+'" y="'+(y+4)+'" text-anchor="end" font-size="9" fill="#6B8AAB">$'+lv+'</text>';
+  }
+
+  /* Línea del cero */
+  var y0 = toY(0);
+  var zeroLine = minV<0 ? '<line x1="'+PAD_L+'" y1="'+y0+'" x2="'+(W-PAD_R)+'" y2="'+y0+'" stroke="#1C334F" stroke-width="1" stroke-dasharray="4,2" opacity=".4"/>' : '';
+
+  /* Conectores entre barras */
+  var connectors = '';
+  for(var ci=0;ci<bars.length-1;ci++){
+    var b  = bars[ci];
+    var x1 = toX(ci)+bW;
+    var x2 = toX(ci+1);
+    var cy = b.tipo==='negativo' ? toY(b.base) : toY(b.top);
+    connectors += '<line x1="'+x1+'" y1="'+cy+'" x2="'+x2+'" y2="'+cy+'" stroke="#B0BEC5" stroke-width="1" stroke-dasharray="3,2"/>';
+  }
+
+  /* Barras */
+  var rectsSVG = '';
+  var xLabelsSVG = '';
+  bars.forEach(function(b,i){
+    var x   = toX(i);
+    var y1  = toY(Math.max(b.base,b.top));
+    var y2  = toY(Math.min(b.base,b.top));
+    var bh  = Math.abs(y2-y1); if(bh<2) bh=2;
+    var col = COLORS[b.tipo]||COLORS.positivo;
+    var hcol= COLOR_HOVER[b.tipo]||COLOR_HOVER.positivo;
+    var fmt = b.tipo==='total'||b.tipo==='inicio' ? fmtPesos.format(b.val)
+             : (b.val>=0?'+':'-')+'$'+fmtNum.format(Math.abs(b.val));
+
+    /* Valor encima / debajo de la barra */
+    var labelY = y1 - 4;
+    if(labelY < PAD_T+10) labelY = y2 + bh + 11;
+    var valLabel = '<text x="'+(x+bW/2)+'" y="'+labelY+'" text-anchor="middle" font-size="9" font-weight="700" fill="'+col+'">'+fmt+'</text>';
+
+    /* Etiqueta X (multilinea) */
+    var lines = b.cat.split('\n');
+    var xMid  = x+bW/2;
+    var yBase = H - PAD_B + 14;
+    var xL    = lines.map(function(l,li){
+      return '<text x="'+xMid+'" y="'+(yBase+li*12)+'" text-anchor="middle" font-size="10" fill="#1C334F">'+l+'</text>';
+    }).join('');
+
+    rectsSVG   += '<rect class="wf-bar" data-idx="'+i+'" x="'+x+'" y="'+y1+'" width="'+bW+'" height="'+bh+'" rx="3" fill="'+col+'" data-col="'+col+'" data-hcol="'+hcol+'"/>'+valLabel;
+    xLabelsSVG += xL;
+  });
+
+  svg.setAttribute('viewBox','0 0 '+W+' '+H);
+  svg.innerHTML = gridLines + zeroLine + connectors + rectsSVG + yLabels + xLabelsSVG;
+
+  /* Interactividad hover */
+  svg.querySelectorAll('.wf-bar').forEach(function(rect){
+    var idx  = parseInt(rect.getAttribute('data-idx'));
+    var b    = bars[idx];
+    var col  = rect.getAttribute('data-col');
+    var hcol = rect.getAttribute('data-hcol');
+
+    rect.style.cursor = 'pointer';
+
+    rect.addEventListener('mouseenter', function(e){
+      rect.setAttribute('fill', hcol);
+      var fmt2 = b.tipo==='total'||b.tipo==='inicio' ? fmtPesos.format(b.val)
+                : (b.val>=0?'+':'')+fmtPesos.format(b.val);
+      el('tt-title').textContent = b.cat.replace('\n',' ');
+      el('tt-key1').textContent  = 'Monto:';
+      el('tt-val1').textContent  = fmt2;
+      var row2 = el('tt-row2');
+      if(b.t1){
+        el('tt-key2').textContent = b.t1;
+        el('tt-val2').textContent = b.t2||'';
+        row2.style.display='flex';
+      } else {
+        row2.style.display='none';
+      }
+      tip.classList.add('visible');
+    });
+
+    rect.addEventListener('mousemove', function(e){
+      var wr = wrap.getBoundingClientRect();
+      var tx = e.clientX - wr.left + 12;
+      var ty = e.clientY - wr.top  + 12;
+      if(tx+250>wr.width)  tx = e.clientX - wr.left - 260;
+      if(ty+100>wr.height) ty = e.clientY - wr.top  - 110;
+      tip.style.left = tx+'px';
+      tip.style.top  = ty+'px';
+    });
+
+    rect.addEventListener('mouseleave', function(){
+      rect.setAttribute('fill', col);
+      tip.classList.remove('visible');
+    });
+  });
+}
+
+/* ════════════════════════════════════════════════════════
+   LISTENER PRINCIPAL — SAS VA postMessage
+   ════════════════════════════════════════════════════════ */
+window.addEventListener('message', function(evt){
+  var m = evt.data || {};
+  var p    = m.parameters || {};
+  var cols = m.columns    || [];
+  var rows = m.data       || [];
+
+  /* Header */
+  applyHeader(p);
+
+  /* Título del waterfall via parámetros */
+  if(p.wfTitle)    setText('wf-title',    p.wfTitle);
+  if(p.wfSubtitle) setText('wf-subtitle', p.wfSubtitle);
+
+  /* KPIs */
+  if(cols.length||Object.keys(p).length) applyKPIs(rows, cols, p);
+
+  /* Waterfall */
+  if(cols.length && rows.length){
+    var wfd = parseWFData(rows, cols);
+    if(wfd){ currentWFData=wfd; renderWaterfall(wfd); }
+  }
+});
+
+/* Notificar a SAS VA que el contenido está listo */
+try{ window.parent&&window.parent.postMessage({type:'ready'},'*'); } catch(e){}
+
+/* ════════════════════════════════════════════════════════
+   RENDERIZADO INICIAL CON DATOS DEMO
+   (Se reemplaza automáticamente cuando SAS envía datos reales)
+   ════════════════════════════════════════════════════════ */
+applyHeader({
+  hmValue1: '2025',
+  hmValue2: 'Demo'
+});
+
+/* KPIs demo */
+setText('kpi1-value', '$1,778,000');
+setText('kpi1-meta',  'Potencial estimado · ejercicio 2025');
+setText('kpi2-value', '412');
+setText('kpi2-meta',  'Con propensión a evasión');
+setText('kpi3-value', '$210,000');
+setText('kpi3-meta',  'Estimación brecha identificada');
+
+/* Waterfall demo */
+window.addEventListener('load', function(){
+  renderWaterfall(DEMO_DATA);
+});
+
+/* Re-renderizar si cambia el tamaño */
+window.addEventListener('resize', function(){
+  if(currentWFData) renderWaterfall(currentWFData);
+  else renderWaterfall(DEMO_DATA);
+});
+</script>
+</body>
+</html>

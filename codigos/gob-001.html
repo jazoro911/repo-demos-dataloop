@@ -3,8 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dataloop - Análisis de Potencial de Recaudación</title>
+    <title>Dataloop - Página Inicial · Análisis de Recaudación</title>
     <link rel="stylesheet" href="../styles.css">
+    <style>
+        .codigo-referenciado {
+            background: #f8f9ff;
+            border: 1px solid #e8ecf5;
+            border-radius: 10px;
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .codigo-referenciado .archivo-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .codigo-referenciado .archivo-icono {
+            font-size: 28px;
+        }
+        .codigo-referenciado .archivo-nombre {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1C334F;
+        }
+        .codigo-referenciado .archivo-desc {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+        .codigo-referenciado .acciones {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .btn-copiar {
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 7px;
+            border: 1px solid #d8dce8;
+            background: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            color: #1C334F;
+            transition: background 0.15s;
+        }
+        .btn-copiar:hover { background: #eef0f5; }
+        .btn-run {
+            cursor: pointer;
+            background: #4caf50;
+            color: #fff;
+            padding: 8px 18px;
+            border-radius: 7px;
+            border: none;
+            font-size: 12px;
+            font-weight: 700;
+            transition: background 0.15s;
+        }
+        .btn-run:hover { background: #388e3c; }
+        .codigo-status {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 10px;
+            min-height: 16px;
+        }
+    </style>
 </head>
 <body>
 
@@ -48,46 +114,64 @@
 
     <div class="contenido">
 
-        <a href="../index.html" class="boton-volver">← Volver al repositorio</a>
+        <a href="../categorias/gobierno.html" class="boton-volver">← Volver al repositorio</a>
 
         <div class="tarjeta">
 
-            <h1 class="tarjeta-titulo">Análisis de Potencial de Recaudación</h1>
+            <h1 class="tarjeta-titulo">Página Inicial · Análisis de Potencial de Recaudación</h1>
 
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
                 <span class="etiqueta-lenguaje">html</span>
-                <span style="color: #64748b; font-size: 14px;">Proyecto</span>
+                <span style="color: #64748b; font-size: 14px;">Data Driven Content · SAS VA</span>
             </div>
 
-            <p class="tarjeta-descripcion">
-                Tablero ejecutivo de impuestos y aduanas para visualizar montos de recaudación por nivel municipal, estatal y federal, orientado a altos mandos de la Secretaría de Finanzas.
-            </p>
+            <p class="tarjeta-descripcion">Dashboard de página inicial para el módulo de Gobierno. Muestra KPIs de recaudación potencial, contribuyentes en alerta y brecha fiscal, junto con un gráfico waterfall interactivo. Diseñado como Data Driven Content para SAS Visual Analytics — recibe datos vía postMessage.</p>
 
             <div class="etiquetas">
-                <span class="etiqueta">#recaudación</span>
-                <span class="etiqueta">#impuestos</span>
-                <span class="etiqueta">#aduanas</span>
+                <span class="etiqueta">#gobierno</span>
+                <span class="etiqueta">#recaudacion</span>
+                <span class="etiqueta">#waterfall</span>
+                <span class="etiqueta">#sas-va</span>
+                <span class="etiqueta">#data-driven-content</span>
             </div>
 
             <div class="info-meta">
-                <span><strong>Autor:</strong> Secretaría de Finanzas</span>
-                <span><strong>Fecha:</strong> 2025-05-01</span>
+                <span><strong>Autor:</strong> Dataloop Team</span>
+                <span><strong>Fecha:</strong> 2025-06-10</span>
             </div>
 
             <div class="instrucciones">
                 <h2>📋 Instrucciones de Uso</h2>
-                <p>
-                    Tablero de lectura ejecutiva que muestra el monto de recaudaciones por nivel de gobierno (municipal, estatal y federal), diseñado para ser fácil de leer por altos mandos.
-                </p>
+                <p>Cargar como Data Driven Content en SAS VA. Variables que SAS alimenta vía postMessage:</p>
+                <ul style="margin-top:8px; margin-left:18px; font-size:13px; line-height:1.8; color:#444;">
+                    <li><strong>Columnas:</strong> <code>CATEGORIA</code>, <code>MONTO</code>, <code>TIPO</code>, <code>TOOLTIP_T1</code>, <code>TOOLTIP_T2</code> → waterfall</li>
+                    <li><strong>Columnas:</strong> <code>TEXTO1_LABEL</code>, <code>TEXTO1_VALUE</code>, <code>TEXTO1_META</code> (y TEXTO2, TEXTO3) → KPIs</li>
+                    <li><strong>Parámetros:</strong> <code>alertaOpciones</code>, <code>impuestoOpciones</code> → filtros desplegables</li>
+                    <li><strong>Parámetros:</strong> <code>linkBrecha</code>, <code>linkAnalisis</code> → URLs de navegación</li>
+                </ul>
             </div>
 
             <div class="bloque-codigo">
                 <div class="barra-archivo">
-                    <span>analisis_potencial_recaudacion.html</span>
-                    <span style="cursor: pointer;" onclick="copiarCodigo(this)">📋 Copiar</span>
+                    <span>CÓDIGO</span>
                 </div>
-                <pre><code><span class="comment"># Código próximamente disponible</span></code></pre>
+
+                <div class="codigo-referenciado">
+                    <div class="archivo-info">
+                        <div class="archivo-icono">📄</div>
+                        <div>
+                            <div class="archivo-nombre">pagina-inicial-recaudacion.html</div>
+                            <div class="archivo-desc">Data Driven Content · SAS VA · Waterfall + KPIs + Filtros</div>
+                        </div>
+                    </div>
+                    <div class="acciones">
+                        <button class="btn-copiar" id="btnCopiar">📋 Copiar</button>
+                        <button class="btn-run"    id="btnRun">▶ Run</button>
+                    </div>
+                </div>
+                <div class="codigo-status" id="codigoStatus"></div>
             </div>
+
 
             <div class="seccion-video">
                 <h2>🎬 Video Demo</h2>
@@ -112,15 +196,47 @@
     </div>
 
     <script>
-        function copiarCodigo(boton) {
-            var codigo = boton.closest('.bloque-codigo').querySelector('code');
-            navigator.clipboard.writeText(codigo.textContent).then(function() {
-                boton.textContent = '✅ Copiado!';
-                setTimeout(function() {
-                    boton.textContent = '📋 Copiar';
-                }, 2000);
-            });
+        /* Ruta al archivo de código referenciado */
+        var CODIGO_URL = 'http://127.0.0.1:5501/codigos/Demos/Demos/Gobierno/pagina-inicial-recaudacion.html';
+
+        function fetchCodigo(callback) {
+            var status = document.getElementById('codigoStatus');
+            status.textContent = 'Cargando archivo...';
+            fetch(CODIGO_URL)
+                .then(function(r) {
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    return r.text();
+                })
+                .then(function(text) {
+                    status.textContent = '';
+                    callback(null, text);
+                })
+                .catch(function(err) {
+                    status.textContent = '⚠️ No se pudo cargar el archivo: ' + err.message;
+                    callback(err, null);
+                });
         }
+
+        document.getElementById('btnCopiar').addEventListener('click', function() {
+            var btn = this;
+            fetchCodigo(function(err, text) {
+                if (err) return;
+                navigator.clipboard.writeText(text).then(function() {
+                    btn.textContent = '✅ Copiado!';
+                    setTimeout(function() { btn.textContent = '📋 Copiar'; }, 2000);
+                });
+            });
+        });
+
+        document.getElementById('btnRun').addEventListener('click', function() {
+            fetchCodigo(function(err, text) {
+                if (err) return;
+                var win = window.open('', '_blank');
+                win.document.open();
+                win.document.write(text);
+                win.document.close();
+            });
+        });
     </script>
 
 </body>
