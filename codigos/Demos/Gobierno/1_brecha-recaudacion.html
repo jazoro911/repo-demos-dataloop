@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Brecha de Recaudación – HOME DIAN</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
 <style>
 /* ── Variables globales ── */
 :root {
@@ -238,6 +244,27 @@ body {
 .map-placeholder-icon { font-size: 36px; opacity: .4; }
 .map-placeholder-text { font-size: 12px; font-weight: 600; line-height: 1.6; color: var(--muted); }
 
+/* ── Mapa real (Leaflet) ── */
+.geo-map {
+  width: 100%;
+  height: 280px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  z-index: 0;
+}
+.geo-map .leaflet-container { background: #aadaff; }
+.map-legend {
+  margin-top: 8px; display: flex; flex-wrap: wrap; gap: 10px 14px;
+}
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--muted); }
+.legend-dot  { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── Cluster geo (estilo SAS geo coordinate) ── */
+.pie-cluster-icon, .alerta-marker-icon { background: none !important; border: none !important; }
+.leaflet-popup-content-wrapper { border-radius: 10px; }
+.leaflet-popup-content { margin: 12px 14px; font-family: 'Open Sans', sans-serif; }
+
 /* ════════════════
    DISCREPANCIAS DETECTADAS
    ════════════════ */
@@ -433,9 +460,12 @@ body {
         <div class="card" style="flex:1;">
           <div class="card-title">Distribución geográfica – Municipio</div>
           <div class="divider"></div>
-          <div class="map-placeholder" id="home-map">
-            <span class="map-placeholder-icon">🗺️</span>
-            <span class="map-placeholder-text">Geo coordinate – MUNICIPIO 1<br><small>Mapa próximamente</small></span>
+                    <div class="geo-map" id="home-map"></div>
+          <div class="map-legend">
+            <div class="legend-item"><span class="legend-dot" style="background:#1565C0;"></span>Facturación elec. &gt; ingresos declarados (+35%)</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#e8a900;"></span>IVA acreditable &gt; 90% del IVA trasladado</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#9c27b0;"></span>Modelo de propensión a evasión</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#e8550c;"></span>Subvaluación aduanera &gt; 25%</div>
           </div>
         </div>
 
@@ -733,6 +763,183 @@ function applyFilters(){
 /* ══════════════════════════════════
    INIT
    ══════════════════════════════════ */
+
+/* ══════════════════════════════════
+   INTEGRACIÓN SAS VISUAL ANALYTICS
+   Cada pestaña es UN Data Driven Content: recibe TODAS las variables
+   en un solo dataset y reparte cada columna a su objeto.
+   ══════════════════════════════════ */
+function _sasIdx(columns, nombre){
+  if(!columns) return -1;
+  var n = String(nombre).trim().toLowerCase();
+  for(var i=0;i<columns.length;i++){
+    var c = columns[i];
+    var label = String(c.label!=null?c.label:(c.name!=null?c.name:c)).trim().toLowerCase();
+    if(label === n) return i;
+  }
+  return -1;
+}
+function _sasVal(cell){
+  if(cell && typeof cell === 'object'){
+    if('value' in cell) return cell.value;
+    if('formattedValue' in cell) return cell.formattedValue;
+  }
+  return cell;
+}
+function _sasNum(v){ var n=(typeof v==='number')?v:Number(String(v==null?'':v).replace(/[^0-9.\-]/g,'')); return isFinite(n)?n:0; }
+function _sasStr(v){ return v==null?'':String(v).trim(); }
+
+/* HOME DIAN — Objetos y sus variables:
+   - Barra Razón social 1: Category=Razón social, Measure=Monto discrepancia
+   - Treemap Razón social 1: Tile=Razón social, Size=Pct discrepancia
+   - KPIs: Monto de discrepancias, Número de discrepancias
+   - Geo MUNICIPIO 1: MUNICIPIO, MONTO_PRIORIZACION_COP, TIPO_ALERTA (mapa pendiente)
+*/
+function onSasData(rows, columns){
+  var iRazon = _sasIdx(columns,'Razón social');
+  var iMonto = _sasIdx(columns,'Monto discrepancia');
+  var iPct   = _sasIdx(columns,'Pct discrepancia');
+
+  if(iRazon<0 || iMonto<0) return; // dataset no corresponde
+
+  EMPRESAS = rows.map(function(r){
+    return {
+      razon: _sasStr(_sasVal(r[iRazon])),
+      monto: _sasNum(_sasVal(r[iMonto])),
+      pct:   iPct>=0 ? _sasNum(_sasVal(r[iPct])) : 0
+    };
+  });
+
+  // KPIs
+  var totalMonto = EMPRESAS.reduce(function(a,e){ return a+e.monto; },0);
+  var elMonto = document.querySelector('#page-home .kpi-box.blue-border .kpi-value');
+  var elNum   = document.querySelector('#page-home .kpi-box.yellow-border .kpi-value');
+  if(elMonto) elMonto.textContent = fmt.format(totalMonto);
+  if(elNum)   elNum.textContent   = fmtN.format(rows.length);
+
+  if(document.getElementById('home-bar-razon')) buildHomeBar();
+  if(document.getElementById('home-treemap'))   buildHomeTreemap();
+}
+
+/* Escucha los datos que envía SAS Visual Analytics vía postMessage */
+function _sasMessageHandler(evt){
+  try{
+    var payload = evt.data;
+    if(typeof payload === 'string'){ try{ payload = JSON.parse(payload); }catch(e){ return; } }
+    if(!payload) return;
+    // SAS VA envía { resultName, data, columns } (o data.data / data.columns)
+    var d = payload.data ? payload : (payload.results ? payload.results : payload);
+    var rows = d.data || (d.results && d.results.data);
+    var columns = d.columns || (d.results && d.results.columns);
+    if(rows && columns && typeof onSasData === 'function'){
+      onSasData(rows, columns);
+    }
+  }catch(e){ /* ignora mensajes ajenos a SAS */ }
+}
+window.addEventListener('message', _sasMessageHandler, false);
+
+
+
+
+/* ══════════════════════════════════
+   MAPA GEO-CLUSTER (Leaflet + MarkerCluster)
+   Estilo geo coordinate del reporte: puntos agrupados por cercanía,
+   círculo proporcional al monto, color por TIPO_ALERTA.
+   ══════════════════════════════════ */
+var COORDS_MUNICIPIOS = {
+  'Bogotá D.C.':[4.7110,-74.0721],'Bogotá':[4.7110,-74.0721],'Medellín':[6.2442,-75.5812],
+  'Santiago de Cali':[3.4516,-76.5320],'Cali':[3.4516,-76.5320],'Barranquilla':[10.9685,-74.7813],
+  'Cartagena de Indias':[10.3910,-75.4794],'Cartagena':[10.3910,-75.4794],'Bucaramanga':[7.1193,-73.1227],
+  'Santa Marta':[11.2408,-74.1990],'San José de Cúcuta':[7.8939,-72.5078],'Cúcuta':[7.8939,-72.5078],
+  'Pereira':[4.8133,-75.6961],'Ibagué':[4.4389,-75.2322],'Villavicencio':[4.1420,-73.6266],
+  'Palmira':[3.5394,-76.3036],'Manizales':[5.0703,-75.5138],'Pasto':[1.2136,-77.2811],
+  'Valledupar':[10.4631,-73.2532],'Armenia':[4.5339,-75.6811],'Neiva':[2.9273,-75.2819],
+  'Montería':[8.7479,-75.8814],'Sincelejo':[9.3047,-75.3978],'Tunja':[5.5353,-73.3678],
+  'Popayán':[2.4448,-76.6147],'Buenaventura':[3.8801,-77.0312]
+};
+function colorAlerta(tipo){
+  var t=String(tipo||'').toLowerCase();
+  if(t.indexOf('facturaci')>=0) return '#1565C0';
+  if(t.indexOf('iva acreditable')>=0) return '#e8a900';
+  if(t.indexOf('propensi')>=0||t.indexOf('evasi')>=0) return '#9c27b0';
+  if(t.indexOf('subvalua')>=0||t.indexOf('aduan')>=0) return '#e8550c';
+  return '#1a7a3a';
+}
+var _geoMapObj=null, _geoCluster=null;
+function crearMapaBase(elId){
+  var el=document.getElementById(elId);
+  if(!el||typeof L==='undefined') return null;
+  var map=L.map(elId,{zoomControl:true,scrollWheelZoom:false}).setView([4.6,-74.1],5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:12,minZoom:4,attribution:'© OpenStreetMap'}).addTo(map);
+  return map;
+}
+function registrosGeo(){
+  var regs=[];
+  if(typeof ZON_TABLE!=='undefined'&&ZON_TABLE.length){
+    ZON_TABLE.forEach(function(t){
+      var c=COORDS_MUNICIPIOS[t.mun]; if(!c) return;
+      regs.push({mun:t.mun,monto:(t.monto||0),alerta:(t.alerta||''),lat:c[0],lng:c[1],razon:(t.razon||'')});
+    });
+  } else if(typeof MUNICIPIOS_ZON!=='undefined'){
+    MUNICIPIOS_ZON.forEach(function(m){
+      var c=COORDS_MUNICIPIOS[m.mun]; if(!c) return;
+      regs.push({mun:m.mun,monto:m.n,alerta:'',lat:c[0],lng:c[1],razon:''});
+    });
+  }
+  return regs;
+}
+function svgCirculo(size,color,label){
+  var r=size/2,ir=r-2;
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'">'+
+    '<circle cx="'+r+'" cy="'+r+'" r="'+ir+'" fill="'+color+'" fill-opacity="0.75" stroke="#fff" stroke-width="2"/>'+
+    '<text x="'+r+'" y="'+r+'" text-anchor="middle" dy=".35em" font-size="'+Math.max(9,size/3.2)+
+    '" font-weight="700" fill="#fff" font-family="Montserrat,sans-serif">'+label+'</text></svg>';
+}
+function alertaDominante(regs){
+  var acc={};
+  regs.forEach(function(r){ acc[r.alerta]=(acc[r.alerta]||0)+(r.monto||0); });
+  var best='',bestV=-1;
+  Object.keys(acc).forEach(function(k){ if(acc[k]>bestV){bestV=acc[k];best=k;} });
+  return colorAlerta(best);
+}
+function clusterIcon(cluster){
+  var hijos=cluster.getAllChildMarkers();
+  var regs=hijos.map(function(m){ return m.options.regGeo; });
+  var color=alertaDominante(regs);
+  var sz=Math.min(64,30+hijos.length*5);
+  return L.divIcon({html:'<div style="position:relative">'+svgCirculo(sz,color,hijos.length)+'</div>',className:'pie-cluster-icon',iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]});
+}
+function marcadorRegistro(reg,maxMonto){
+  var sz=16+(reg.monto/maxMonto)*18;
+  var icon=L.divIcon({html:svgCirculo(sz,colorAlerta(reg.alerta),''),className:'alerta-marker-icon',iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]});
+  var m=L.marker([reg.lat,reg.lng],{icon:icon,regGeo:reg});
+  m.bindPopup('<div style="min-width:180px">'+
+    '<div style="font-weight:700;color:#1C334F;margin-bottom:2px">'+reg.mun+'</div>'+
+    (reg.razon?'<div style="font-size:11px;color:#64748b;margin-bottom:8px">'+reg.razon+'</div>':'')+
+    '<div style="font-size:12px">Monto: <strong>'+fmt.format(reg.monto)+'</strong></div>'+
+    (reg.alerta?'<div style="font-size:11px;color:#64748b;margin-top:4px">'+reg.alerta+'</div>':'')+
+    '</div>',{maxWidth:260});
+  return m;
+}
+function pintarCluster(map){
+  if(!map) return null;
+  var regs=registrosGeo();
+  if(!regs.length) return null;
+  var maxMonto=Math.max.apply(null,regs.map(function(r){return r.monto;}))||1;
+  var cluster=L.markerClusterGroup({maxClusterRadius:50,showCoverageOnHover:false,spiderfyOnMaxZoom:true,zoomToBoundsOnClick:true,iconCreateFunction:clusterIcon});
+  regs.forEach(function(r){ cluster.addLayer(marcadorRegistro(r,maxMonto)); });
+  map.addLayer(cluster);
+  try{ map.fitBounds(cluster.getBounds(),{padding:[40,40],maxZoom:7}); }catch(e){}
+  return cluster;
+}
+function buildGeoMap(elId){
+  if(_geoMapObj) return;
+  _geoMapObj=crearMapaBase(elId);
+  _geoCluster=pintarCluster(_geoMapObj);
+  setTimeout(function(){ if(_geoMapObj) _geoMapObj.invalidateSize(); },200);
+}
+
+
 (function init(){
   function safe(fn){ try { fn(); } catch(e){ /* elemento no presente en esta pestaña */ } }
   if (document.getElementById('home-bar-razon'))   safe(buildHomeBar);
@@ -743,6 +950,7 @@ function applyFilters(){
   if (document.getElementById('analisis-table'))   safe(buildAnalisisTable);
   if (document.getElementById('zon-bar'))          safe(buildZonBar);
   if (document.getElementById('zon-tbody-isr'))    safe(buildZonTables);
+  if(document.getElementById('home-map')) buildGeoMap('home-map');
 })();
 </script>
 </body>
