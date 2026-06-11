@@ -60,8 +60,8 @@ body {
 }
 
 .header-logo {
-  width: 52px;
-  height: 52px;
+  width: 150px;
+  height: 62px;
   background: var(--white);
   border-radius: 8px;
   display: flex;
@@ -72,7 +72,7 @@ body {
 }
 
 /* Logo placeholder SVG — reemplazar con <img src="logo-puebla.png"> */
-.header-logo svg { width: 40px; height: 40px; }
+.header-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
 .header-texts {
   flex: 1;
@@ -409,13 +409,8 @@ body {
 
   <!-- Logo Gobierno de Puebla -->
   <div class="header-logo">
-    <!-- Reemplaza este SVG por <img src="logo-puebla.png" alt="Gobierno de Puebla"> -->
-    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="40" height="40" rx="6" fill="#006341"/>
-      <text x="20" y="26" text-anchor="middle" fill="white"
-            font-family="Montserrat, sans-serif" font-size="11" font-weight="800">GBP</text>
-    </svg>
-  </div>
+    <img src="../../../../logo-puebla.png" alt="Gobierno de Puebla">
+  </div>  
 
   <!-- Textos -->
   <div class="header-texts">
@@ -454,8 +449,8 @@ body {
 
   <!-- Links de navegación -->
   <div class="header-links">
-    <a class="nav-link primary"   id="link-brecha"  href="#" target="_parent">Brecha de Recaudación</a>
-    <a class="nav-link secondary" id="link-analisis" href="#" target="_parent">Análisis de Recaudación</a>
+    <a class="nav-link primary" href="brecha-recaudacion.html" target="_parent">Brecha de Recaudación</a>
+    <a class="nav-link secondary" href="pagina-inicial-recaudacion.html" target="_parent">Análisis de Recaudación</a>
   </div>
 
 </header>
