@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Brecha de Recaudación – DIAN</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
 <style>
 /* ── Variables globales ── */
@@ -239,6 +244,27 @@ body {
 .map-placeholder-icon { font-size: 36px; opacity: .4; }
 .map-placeholder-text { font-size: 12px; font-weight: 600; line-height: 1.6; color: var(--muted); }
 
+/* ── Mapa real (Leaflet) ── */
+.geo-map {
+  width: 100%;
+  height: 280px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  z-index: 0;
+}
+.geo-map .leaflet-container { background: #aadaff; }
+.map-legend {
+  margin-top: 8px; display: flex; flex-wrap: wrap; gap: 10px 14px;
+}
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--muted); }
+.legend-dot  { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── Cluster geo (estilo SAS geo coordinate) ── */
+.pie-cluster-icon, .alerta-marker-icon { background: none !important; border: none !important; }
+.leaflet-popup-content-wrapper { border-radius: 10px; }
+.leaflet-popup-content { margin: 12px 14px; font-family: 'Open Sans', sans-serif; }
+
 /* ════════════════
    DISCREPANCIAS DETECTADAS
    ════════════════ */
@@ -449,9 +475,12 @@ body {
         <div class="card" style="flex:1;">
           <div class="card-title">Distribución geográfica – Municipio</div>
           <div class="divider"></div>
-          <div class="map-placeholder" id="home-map">
-            <span class="map-placeholder-icon">🗺️</span>
-            <span class="map-placeholder-text">Geo coordinate – MUNICIPIO 1<br><small>Mapa próximamente</small></span>
+          <div class="geo-map" id="home-map"></div>
+          <div class="map-legend">
+            <div class="legend-item"><span class="legend-dot" style="background:#1565C0;"></span>Facturación elec. &gt; ingresos declarados (+35%)</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#e8a900;"></span>IVA acreditable &gt; 90% del IVA trasladado</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#9c27b0;"></span>Modelo de propensión a evasión</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#e8550c;"></span>Subvaluación aduanera &gt; 25%</div>
           </div>
         </div>
 
@@ -706,9 +735,12 @@ body {
         <div class="card">
           <div class="card-title">Distribución geográfica – Municipio</div>
           <div class="divider"></div>
-          <div class="map-placeholder">
-            <span class="map-placeholder-icon">🗺️</span>
-            <span class="map-placeholder-text">Geo coordinate – MUNICIPIO 2<br><small>Mapa próximamente</small></span>
+          <div class="geo-map" id="zon-map" style="height:240px;"></div>
+          <div class="map-legend">
+            <div class="legend-item"><span class="legend-dot" style="background:#1565C0;"></span>Facturación elec. &gt; ingresos declarados (+35%)</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#e8a900;"></span>IVA acreditable &gt; 90% del IVA trasladado</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#9c27b0;"></span>Modelo de propensión a evasión</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#e8550c;"></span>Subvaluación aduanera &gt; 25%</div>
           </div>
         </div>
 
@@ -914,6 +946,11 @@ function showPage(name){
   var tabs = document.querySelectorAll('.nav-tab');
   var map = {home:0, disc:1, analisis:2, zon:3};
   tabs[map[name]].classList.add('active');
+  // Refrescar mapas al mostrar su pestaña (Leaflet necesita tamaño visible)
+  setTimeout(function(){
+    if(name==='home' && typeof _homeMapObj!=='undefined' && _homeMapObj) _homeMapObj.invalidateSize();
+    if(name==='zon'  && typeof _zonMapObj!=='undefined'  && _zonMapObj)  _zonMapObj.invalidateSize();
+  }, 100);
 }
 
 /* ══════════════════════════════════
@@ -1092,6 +1129,170 @@ function applyFilters(){
 /* ══════════════════════════════════
    INIT
    ══════════════════════════════════ */
+/* ══════════════════════════════════
+   MAPAS (Leaflet + OpenStreetMap)
+   Coordenadas reales de municipios de Colombia.
+   Geo coordinate: MUNICIPIO · MONTO_PRIORIZACION_COP · TIPO_ALERTA
+   ══════════════════════════════════ */
+var COORDS_MUNICIPIOS = {
+  'Bogotá D.C.':         [4.7110, -74.0721],
+  'Bogotá':              [4.7110, -74.0721],
+  'Medellín':            [6.2442, -75.5812],
+  'Santiago de Cali':    [3.4516, -76.5320],
+  'Cali':                [3.4516, -76.5320],
+  'Barranquilla':        [10.9685, -74.7813],
+  'Cartagena de Indias': [10.3910, -75.4794],
+  'Cartagena':           [10.3910, -75.4794],
+  'Bucaramanga':         [7.1193, -73.1227],
+  'Santa Marta':         [11.2408, -74.1990],
+  'San José de Cúcuta':  [7.8939, -72.5078],
+  'Cúcuta':              [7.8939, -72.5078],
+  'Pereira':             [4.8133, -75.6961],
+  'Ibagué':              [4.4389, -75.2322],
+  'Villavicencio':       [4.1420, -73.6266],
+  'Palmira':             [3.5394, -76.3036],
+  'Manizales':           [5.0703, -75.5138],
+  'Pasto':               [1.2136, -77.2811],
+  'Valledupar':          [10.4631, -73.2532],
+  'Armenia':             [4.5339, -75.6811],
+  'Neiva':               [2.9273, -75.2819],
+  'Montería':            [8.7479, -75.8814],
+  'Sincelejo':           [9.3047, -75.3978],
+  'Tunja':               [5.5353, -73.3678],
+  'Popayán':             [2.4448, -76.6147],
+  'Buenaventura':        [3.8801, -77.0312]
+};
+
+// Color por tipo de alerta
+function colorAlerta(tipo){
+  var t = String(tipo||'').toLowerCase();
+  if(t.indexOf('facturaci')>=0)               return '#1565C0';
+  if(t.indexOf('iva acreditable')>=0)         return '#e8a900';
+  if(t.indexOf('propensi')>=0 || t.indexOf('evasi')>=0) return '#9c27b0';
+  if(t.indexOf('subvalua')>=0 || t.indexOf('aduan')>=0) return '#e8550c';
+  return '#1a7a3a';
+}
+
+var _homeMapObj = null, _zonMapObj = null;
+var _homeCluster = null, _zonCluster = null;
+
+function crearMapaBase(elId){
+  var el = document.getElementById(elId);
+  if(!el || typeof L === 'undefined') return null;
+  var map = L.map(elId, { zoomControl:true, attributionControl:true, scrollWheelZoom:false })
+             .setView([4.6, -74.1], 5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 12, minZoom: 4,
+    attribution: '© OpenStreetMap'
+  }).addTo(map);
+  return map;
+}
+
+// Construye registros geolocalizados a partir de los datos.
+// Cada fila = un contribuyente con municipio, monto y tipo de alerta.
+function registrosGeo(){
+  var regs = [];
+  if (typeof ZON_TABLE !== 'undefined' && ZON_TABLE.length){
+    ZON_TABLE.forEach(function(t){
+      var coord = COORDS_MUNICIPIOS[t.mun];
+      if(!coord) return;
+      regs.push({ mun:t.mun, monto:(t.monto||0), alerta:(t.alerta||''), lat:coord[0], lng:coord[1],
+                  razon:(t.razon||'') });
+    });
+  } else if (typeof MUNICIPIOS_ZON !== 'undefined'){
+    MUNICIPIOS_ZON.forEach(function(m){
+      var coord = COORDS_MUNICIPIOS[m.mun];
+      if(!coord) return;
+      regs.push({ mun:m.mun, monto:m.n, alerta:'', lat:coord[0], lng:coord[1], razon:'' });
+    });
+  }
+  return regs;
+}
+
+// SVG de círculo proporcional (un solo color = alerta dominante) con conteo
+function svgCirculo(size, color, label){
+  var r = size/2, ir = r-2;
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'">'+
+    '<circle cx="'+r+'" cy="'+r+'" r="'+ir+'" fill="'+color+'" fill-opacity="0.75" stroke="#fff" stroke-width="2"/>'+
+    '<text x="'+r+'" y="'+r+'" text-anchor="middle" dy=".35em" font-size="'+Math.max(9,size/3.2)+
+    '" font-weight="700" fill="#fff" font-family="Montserrat,sans-serif">'+label+'</text></svg>';
+}
+
+// Color dominante de un conjunto de registros (la alerta con mayor monto acumulado)
+function alertaDominante(regs){
+  var acc = {};
+  regs.forEach(function(r){ acc[r.alerta] = (acc[r.alerta]||0) + (r.monto||0); });
+  var best = '', bestV = -1;
+  Object.keys(acc).forEach(function(k){ if(acc[k] > bestV){ bestV = acc[k]; best = k; } });
+  return colorAlerta(best);
+}
+
+// Ícono de cluster: círculo proporcional al monto total, color = alerta dominante
+function clusterIcon(cluster){
+  var hijos = cluster.getAllChildMarkers();
+  var regs = hijos.map(function(m){ return m.options.regGeo; });
+  var color = alertaDominante(regs);
+  var sz = Math.min(64, 30 + hijos.length * 5);
+  return L.divIcon({
+    html: '<div style="position:relative">'+svgCirculo(sz, color, hijos.length)+'</div>',
+    className: 'pie-cluster-icon',
+    iconSize: [sz, sz], iconAnchor: [sz/2, sz/2]
+  });
+}
+
+// Marcador individual: círculo según monto, color según alerta
+function marcadorRegistro(reg, maxMonto){
+  var sz = 16 + (reg.monto/maxMonto) * 18; // 16–34 px
+  var color = colorAlerta(reg.alerta);
+  var icon = L.divIcon({
+    html: svgCirculo(sz, color, ''),
+    className: 'alerta-marker-icon',
+    iconSize: [sz, sz], iconAnchor: [sz/2, sz/2]
+  });
+  var m = L.marker([reg.lat, reg.lng], { icon:icon, regGeo:reg });
+  m.bindPopup('<div style="min-width:180px">'+
+    '<div style="font-weight:700;color:#1C334F;margin-bottom:2px">'+reg.mun+'</div>'+
+    (reg.razon? '<div style="font-size:11px;color:#64748b;margin-bottom:8px">'+reg.razon+'</div>':'')+
+    '<div style="font-size:12px">Monto: <strong>'+fmt.format(reg.monto)+'</strong></div>'+
+    (reg.alerta? '<div style="font-size:11px;color:#64748b;margin-top:4px">'+reg.alerta+'</div>':'')+
+    '</div>', { maxWidth:260 });
+  return m;
+}
+
+function pintarCluster(map, clusterRef, setterName){
+  if(!map) return null;
+  var regs = registrosGeo();
+  if(!regs.length) return null;
+  var maxMonto = Math.max.apply(null, regs.map(function(r){ return r.monto; })) || 1;
+
+  var cluster = L.markerClusterGroup({
+    maxClusterRadius: 50,
+    showCoverageOnHover: false,
+    spiderfyOnMaxZoom: true,
+    zoomToBoundsOnClick: true,
+    iconCreateFunction: clusterIcon
+  });
+  regs.forEach(function(r){ cluster.addLayer(marcadorRegistro(r, maxMonto)); });
+  map.addLayer(cluster);
+  // ajustar vista a los puntos
+  try { map.fitBounds(cluster.getBounds(), { padding:[40,40], maxZoom:7 }); } catch(e){}
+  return cluster;
+}
+
+function buildHomeMap(){
+  if(_homeMapObj) return;
+  _homeMapObj = crearMapaBase('home-map');
+  _homeCluster = pintarCluster(_homeMapObj);
+  setTimeout(function(){ if(_homeMapObj) _homeMapObj.invalidateSize(); }, 200);
+}
+
+function buildZonMap(){
+  if(_zonMapObj) return;
+  _zonMapObj = crearMapaBase('zon-map');
+  _zonCluster = pintarCluster(_zonMapObj);
+  setTimeout(function(){ if(_zonMapObj) _zonMapObj.invalidateSize(); }, 200);
+}
+
 (function init(){
   buildHomeBar();
   buildHomeTreemap();
@@ -1101,6 +1302,8 @@ function applyFilters(){
   buildAnalisisTable();
   buildZonBar();
   buildZonTables();
+  if(document.getElementById('home-map')) buildHomeMap();
+  if(document.getElementById('zon-map'))  buildZonMap();
 })();
 </script>
 
