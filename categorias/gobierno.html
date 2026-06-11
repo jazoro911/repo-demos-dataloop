@@ -5,6 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dataloop - Gobierno</title>
     <link rel="stylesheet" href="../styles.css">
+    <style>
+        /* ── Hover preview popup ── */
+        .proyecto-card {
+            position: relative;
+        }
+
+        .card-preview-popup {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(15,23,42,.18), 0 2px 8px rgba(15,23,42,.10);
+            padding: 10px;
+            pointer-events: none;
+            width: 420px;
+            transition: opacity .15s;
+        }
+
+        .card-preview-popup img {
+            width: 100%;
+            border-radius: 8px;
+            display: block;
+        }
+
+        .card-preview-popup .popup-label {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 7px;
+            text-align: center;
+            font-family: Inter, sans-serif;
+        }
+
+        /* Badge de estado */
+        .badge-estado {
+            display: inline-block;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            margin-left: 6px;
+        }
+        .badge-listo    { background: #dcfce7; color: #166534; }
+        .badge-demo     { background: #dbeafe; color: #1e40af; }
+        .badge-wip      { background: #fef9c3; color: #854d0e; }
+        .badge-pendiente{ background: #f1f5f9; color: #64748b; }
+    </style>
 </head>
 <body>
 
@@ -58,10 +108,21 @@
 
         <div class="grid-proyectos">
 
-            <!-- PROYECTO 1 -->
-            <a href="../codigos/gob-001.html" class="proyecto-card">
+            <!-- PROYECTO 1
+                 data-preview  → ruta a la imagen de preview (relativa a este archivo)
+                 data-preview-label → texto que aparece debajo de la imagen en el popup
+                 data-estado   → listo | demo | wip | pendiente
+            -->
+            <a href="../codigos/gob-001.html"
+               class="proyecto-card"
+               data-preview="../previews/gob-001.png"
+               data-preview-label="Página Inicial · Análisis de Potencial de Recaudación"
+               data-estado="demo">
                 <div class="card-top">
-                    <span class="card-titulo">Análisis de Potencial de Recaudación</span>
+                    <span class="card-titulo">
+                        Análisis de Potencial de Recaudación
+                        <span class="badge-estado badge-demo">Demo</span>
+                    </span>
                     <span class="badge-tipo badge-proyecto">Proyecto</span>
                 </div>
                 <div class="card-desc">
@@ -80,9 +141,16 @@
             </a>
 
             <!-- PROYECTO 2 -->
-            <a href="../codigos/gob-002.html" class="proyecto-card">
+            <a href="../codigos/gob-002.html"
+               class="proyecto-card"
+               data-preview="../previews/gob-002.png"
+               data-preview-label="Brecha de Recaudación"
+               data-estado="pendiente">
                 <div class="card-top">
-                    <span class="card-titulo">Brecha de Recaudación</span>
+                    <span class="card-titulo">
+                        Brecha de Recaudación
+                        <span class="badge-estado badge-pendiente">Pendiente</span>
+                    </span>
                     <span class="badge-tipo badge-notebook">Notebook</span>
                 </div>
                 <div class="card-desc">
@@ -109,6 +177,71 @@
     </div>
 
     </div>
+
+    <!-- ── Popup global de preview ── -->
+    <div class="card-preview-popup" id="previewPopup">
+        <img id="previewImg" src="" alt="Preview">
+        <div class="popup-label" id="previewLabel"></div>
+    </div>
+
+    <script>
+        /* ── Preview popup ──────────────────────────────────────────
+           Busca todas las tarjetas que tengan data-preview con valor.
+           Al hacer hover muestra el popup siguiendo el cursor.
+           Si no hay imagen asignada, no muestra nada.
+        ────────────────────────────────────────────────────────── */
+        var popup  = document.getElementById('previewPopup');
+        var popImg = document.getElementById('previewImg');
+        var popLbl = document.getElementById('previewLabel');
+
+        var MARGIN = 18;   /* distancia del popup al cursor en px */
+        var POPUP_W = 440; /* ancho popup + padding estimado        */
+        var POPUP_H = 280; /* alto estimado para no salir de pantalla */
+
+        document.querySelectorAll('.proyecto-card[data-preview]').forEach(function(card) {
+            var src   = card.getAttribute('data-preview');
+            var label = card.getAttribute('data-preview-label') || '';
+
+            if (!src) return; /* sin imagen → sin popup */
+
+            card.addEventListener('mouseenter', function() {
+                popImg.src       = src;
+                popLbl.textContent = label;
+                popup.style.display = 'block';
+            });
+
+            card.addEventListener('mousemove', function(e) {
+                var x = e.clientX + MARGIN;
+                var y = e.clientY + MARGIN;
+
+                /* Evitar que salga de la pantalla */
+                if (x + POPUP_W > window.innerWidth)  x = e.clientX - POPUP_W - MARGIN;
+                if (y + POPUP_H > window.innerHeight) y = e.clientY - POPUP_H - MARGIN;
+
+                popup.style.left = x + 'px';
+                popup.style.top  = y + 'px';
+            });
+
+            card.addEventListener('mouseleave', function() {
+                popup.style.display = 'none';
+                popImg.src = '';
+            });
+        });
+
+        /* ── Buscador del sidebar ───────────────────────────────────
+           Filtra las tarjetas visibles por título, descripción o tags.
+        ────────────────────────────────────────────────────────── */
+        var buscador = document.querySelector('.sidebar-buscador');
+        if (buscador) {
+            buscador.addEventListener('input', function() {
+                var q = this.value.toLowerCase().trim();
+                document.querySelectorAll('.proyecto-card').forEach(function(card) {
+                    var texto = card.textContent.toLowerCase();
+                    card.style.display = (!q || texto.includes(q)) ? '' : 'none';
+                });
+            });
+        }
+    </script>
 
 </body>
 </html>

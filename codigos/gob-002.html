@@ -5,6 +5,72 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dataloop - Brecha de Recaudación</title>
     <link rel="stylesheet" href="../styles.css">
+    <style>
+        .codigo-referenciado {
+            background: #f8f9ff;
+            border: 1px solid #e8ecf5;
+            border-radius: 10px;
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .codigo-referenciado .archivo-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .codigo-referenciado .archivo-icono {
+            font-size: 28px;
+        }
+        .codigo-referenciado .archivo-nombre {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1C334F;
+        }
+        .codigo-referenciado .archivo-desc {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+        .codigo-referenciado .acciones {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .btn-copiar {
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 7px;
+            border: 1px solid #d8dce8;
+            background: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            color: #1C334F;
+            transition: background 0.15s;
+        }
+        .btn-copiar:hover { background: #eef0f5; }
+        .btn-run {
+            cursor: pointer;
+            background: #4caf50;
+            color: #fff;
+            padding: 8px 18px;
+            border-radius: 7px;
+            border: none;
+            font-size: 12px;
+            font-weight: 700;
+            transition: background 0.15s;
+        }
+        .btn-run:hover { background: #388e3c; }
+        .codigo-status {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 10px;
+            min-height: 16px;
+        }
+    </style>
 </head>
 <body>
 
@@ -48,45 +114,63 @@
 
     <div class="contenido">
 
-        <a href="../index.html" class="boton-volver">← Volver al repositorio</a>
+        <a href="../categorias/gobierno.html" class="boton-volver">← Volver al repositorio</a>
 
         <div class="tarjeta">
 
             <h1 class="tarjeta-titulo">Brecha de Recaudación</h1>
 
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                <span class="etiqueta-lenguaje">python</span>
-                <span style="color: #64748b; font-size: 14px;">Notebook</span>
+                <span class="etiqueta-lenguaje">html</span>
+                <span style="color: #64748b; font-size: 14px;">Data Driven Content · SAS VA</span>
             </div>
 
-            <p class="tarjeta-descripcion">
-                Discrepancias en impuestos y aduanas: modelo de propensión que calcula la probabilidad de evasión fiscal por contribuyente, con zonificación geográfica y análisis de historial del IMSS y adeudos.
-            </p>
+            <p class="tarjeta-descripcion">Dashboard multi-pestaña para análisis de brecha de recaudación fiscal. Incluye HOME con KPIs y mapa geográfico, detección de discrepancias por contribuyente, modelo de propensión a evasión y zonificación municipal. Diseñado como Data Driven Content para SAS Visual Analytics.</p>
 
             <div class="etiquetas">
                 <span class="etiqueta">#evasión-fiscal</span>
                 <span class="etiqueta">#propensión</span>
                 <span class="etiqueta">#zonificación</span>
+                <span class="etiqueta">#discrepancias</span>
+                <span class="etiqueta">#sas-va</span>
+                <span class="etiqueta">#data-driven-content</span>
             </div>
 
             <div class="info-meta">
-                <span><strong>Autor:</strong> Secretaría de Finanzas</span>
-                <span><strong>Fecha:</strong> 2025-05-01</span>
+                <span><strong>Autor:</strong> Dataloop Team</span>
+                <span><strong>Fecha:</strong> 2025-06-10</span>
             </div>
 
             <div class="instrucciones">
                 <h2>📋 Instrucciones de Uso</h2>
-                <p>
-                    Recibe historial de contribuyentes (IMSS, adeudos internos y externos) y retorna un score de propensión a evasión fiscal con zonificación geográfica. Genera pestaña adicional con PDF del deudor.
-                </p>
+                <p>Cargar como Data Driven Content en SAS VA. El dashboard contiene 4 pestañas interactivas alimentadas por los datos del reporte:</p>
+                <ul style="margin-top:8px; margin-left:18px; font-size:13px; line-height:1.8; color:#444;">
+                    <li><strong>HOME DIAN:</strong> KPIs de monto y número de discrepancias, barra de empresas, treemap top 3 y mapa geográfico por municipio.</li>
+                    <li><strong>Discrepancias detectadas:</strong> Filtros por Razón Social, NIT y Periodos; gráfico de barras agrupadas (Facturación electrónica vs Ingresos declarados); tablas de contribuyentes y detalle.</li>
+                    <li><strong>Análisis de recaudación:</strong> Button bars por Sector económico, Potencial y Nivel de atraso; gráfico de barras y tabla con score de propensión a evasión.</li>
+                    <li><strong>Zonificación:</strong> Filtros desplegables por Tipo de alerta, Tamaño de empresa y Municipio; KPIs por tipo de impuesto (ISR, Aduanas, IVA); tablas de detalle por categoría.</li>
+                </ul>
             </div>
 
             <div class="bloque-codigo">
                 <div class="barra-archivo">
-                    <span>brecha_recaudacion.py</span>
-                    <span style="cursor: pointer;" onclick="copiarCodigo(this)">📋 Copiar</span>
+                    <span>CÓDIGO</span>
                 </div>
-                <pre><code><span class="comment"># Código próximamente disponible</span></code></pre>
+
+                <div class="codigo-referenciado">
+                    <div class="archivo-info">
+                        <div class="archivo-icono">📄</div>
+                        <div>
+                            <div class="archivo-nombre">brecha-recaudacion.html</div>
+                            <div class="archivo-desc">Data Driven Content · SAS VA · HOME + Discrepancias + Análisis + Zonificación</div>
+                        </div>
+                    </div>
+                    <div class="acciones">
+                        <button class="btn-copiar" id="btnCopiar">📋 Copiar</button>
+                        <button class="btn-run"    id="btnRun">▶ Run</button>
+                    </div>
+                </div>
+                <div class="codigo-status" id="codigoStatus"></div>
             </div>
 
             <div class="seccion-video">
@@ -112,15 +196,64 @@
     </div>
 
     <script>
-        function copiarCodigo(boton) {
-            var codigo = boton.closest('.bloque-codigo').querySelector('code');
-            navigator.clipboard.writeText(codigo.textContent).then(function() {
-                boton.textContent = '✅ Copiado!';
-                setTimeout(function() {
-                    boton.textContent = '📋 Copiar';
-                }, 2000);
+        var CODIGO_URL = 'http://127.0.0.1:5501/codigos/Demos/Gobierno/brecha-recaudacion.html';
+        var codigoCargado = '';
+        var status = document.getElementById('codigoStatus');
+
+        // 1. Pre-cargar el archivo al abrir la página (separado del click)
+        fetch(CODIGO_URL)
+            .then(function(r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.text();
+            })
+            .then(function(text) {
+                codigoCargado = text;
+                status.textContent = '✓ Archivo listo (' + text.length + ' caracteres)';
+                setTimeout(function() { status.textContent = ''; }, 2500);
+            })
+            .catch(function(err) {
+                status.textContent = '⚠️ No se pudo cargar: ' + err.message;
             });
-        }
+
+        // 2. Copiar — 100% síncrono dentro del click, sin promesas
+        document.getElementById('btnCopiar').addEventListener('click', function() {
+            var btn = this;
+            if (!codigoCargado) {
+                status.textContent = '⚠️ El archivo aún no termina de cargar. Espera un segundo y reintenta.';
+                return;
+            }
+            var ta = document.createElement('textarea');
+            ta.value = codigoCargado;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'absolute';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            ta.setSelectionRange(0, codigoCargado.length);
+            var exito = false;
+            try { exito = document.execCommand('copy'); } catch (e) { exito = false; }
+            document.body.removeChild(ta);
+            if (exito) {
+                btn.textContent = '✅ Copiado!';
+                status.textContent = 'Se copiaron ' + codigoCargado.length + ' caracteres.';
+            } else {
+                btn.textContent = '❌ Error';
+                status.textContent = 'No se pudo copiar.';
+            }
+            setTimeout(function() { btn.textContent = '📋 Copiar'; status.textContent = ''; }, 2500);
+        });
+
+        // 3. Run
+        document.getElementById('btnRun').addEventListener('click', function() {
+            if (!codigoCargado) {
+                status.textContent = '⚠️ El archivo aún no termina de cargar. Espera un segundo y reintenta.';
+                return;
+            }
+            var win = window.open('', '_blank');
+            win.document.open();
+            win.document.write(codigoCargado);
+            win.document.close();
+        });
     </script>
 
 </body>

@@ -1,0 +1,787 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Brecha de Recaudación – Discrepancias Detectadas</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ── Variables globales ── */
+:root {
+  --bg: #ffffff;
+  --border: #BFD3E6;
+  --muted: #6B8AAB;
+  --navy: #1C334F;
+  --green: #1a7a3a;
+  --green-light: #2ea84e;
+  --green-dark: #145e2c;
+  --yellow: #e8a900;
+  --yellow-light: #f5c842;
+  --blue-kpi: #1565C0;
+  --red-kpi: #c62828;
+  --teal-kpi: #00695c;
+  --white: #ffffff;
+  --offwhite: #f4f7fb;
+  --track-bg: #F2F4F7;
+  --text: #1C334F;
+  --surface: #ffffff;
+  --tab-active: #1a7a3a;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; padding: 0; }
+
+body {
+  background: var(--offwhite);
+  color: var(--text);
+  font-family: 'Open Sans', sans-serif;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── Nav tabs ── */
+.top-nav {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 0;
+  flex-shrink: 0;
+  height: 42px;
+}
+
+.nav-tab {
+  padding: 0 18px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: color .15s, border-color .15s;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.nav-tab:hover { color: var(--navy); }
+.nav-tab.active { color: var(--tab-active); border-bottom-color: var(--tab-active); }
+
+/* ── Filters bar ── */
+.filters-bar {
+  background: var(--white);
+  padding: 5px 20px;
+  font-size: 11px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* ── Pages ── */
+.page { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+.page.active { display: flex; }
+
+/* ── Page title ── */
+.page-title {
+  text-align: center;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 800;
+  font-size: 22px;
+  color: var(--navy);
+  padding: 16px 0 10px;
+  flex-shrink: 0;
+  background: var(--offwhite);
+}
+
+/* ── Scrollable page body ── */
+.page-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 16px 16px;
+}
+
+/* ════════════════
+   HOME DIAN
+   ════════════════ */
+.home-kpi-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.kpi-box {
+  background: var(--white);
+  border-radius: 10px;
+  padding: 16px 18px;
+  text-align: center;
+  border: 2px solid var(--border);
+}
+.kpi-box.blue-border  { border-color: #1565C0; }
+.kpi-box.yellow-border{ border-color: #e8a900; }
+.kpi-box.green-border { border-color: #1a7a3a; }
+
+.kpi-box .kpi-label {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+.kpi-box .kpi-value {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.kpi-box.blue-border  .kpi-value { color: #1565C0; }
+.kpi-box.yellow-border .kpi-value { color: #c68000; }
+.kpi-box.green-border .kpi-value  { color: #1a7a3a; }
+
+.kpi-box .kpi-link {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--navy);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.home-charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* ── Card base ── */
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+}
+
+.card-title {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--navy);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 4px;
+}
+
+.divider {
+  width: 28px; height: 3px;
+  background: linear-gradient(90deg, var(--green-light), var(--green-dark));
+  border-radius: 2px; margin: 4px 0 12px;
+}
+
+/* ── Horizontal bar chart ── */
+.hbar-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 8px;
+}
+.hbar-label {
+  font-size: 10px; font-weight: 600; width: 160px; flex-shrink: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--navy);
+}
+.hbar-track {
+  flex: 1; height: 20px; background: var(--track-bg);
+  border-radius: 4px; overflow: hidden;
+}
+.hbar-fill {
+  height: 100%; border-radius: 4px;
+  background: var(--green-light); min-width: 2px;
+}
+.hbar-val {
+  font-size: 10px; font-weight: 700; width: 100px;
+  text-align: right; flex-shrink: 0; color: var(--navy);
+}
+
+/* ── Treemap ── */
+.treemap-container {
+  display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;
+}
+.treemap-tile {
+  background: var(--yellow);
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center;
+  padding: 4px 6px;
+  font-size: 10px; font-weight: 700; color: var(--white);
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.treemap-tile:hover { opacity: .85; }
+
+/* ── Map placeholder ── */
+.map-placeholder {
+  background: var(--track-bg);
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--muted);
+  text-align: center;
+}
+.map-placeholder-icon { font-size: 36px; opacity: .4; }
+.map-placeholder-text { font-size: 12px; font-weight: 600; line-height: 1.6; color: var(--muted); }
+
+/* ════════════════
+   DISCREPANCIAS DETECTADAS
+   ════════════════ */
+.disc-filter-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto auto;
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 14px;
+}
+
+.filter-group { display: flex; flex-direction: column; gap: 4px; }
+.filter-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+
+.filter-input, .filter-select {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-family: 'Open Sans', sans-serif;
+  color: var(--navy);
+  background: var(--white);
+  outline: none;
+}
+.filter-input:focus, .filter-select:focus { border-color: var(--green-light); }
+
+.kpi-pair { display: flex; gap: 10px; margin-bottom: 14px; }
+.kpi-mini {
+  flex: 1;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  text-align: center;
+}
+.kpi-mini .km-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.kpi-mini .km-value { font-family: 'Montserrat', sans-serif; font-size: 22px; font-weight: 800; }
+.kpi-mini.green .km-value { color: var(--green-light); }
+.kpi-mini.yellow .km-value { color: #c68000; }
+
+/* Monto discrepancia filter pills */
+.pill-filter { display: flex; gap: 6px; flex-wrap: wrap; }
+.pill {
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 10px; font-weight: 600; cursor: pointer;
+  background: var(--white); color: var(--muted);
+  transition: all .15s;
+}
+.pill.active { background: var(--green-light); border-color: var(--green-light); color: var(--white); }
+
+/* Grouped bar chart */
+.gbar-chart { width: 100%; }
+.gbar-x-labels { display: flex; justify-content: space-around; font-size: 9px; color: var(--muted); margin-top: 4px; }
+.gbar-group { display: flex; align-items: flex-end; justify-content: center; gap: 2px; flex: 1; }
+.gbar-groups-row { display: flex; align-items: flex-end; height: 160px; gap: 2px; padding: 0 4px; }
+.gbar { border-radius: 3px 3px 0 0; min-width: 14px; }
+.gbar.green { background: var(--green-light); }
+.gbar.red   { background: #e53935; }
+
+.chart-legend { display: flex; gap: 14px; margin-top: 8px; flex-wrap: wrap; }
+.chart-legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--muted); }
+.chart-legend-dot  { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+/* stacking tabs */
+.stacking-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+.stab {
+  padding: 6px 16px;
+  font-size: 11px; font-weight: 600;
+  cursor: pointer; color: var(--muted);
+  border-bottom: 2px solid transparent;
+  transition: all .15s;
+}
+.stab.active { color: var(--green-light); border-bottom-color: var(--green-light); }
+
+/* data table */
+.data-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.data-table th {
+  text-align: left; font-weight: 700; color: var(--muted);
+  font-size: 10px; text-transform: uppercase; letter-spacing: .04em;
+  padding: 6px 8px; border-bottom: 1px solid var(--border);
+}
+.data-table td { padding: 5px 8px; border-bottom: 1px solid #f0f4f8; color: var(--navy); }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table .amount { text-align: right; font-weight: 700; }
+.data-table tr:hover td { background: var(--offwhite); }
+
+/* ════════════════
+   ANÁLISIS DE RECAUDACIÓN
+   ════════════════ */
+.button-bar {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;
+}
+.btn-tag {
+  padding: 5px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--white);
+  font-size: 11px; font-weight: 600; cursor: pointer; color: var(--navy);
+  transition: all .15s;
+}
+.btn-tag.active { background: var(--navy); color: var(--white); border-color: var(--navy); }
+
+.analisis-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* ════════════════
+   ZONIFICACIÓN
+   ════════════════ */
+.zon-filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.zon-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.zon-kpi-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.zon-kpi-box {
+  border-radius: 8px;
+  padding: 12px 16px;
+  border: 2px solid;
+}
+.zon-kpi-box .zkpi-label { font-size: 11px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+.zon-kpi-box .zkpi-value { font-family: 'Montserrat', sans-serif; font-size: 18px; font-weight: 800; }
+.zon-kpi-box.gold   { border-color: #e8a900; }
+.zon-kpi-box.gold   .zkpi-value { color: #c68000; }
+.zon-kpi-box.blue   { border-color: #1565C0; }
+.zon-kpi-box.blue   .zkpi-value { color: #1565C0; }
+.zon-kpi-box.teal   { border-color: #00695c; }
+.zon-kpi-box.teal   .zkpi-value { color: #00695c; }
+.zon-kpi-box.red    { border-color: #c62828; }
+.zon-kpi-box.red    .zkpi-value { color: #c62828; }
+
+</style>
+</head>
+<body>
+
+<div class="page active" id="page-disc">
+  <div class="page-title">Discrepancias detectadas</div>
+  <div class="page-body">
+
+    <!-- Filters -->
+    <div class="disc-filter-row">
+      <div class="filter-group">
+        <div class="filter-label">Razón Social</div>
+        <input class="filter-input" type="text" placeholder="Enter Razón social..." id="f-razon" oninput="applyFilters()"/>
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">NIT</div>
+        <input class="filter-input" type="text" placeholder="Enter NIT..." id="f-nit" oninput="applyFilters()"/>
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Periodos y act. económica</div>
+        <select class="filter-select" id="f-periodo" onchange="applyFilters()">
+          <option value="">Periodos</option>
+          <option>2023</option>
+          <option>2024</option>
+        </select>
+      </div>
+      <!-- KPIs inline -->
+      <div class="kpi-mini green" style="min-width:120px;">
+        <div class="km-label">Total Registros</div>
+        <div class="km-value" id="kpi-registros">42,515</div>
+      </div>
+      <div class="kpi-mini yellow" style="min-width:140px;">
+        <div class="km-label">Monto Discrepancias</div>
+        <div class="km-value" id="kpi-monto">$1,504,023,504</div>
+      </div>
+    </div>
+
+    <!-- Monto discrepancia filter -->
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+      <span style="font-size:11px; font-weight:700; color:var(--muted);">Monto discrepancia:</span>
+      <div class="pill-filter">
+        <div class="pill" onclick="togglePill(this,'Alto')">Alto</div>
+        <div class="pill" onclick="togglePill(this,'Bajo')">Bajo</div>
+        <div class="pill" onclick="togglePill(this,'Medio')">Medio</div>
+      </div>
+    </div>
+
+    <!-- Grouped bar chart - Periodicidad -->
+    <div class="card" style="margin-bottom:14px;">
+      <div class="card-title">Facturación electrónica reportada vs Ingresos declarados por Periodicidad</div>
+      <div class="divider"></div>
+      <div class="gbar-groups-row" id="disc-bar-chart"></div>
+      <div class="gbar-x-labels" id="disc-bar-labels"></div>
+      <div class="chart-legend">
+        <div class="chart-legend-item"><div class="chart-legend-dot" style="background:var(--green-light);"></div>Facturación electrónica reportada</div>
+        <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#e53935;"></div>Ingresos declarados</div>
+      </div>
+    </div>
+
+    <!-- Stacking container -->
+    <div class="card">
+      <div class="stacking-tabs">
+        <div class="stab active" onclick="switchStab(this,'tab-contribuyentes')">Contribuyentes discrepancias</div>
+        <div class="stab" onclick="switchStab(this,'tab-detalle')">Detalle discrepancias</div>
+      </div>
+
+      <!-- Tab: Contribuyentes -->
+      <div id="tab-contribuyentes">
+        <table class="data-table" id="tbl-contribuyentes">
+          <thead>
+            <tr>
+              <th>NIT</th>
+              <th>Razón social</th>
+              <th>Actividad económica</th>
+              <th class="amount">Monto discrepancia ▼</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-contribuyentes"></tbody>
+        </table>
+      </div>
+
+      <!-- Tab: Detalle -->
+      <div id="tab-detalle" style="display:none;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>NIT</th>
+              <th>Razón social</th>
+              <th>Periodicidad</th>
+              <th>Facturación elec.</th>
+              <th class="amount">Ingresos declarados</th>
+              <th class="amount">Discrepancia</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-detalle"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /page-disc -->
+
+<script>
+/* ══════════════════════════════════
+   DATOS DEMO
+   ══════════════════════════════════ */
+var EMPRESAS = [
+  { nit:'802.809.221-3', razon:'Soluciones Integrales Colombia S.A.S.', act:'Tecnologías de información y actividades de software', monto:560000000, pct:132.61 },
+  { nit:'808.613.660-8', razon:'Energía del Norte S.A.S.', act:'Generación de energía eléctrica', monto:465000000, pct:97.4 },
+  { nit:'808.029.689-0', razon:'Logística Nacional S.A.S.', act:'Transporte de carga por carretera', monto:403000000, pct:89.2 },
+  { nit:'830.030.035-1', razon:'Tecnología Andina S.A.S.', act:'Desarrollo de sistemas informáticos', monto:7000000, pct:12.3 },
+  { nit:'803.166.947-9', razon:'Importaciones del Pacífico S.A.S.', act:'Comercio al por mayor de materiales de construcción', monto:6000000, pct:8.7 },
+];
+
+var DETALLE = [
+  { nit:'802.809.221-3', razon:'Soluciones Integrales Colombia S.A.S.', periodo:'01-Enero', fact:2800000000, ing:1200000000 },
+  { nit:'808.613.660-8', razon:'Energía del Norte S.A.S.', periodo:'02-Febrero', fact:2100000000, ing:1650000000 },
+  { nit:'808.029.689-0', razon:'Logística Nacional S.A.S.', periodo:'03-Marzo', fact:2200000000, ing:1700000000 },
+  { nit:'830.030.035-1', razon:'Tecnología Andina S.A.S.', periodo:'04-Abril', fact:3100000000, ing:2050000000 },
+  { nit:'803.166.947-9', razon:'Importaciones del Pacífico S.A.S.', periodo:'05-Mayo', fact:700000000, ing:580000000 },
+];
+
+var PERIODOS_DATA = [
+  { label:'01-Ene', fact:2900, ing:2250 },
+  { label:'02-Feb', fact:2050, ing:1620 },
+  { label:'03-Mar', fact:2150, ing:1720 },
+  { label:'04-Abr', fact:3050, ing:2020 },
+  { label:'05-May', fact:680, ing:540 },
+  { label:'06-Jun', fact:780, ing:640 },
+  { label:'07-Jul', fact:980, ing:780 },
+  { label:'08-Ago', fact:390, ing:310 },
+  { label:'09-Sep', fact:680, ing:550 },
+];
+
+var ANALISIS_DATA = [
+  { id:9210, nivel:'Atraso medio', pot:'Alto',  prop:0.9637, dias:17, hist:1 },
+  { id:718,  nivel:'Atraso medio', pot:'Alto',  prop:0.9635, dias:16, hist:1 },
+  { id:425,  nivel:'Atraso medio', pot:'Bajo',  prop:0.9634, dias:19, hist:1 },
+  { id:6811, nivel:'Mayor atraso', pot:'Alto',  prop:0.9634, dias:25, hist:1 },
+  { id:1262, nivel:'Atraso medio', pot:'Alto',  prop:0.9630, dias:12, hist:1 },
+  { id:3080, nivel:'Atraso medio', pot:'Alto',  prop:0.9624, dias:13, hist:1 },
+  { id:6266, nivel:'Atraso medio', pot:'Alto',  prop:0.9624, dias:14, hist:1 },
+  { id:4557, nivel:'Mayor atraso', pot:'Alto',  prop:0.9623, dias:24, hist:1 },
+  { id:1766, nivel:'Menos atraso', pot:'Medio', prop:0.9621, dias:7,  hist:1 },
+  { id:9966, nivel:'Atraso medio', pot:'Alto',  prop:0.9621, dias:17, hist:1 },
+  { id:3471, nivel:'Menos atraso', pot:'Bajo',  prop:0.9621, dias:4,  hist:1 },
+  { id:6546, nivel:'Atraso medio', pot:'Medio', prop:0.9608, dias:15, hist:1 },
+  { id:9319, nivel:'Menos atraso', pot:'Alto',  prop:0.9606, dias:1,  hist:1 },
+  { id:4161, nivel:'Atraso medio', pot:'Alto',  prop:0.9599, dias:14, hist:1 },
+  { id:6814, nivel:'Atraso medio', pot:'Alto',  prop:0.9597, dias:15, hist:1 },
+  { id:677,  nivel:'Menos atraso', pot:'Medio', prop:0.9596, dias:1,  hist:1 },
+  { id:2705, nivel:'Atraso medio', pot:'Alto',  prop:0.9595, dias:20, hist:1 },
+  { id:855,  nivel:'Mayor atraso', pot:'Medio', prop:0.9594, dias:29, hist:1 },
+  { id:1349, nivel:'Atraso medio', pot:'Alto',  prop:0.9591, dias:12, hist:1 },
+  { id:5657, nivel:'Atraso medio', pot:'Alto',  prop:0.9590, dias:26, hist:1 },
+];
+
+var MUNICIPIOS_ZON = [
+  { mun:'Bogotá D.C.',      n:2400 },
+  { mun:'Medellín',         n:1600 },
+  { mun:'Santiago de Cali', n:1400 },
+  { mun:'Barranquilla',     n:1100 },
+  { mun:'Cartagena',        n:895  },
+  { mun:'Bucaramanga',      n:813  },
+  { mun:'Santa Marta',      n:693  },
+  { mun:'San José de Cúcuta',n:686 },
+  { mun:'Pereira',          n:628  },
+  { mun:'Ibagué',           n:557  },
+  { mun:'Villavicencio',    n:554  },
+  { mun:'Palmira',          n:523  },
+  { mun:'Manizales',        n:499  },
+  { mun:'Pasto',            n:395  },
+  { mun:'Valledupar',       n:385  },
+];
+
+var ZON_TABLE = [
+  { nit:'830.030.035-1', razon:'SOLUCIONES INTEGRALES COLOMBIA S.A.S.', tam:'Grande',  mun:'Bogotá D.C.',     ciudad:'Bogotá D.C.',     dir:'Calle 29 #21-69',   monto:160000000 },
+  { nit:'806.443.760-2', razon:'CONSTRUCTORA DEL VALLE S.A.S.', tam:'Grande', mun:'Santiago de Cali', ciudad:'Santiago de Cali', dir:'Calle 103 #10-64', monto:135000000 },
+  { nit:'900002822',     razon:'EMPRESA_02822',         tam:'Mediana', mun:'Neiva',           ciudad:'Neiva',           dir:'Calle 6 #93-36',   monto:60636463 },
+  { nit:'900013049',     razon:'EMPRESA_13049',         tam:'Mediana', mun:'Barranquilla',    ciudad:'Barranquilla',    dir:'Calle 95 #91-39',  monto:60311797 },
+  { nit:'900011402',     razon:'EMPRESA_11402',         tam:'Mediana', mun:'Pasto',           ciudad:'Pasto',           dir:'Calle 38 #86-31',  monto:60200255 },
+  { nit:'900005482',     razon:'EMPRESA_05482',         tam:'Mediana', mun:'Villavicencio',   ciudad:'Villavicencio',   dir:'Calle 74 #16-74',  monto:59512087 },
+  { nit:'900006400',     razon:'EMPRESA_06400',         tam:'Mediana', mun:'Palmira',         ciudad:'Palmira',         dir:'Calle 68 #68-26',  monto:59350752 },
+  { nit:'900006936',     razon:'EMPRESA_06936',         tam:'Mediana', mun:'Medellín',        ciudad:'Medellín',        dir:'Calle 40 #19-24',  monto:59036498 },
+  { nit:'900002520',     razon:'EMPRESA_02520',         tam:'Mediana', mun:'Medellín',        ciudad:'Medellín',        dir:'Calle 87 #14-19',  monto:58977536 },
+];
+
+/* ══════════════════════════════════
+   UTILS
+   ══════════════════════════════════ */
+var fmt = new Intl.NumberFormat('es-CO', { style:'currency', currency:'COP', maximumFractionDigits:0 });
+var fmtN = new Intl.NumberFormat('es-CO');
+
+function $ (id){ return document.getElementById(id); }
+
+/* ══════════════════════════════════
+   NAVIGATION
+   ══════════════════════════════════ */
+function showPage(name){
+  // En SAS cada pestaña es un Data Driven Content independiente.
+  // La navegación entre pestañas la maneja SAS VA, no este archivo.
+  var target = document.getElementById('page-'+name);
+  if(!target) return;
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.nav-tab').forEach(function(t){ t.classList.remove('active'); });
+  target.classList.add('active');
+}
+
+/* ══════════════════════════════════
+   HOME — Bar chart razón social
+   ══════════════════════════════════ */
+function buildHomeBar(){
+  var max = Math.max.apply(null, EMPRESAS.map(function(e){ return e.monto; }));
+  var html = '';
+  EMPRESAS.forEach(function(e){
+    var pct = (e.monto/max*100).toFixed(1);
+    html += '<div class="hbar-row">'
+      + '<div class="hbar-label" title="'+e.razon+'">'+e.razon+'</div>'
+      + '<div class="hbar-track"><div class="hbar-fill" style="width:'+pct+'%"></div></div>'
+      + '<div class="hbar-val">'+fmt.format(e.monto)+'</div>'
+      + '</div>';
+  });
+  $('home-bar-razon').innerHTML = html;
+}
+
+function buildHomeTreemap(){
+  var top3 = EMPRESAS.slice().sort(function(a,b){ return b.pct-a.pct; }).slice(0,3);
+  var html = '';
+  var colors = ['#d4a017','#c8960c','#b5820a'];
+  top3.forEach(function(e,i){
+    var w = (i===0? 100 : i===1? 66 : 50);
+    html += '<div class="treemap-tile" style="width:calc('+w+'% - 4px);height:60px;background:'+colors[i]+';">'
+      + e.razon + '<br><small style="font-weight:400;font-size:9px;">Pct discrepancia: '+e.pct+'%</small>'
+      + '</div>';
+  });
+  $('home-treemap').innerHTML = html;
+}
+
+/* ══════════════════════════════════
+   DISCREPANCIAS — Grouped bar
+   ══════════════════════════════════ */
+function buildDiscBar(){
+  var maxVal = Math.max.apply(null, PERIODOS_DATA.map(function(p){ return Math.max(p.fact,p.ing); }));
+  var chartH = 160;
+  var html = '';
+  PERIODOS_DATA.forEach(function(p){
+    var hF = Math.round((p.fact/maxVal)*chartH);
+    var hI = Math.round((p.ing/maxVal)*chartH);
+    html += '<div class="gbar-group">'
+      + '<div class="gbar green" style="height:'+hF+'px;" title="Facturación: '+fmtN.format(p.fact)+'M"></div>'
+      + '<div class="gbar red"   style="height:'+hI+'px;" title="Ingresos: '+fmtN.format(p.ing)+'M"></div>'
+      + '</div>';
+  });
+  $('disc-bar-chart').innerHTML = html;
+  $('disc-bar-labels').innerHTML = PERIODOS_DATA.map(function(p){ return '<span>'+p.label+'</span>'; }).join('');
+}
+
+function buildDiscTables(){
+  // Contribuyentes
+  var html = '';
+  EMPRESAS.forEach(function(e){
+    html += '<tr><td>'+e.nit+'</td><td>'+e.razon+'</td><td>'+e.act+'</td>'
+          + '<td class="amount">'+fmt.format(e.monto)+'</td></tr>';
+  });
+  $('tbody-contribuyentes').innerHTML = html;
+
+  // Detalle
+  html = '';
+  DETALLE.forEach(function(d){
+    var disc = d.fact - d.ing;
+    html += '<tr><td>'+d.nit+'</td><td>'+d.razon+'</td><td>'+d.periodo+'</td>'
+          + '<td>'+fmt.format(d.fact)+'</td>'
+          + '<td class="amount">'+fmt.format(d.ing)+'</td>'
+          + '<td class="amount" style="color:var(--green-light);">'+fmt.format(disc)+'</td></tr>';
+  });
+  $('tbody-detalle').innerHTML = html;
+}
+
+/* ══════════════════════════════════
+   ANÁLISIS
+   ══════════════════════════════════ */
+function buildAnalisisBar(){
+  var niveles = ['Menos atraso','Atraso medio','Mayor atraso'];
+  var counts = {};
+  niveles.forEach(function(n){ counts[n]=0; });
+  ANALISIS_DATA.forEach(function(r){ counts[r.nivel]++; });
+  var max = Math.max.apply(null, Object.values(counts));
+  var html = '';
+  niveles.forEach(function(n){
+    var pct = (counts[n]/max*100).toFixed(0);
+    html += '<div class="hbar-row">'
+      + '<div class="hbar-label" style="width:100px;">'+n+'</div>'
+      + '<div class="hbar-track"><div class="hbar-fill" style="width:'+pct+'%;background:#f5c842;"></div></div>'
+      + '<div class="hbar-val" style="width:50px;">'+fmtN.format(counts[n])+'</div>'
+      + '</div>';
+  });
+  $('analisis-bar').innerHTML = html;
+}
+
+function buildAnalisisTable(){
+  var html = '';
+  ANALISIS_DATA.forEach(function(r){
+    html += '<tr>'
+      + '<td>'+r.id+'</td>'
+      + '<td>'+r.nivel+'</td>'
+      + '<td>'+r.pot+'</td>'
+      + '<td style="color:var(--navy); font-weight:700;">'+r.prop.toFixed(10)+'</td>'
+      + '<td style="text-align:center;">'+r.dias+'</td>'
+      + '<td style="text-align:center;">'+r.hist+'</td>'
+      + '</tr>';
+  });
+  $('analisis-table').innerHTML = html;
+}
+
+/* ══════════════════════════════════
+   ZONIFICACIÓN
+   ══════════════════════════════════ */
+function buildZonBar(){
+  var data = MUNICIPIOS_ZON.slice(0, 12);
+  var max = data[0].n;
+  var html = '';
+  data.forEach(function(m){
+    var pct = (m.n/max*100).toFixed(0);
+    html += '<div class="hbar-row" style="margin-bottom:5px;">'
+      + '<div class="hbar-label" style="width:140px;font-size:10px;">'+m.mun+'</div>'
+      + '<div class="hbar-track" style="height:16px;"><div class="hbar-fill" style="width:'+pct+'%;"></div></div>'
+      + '<div class="hbar-val" style="width:40px;">'+fmtN.format(m.n)+'</div>'
+      + '</div>';
+  });
+  $('zon-bar').innerHTML = html;
+}
+
+function buildZonTables(){
+  var html = '';
+  ZON_TABLE.forEach(function(r){
+    var row = '<tr><td>'+r.nit+'</td><td>'+r.razon+'</td><td>'+r.tam+'</td>'
+            + '<td>'+r.mun+'</td><td>'+r.ciudad+'</td><td>'+r.dir+'</td>'
+            + '<td class="amount">'+fmt.format(r.monto)+'</td></tr>';
+    html += row;
+  });
+  $('zon-tbody-isr').innerHTML = html;
+  $('zon-tbody-aduanas').innerHTML = html;
+  $('zon-tbody-iva').innerHTML = html;
+}
+
+/* ══════════════════════════════════
+   INTERACTIVITY
+   ══════════════════════════════════ */
+function switchStab(el, targetId){
+  var parent = el.closest('.card') || el.parentElement.parentElement;
+  parent.querySelectorAll('.stab').forEach(function(s){ s.classList.remove('active'); });
+  el.classList.add('active');
+  // hide siblings
+  var container = el.closest('.card');
+  var allTabs = container ? container.querySelectorAll('[id]') : [];
+  allTabs.forEach(function(t){ t.style.display='none'; });
+  $(targetId).style.display='';
+}
+
+function togglePill(el, label){
+  el.classList.toggle('active');
+}
+
+function toggleBtnBar(el, bbId){
+  var bb = $(bbId);
+  bb.querySelectorAll('.btn-tag').forEach(function(b){ b.classList.remove('active'); });
+  el.classList.add('active');
+}
+
+function applyFilters(){
+  var razon = $('f-razon').value.toLowerCase();
+  var nit   = $('f-nit').value.toLowerCase();
+  var rows = $('tbody-contribuyentes').querySelectorAll('tr');
+  rows.forEach(function(r){
+    var tds = r.querySelectorAll('td');
+    var matchR = !razon || tds[1].textContent.toLowerCase().includes(razon);
+    var matchN = !nit   || tds[0].textContent.toLowerCase().includes(nit);
+    r.style.display = (matchR && matchN) ? '' : 'none';
+  });
+}
+
+/* ══════════════════════════════════
+   INIT
+   ══════════════════════════════════ */
+(function init(){
+  function safe(fn){ try { fn(); } catch(e){ /* elemento no presente en esta pestaña */ } }
+  if (document.getElementById('home-bar-razon'))   safe(buildHomeBar);
+  if (document.getElementById('home-treemap'))     safe(buildHomeTreemap);
+  if (document.getElementById('disc-bar-chart'))   safe(buildDiscBar);
+  if (document.getElementById('tbody-contribuyentes')) safe(buildDiscTables);
+  if (document.getElementById('analisis-bar'))     safe(buildAnalisisBar);
+  if (document.getElementById('analisis-table'))   safe(buildAnalisisTable);
+  if (document.getElementById('zon-bar'))          safe(buildZonBar);
+  if (document.getElementById('zon-tbody-isr'))    safe(buildZonTables);
+})();
+</script>
+</body>
+</html>

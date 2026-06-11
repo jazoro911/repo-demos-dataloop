@@ -197,7 +197,7 @@
 
     <script>
         /* Ruta al archivo de código referenciado */
-        var CODIGO_URL = 'http://127.0.0.1:5501/codigos/Demos/Demos/Gobierno/pagina-inicial-recaudacion.html';
+        var CODIGO_URL = 'http://127.0.0.1:5501/codigos/Demos/Gobierno/pagina-inicial-recaudacion.html';
 
         function fetchCodigo(callback) {
             var status = document.getElementById('codigoStatus');
@@ -215,16 +215,28 @@
                     status.textContent = '⚠️ No se pudo cargar el archivo: ' + err.message;
                     callback(err, null);
                 });
-        }
+                        }
 
-        document.getElementById('btnCopiar').addEventListener('click', function() {
+        document.getElementById('btnCopiar').addEventListener('click', function () {
             var btn = this;
-            fetchCodigo(function(err, text) {
+            fetchCodigo(function (err, text) {
                 if (err) return;
-                navigator.clipboard.writeText(text).then(function() {
+                // Fallback con textarea
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.focus();
+                ta.select();
+                try {
+                    document.execCommand('copy');
                     btn.textContent = '✅ Copiado!';
-                    setTimeout(function() { btn.textContent = '📋 Copiar'; }, 2000);
-                });
+                } catch (e) {
+                    btn.textContent = '❌ Error';
+                }
+                document.body.removeChild(ta);
+                setTimeout(function () { btn.textContent = '📋 Copiar'; }, 2000);
             });
         });
 
