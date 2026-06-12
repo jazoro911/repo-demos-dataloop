@@ -266,6 +266,27 @@ body {
 .leaflet-popup-content-wrapper { border-radius: 10px; }
 .leaflet-popup-content { margin: 12px 14px; font-family: 'Open Sans', sans-serif; }
 
+/* ── Tooltip flotante (hover de barras/treemap) ── */
+#viz-tooltip {
+  position: fixed;
+  z-index: 9999;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.15);
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--navy);
+  pointer-events: none;
+  display: none;
+  max-width: 320px;
+  line-height: 1.6;
+}
+#viz-tooltip .tt-row { display: flex; justify-content: space-between; gap: 16px; }
+#viz-tooltip .tt-k { color: var(--muted); }
+#viz-tooltip .tt-v { font-weight: 700; }
+.hbar-row, .treemap-tile, .gbar-group { cursor: pointer; }
+
 /* ════════════════
    DISCREPANCIAS DETECTADAS
    ════════════════ */
@@ -438,6 +459,7 @@ body {
 </style>
 </head>
 <body>
+<div id="viz-tooltip"></div>
 
 
 
@@ -459,7 +481,7 @@ body {
 </div>
 
 <!-- ══ FILTERS BAR ══ -->
-<div class="filters-bar" id="filters-bar">Filters: <strong>No selections</strong></div>
+<div class="filters-bar" id="filters-bar" style="display:none;">Filters: <strong id="filters-text">No selections</strong></div>
 
 
 <!-- ══════════════════════════════════════════
@@ -474,12 +496,12 @@ body {
 
       <div class="kpi-box blue-border">
         <div class="kpi-label">Monto de discrepancias</div>
-        <div class="kpi-value">$1,504,023,504</div>
+        <div class="kpi-value" id="home-kpi-monto">$0</div>
       </div>
 
       <div class="kpi-box yellow-border">
         <div class="kpi-label">Número de discrepancias</div>
-        <div class="kpi-value">42,515</div>
+        <div class="kpi-value" id="home-kpi-num">0</div>
       </div>
 
       <div class="kpi-box green-border">
@@ -540,28 +562,28 @@ body {
     <div class="disc-filter-row">
       <div class="filter-group">
         <div class="filter-label">Razón Social</div>
-        <input class="filter-input" type="text" placeholder="Enter Razón social..." id="f-razon" oninput="applyFilters()"/>
+        <input class="filter-input" type="text" placeholder="Escribe para filtrar..." id="f-razon" list="dl-razon" autocomplete="off" oninput="applyFilters()"/>
+        <datalist id="dl-razon"></datalist>
       </div>
       <div class="filter-group">
         <div class="filter-label">NIT</div>
-        <input class="filter-input" type="text" placeholder="Enter NIT..." id="f-nit" oninput="applyFilters()"/>
+        <input class="filter-input" type="text" placeholder="Escribe para filtrar..." id="f-nit" list="dl-nit" autocomplete="off" oninput="applyFilters()"/>
+        <datalist id="dl-nit"></datalist>
       </div>
       <div class="filter-group">
         <div class="filter-label">Periodos y act. económica</div>
         <select class="filter-select" id="f-periodo" onchange="applyFilters()">
           <option value="">Periodos</option>
-          <option>2023</option>
-          <option>2024</option>
         </select>
       </div>
       <!-- KPIs inline -->
       <div class="kpi-mini green" style="min-width:120px;">
         <div class="km-label">Total Registros</div>
-        <div class="km-value" id="kpi-registros">42,515</div>
+        <div class="km-value" id="kpi-registros">0</div>
       </div>
       <div class="kpi-mini yellow" style="min-width:140px;">
         <div class="km-label">Monto Discrepancias</div>
-        <div class="km-value" id="kpi-monto">$1,504,023,504</div>
+        <div class="km-value" id="kpi-monto">$0</div>
       </div>
     </div>
 
@@ -569,9 +591,10 @@ body {
     <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
       <span style="font-size:11px; font-weight:700; color:var(--muted);">Monto discrepancia:</span>
       <div class="pill-filter">
-        <div class="pill" onclick="togglePill(this,'Alto')">Alto</div>
-        <div class="pill" onclick="togglePill(this,'Bajo')">Bajo</div>
-        <div class="pill" onclick="togglePill(this,'Medio')">Medio</div>
+        <div class="pill" data-rango="Alto" onclick="togglePill(this,'Alto')">Alto</div>
+        <div class="pill" data-rango="Bajo" onclick="togglePill(this,'Bajo')">Bajo</div>
+        <div class="pill" data-rango="Medio" onclick="togglePill(this,'Medio')">Medio</div>
+        <div class="pill" data-rango="Otro" onclick="togglePill(this,'Otro')">Otro</div>
       </div>
     </div>
 
@@ -879,33 +902,25 @@ body {
 /* ══════════════════════════════════
    DATOS DEMO
    ══════════════════════════════════ */
-var EMPRESAS = [
-  { nit:'802.809.221-3', razon:'Soluciones Integrales Colombia S.A.S.', act:'Tecnologías de información y actividades de software', monto:560000000, pct:132.61 },
-  { nit:'808.613.660-8', razon:'Energía del Norte S.A.S.', act:'Generación de energía eléctrica', monto:465000000, pct:97.4 },
-  { nit:'808.029.689-0', razon:'Logística Nacional S.A.S.', act:'Transporte de carga por carretera', monto:403000000, pct:89.2 },
-  { nit:'830.030.035-1', razon:'Tecnología Andina S.A.S.', act:'Desarrollo de sistemas informáticos', monto:7000000, pct:12.3 },
-  { nit:'803.166.947-9', razon:'Importaciones del Pacífico S.A.S.', act:'Comercio al por mayor de materiales de construcción', monto:6000000, pct:8.7 },
-];
+var DATA = {"totalRegistros":87,"totalMonto":-880287.0,"totalMontoAbs":61450547.0,"periodosData":[{"label":"01-Enero","fact":1127557357.0,"ing":1133393493.0},{"label":"02-Febrero","fact":615603260.0,"ing":617981977.0},{"label":"03-Marzo","fact":608369671.0,"ing":605680981.0},{"label":"04-Abril","fact":827353416.0,"ing":821214144.0},{"label":"05-Mayo","fact":178595260.0,"ing":177820027.0},{"label":"06-Junio","fact":941183713.0,"ing":945869867.0},{"label":"07-Julio","fact":740966765.0,"ing":737782953.0},{"label":"08-Agosto","fact":576911201.0,"ing":577168500.0},{"label":"09-Septiembre","fact":70840429.0,"ing":71349417.0}],"empresas":[{"razon":"Comercializadora Caribe Ltda.","nit":"804.238.121-6","act":"Comercio al por mayor no especializado","monto":-8000000.0,"pct":-0.032,"periodos":["01-Enero"]},{"razon":"EMPRESA_001452","nit":"900053724-6","act":"Fabricación y/o ensamble de partes para el sistema eléctrico de vehículos automóviles","monto":5235502.0,"pct":0.01857354933459914,"periodos":["03-Marzo","07-Julio"]},{"razon":"EMPRESA_001568","nit":"900058016-2","act":"Transporte de carga","monto":-5013748.0,"pct":-0.01674213768781601,"periodos":["06-Junio"]},{"razon":"Constructora Horizonte S.A.S.","nit":"806.443.760-2","act":"Construcción de edificios residenciales","monto":5000000.0,"pct":0.01639344262295082,"periodos":["01-Enero"]},{"razon":"Agrofrutas del Valle S.A.S.","nit":"800.982.581-4","act":"Procesamiento y conservación de frutas, legumbres, hortalizas y tubérculos","monto":-3000000.0,"pct":-0.02290076335877863,"periodos":["01-Enero"]},{"razon":"EMPRESA_002149","nit":"900079513-1","act":"Supermercados, tiendas de autoservicio y de departamentos especializados por línea de mercancías","monto":1909827.0,"pct":0.01116193120140734,"periodos":["04-Abril"]},{"razon":"EMPRESA_001623","nit":"900060051-7","act":"Compraventa de alimentos, bebidas y/o productos del tabaco, con transporte","monto":1844900.0,"pct":0.008519788269245814,"periodos":["01-Enero"]},{"razon":"EMPRESA_001749","nit":"900064713-2","act":"Transporte ferroviario y eléctrico","monto":-1642977.0,"pct":-0.01224485333337149,"periodos":["01-Enero"]},{"razon":"EMPRESA_002774","nit":"900102638-1","act":"Elaboración, preparación, conservación, envasado y/o empacado de productos lácteos","monto":1539229.0,"pct":0.01214353116737342,"periodos":["03-Marzo","04-Abril"]},{"razon":"EMPRESA_001560","nit":"900057720-5","act":"Confección de prendas de vestir","monto":-1106729.0,"pct":-0.005065512983557758,"periodos":["02-Febrero"]},{"razon":"EMPRESA_001037","nit":"900038369-1","act":"Cría y explotación de ganado y otras clases de animales","monto":1081558.0,"pct":0.005259391790157679,"periodos":["07-Julio"]},{"razon":"EMPRESA_001215","nit":"900044955-2","act":"Extracción y beneficio de minerales metálicos, en minas de profundidad","monto":-1015856.0,"pct":-0.009245914039601585,"periodos":["06-Junio"]},{"razon":"EMPRESA_003192","nit":"900118104-0","act":" ","monto":1014488.0,"pct":0.00908297674505722,"periodos":["07-Julio"]},{"razon":"EMPRESA_002158","nit":"900079846-9","act":"Administración de vías de comunicación, terminales y servicios auxiliares","monto":958570.0,"pct":0.01436182716026372,"periodos":["03-Marzo"]},{"razon":"EMPRESA_001242","nit":"900045954-1","act":"Otros artículos confeccionados con textiles y materiales diversos","monto":-940240.0,"pct":-0.01398916256493313,"periodos":["08-Agosto"]},{"razon":"EMPRESA_003017","nit":"900111629-3","act":"Compraventa de medicamentos, productos farmacéuticos, químico-farmacéuticos y de perfumería, sin transporte","monto":778921.0,"pct":0.007780008506139704,"periodos":["02-Febrero"]},{"razon":"EMPRESA_002837","nit":"900104969-3","act":"Construcciones de obras de infraestructura y edificaciones en obra pública","monto":734970.0,"pct":0.007864358061995843,"periodos":["05-Mayo"]},{"razon":"EMPRESA_001216","nit":"900044992-5","act":"Servicios de protección y custodia","monto":679858.0,"pct":0.01126394320090311,"periodos":["04-Abril"]},{"razon":"EMPRESA_001227","nit":"900045399-1","act":"Supermercados, tiendas de autoservicio y de departamentos especializados por línea de mercancías","monto":-644011.0,"pct":0.0120960682229283,"periodos":["06-Junio","07-Julio"]},{"razon":"EMPRESA_000896","nit":"900033152-8","act":" ","monto":629144.0,"pct":0.01813840448154185,"periodos":["08-Agosto"]},{"razon":"EMPRESA_000551","nit":"900020387-5","act":"Compraventa de alimentos, bebidas y/o productos del tabaco, con transporte","monto":472068.0,"pct":0.01787474930204804,"periodos":["08-Agosto"]},{"razon":"EMPRESA_000648","nit":"900023976-7","act":"Confección de prendas de vestir","monto":434414.0,"pct":0.01945579889299893,"periodos":["03-Marzo"]},{"razon":"EMPRESA_000335","nit":"900012395-0","act":"Compraventa de alimentos, bebidas y/o productos del tabaco, con transporte","monto":432769.0,"pct":0.01892903086348501,"periodos":["04-Abril"]},{"razon":"EMPRESA_001557","nit":"900057609-5","act":" ","monto":-422835.0,"pct":-0.002800063042558362,"periodos":["06-Junio"]},{"razon":"EMPRESA_001597","nit":"900059089-4","act":"Construcciones de obras de infraestructura y edificaciones en obra pública","monto":412509.0,"pct":0.01266876733279895,"periodos":["03-Marzo"]},{"razon":"EMPRESA_001011","nit":"900037407-9","act":"Elaboración, preparación, conservación, envasado y/o empacado de productos lácteos","monto":-406983.0,"pct":-0.01172912069507079,"periodos":["04-Abril"]},{"razon":"EMPRESA_001702","nit":"900062974-9","act":"Supermercados, tiendas de autoservicio y de departamentos especializados por línea de mercancías","monto":-368788.0,"pct":-0.002960097874550871,"periodos":["04-Abril"]},{"razon":"EMPRESA_001002","nit":"900037074-1","act":"Fabricación y/o ensamble de partes y accesorios para automóviles, autobuses, camiones, motocicletas y bicicletas","monto":-357206.0,"pct":-0.01242200759960159,"periodos":["03-Marzo","09-Septiembre"]},{"razon":"EMPRESA_000893","nit":"900033041-9","act":"Estaciones de venta de gasolina, diesel y compraventa de lubricantes y aditivos, con transporte","monto":-339568.0,"pct":-0.01578964206027934,"periodos":["07-Julio"]},{"razon":"EMPRESA_001697","nit":"900062789-2","act":"Construcción de edificaciones; excepto obra pública","monto":-318519.0,"pct":-0.01384495376539415,"periodos":["03-Marzo"]},{"razon":"EMPRESA_000637","nit":"900023569-2","act":"Instalación de ventanería, herrería, cancelería, vidrios y cristales","monto":315797.0,"pct":0.01526237617446019,"periodos":["04-Abril"]},{"razon":"EMPRESA_000526","nit":"900019462-8","act":"Beneficio de minerales metálicos","monto":285343.0,"pct":0.01798520430899131,"periodos":["06-Junio"]},{"razon":"EMPRESA_001230","nit":"900045510-3","act":"Transporte de carga","monto":-258174.0,"pct":-0.004086426203170094,"periodos":["08-Agosto"]},{"razon":"EMPRESA_000051","nit":"900001887-5","act":"Fabricación de productos de aserradero","monto":-255452.0,"pct":-0.01559673609790363,"periodos":["08-Agosto"]},{"razon":"EMPRESA_002399","nit":"900088763-4","act":" ","monto":-205960.0,"pct":0.019651240515052,"periodos":["02-Febrero","04-Abril"]},{"razon":"EMPRESA_002457","nit":"900090909-9","act":"Servicios de alquiler de maquinaria y equipo para la construcción sin operadores","monto":199464.0,"pct":0.01118476945992262,"periodos":["07-Julio"]},{"razon":"EMPRESA_001630","nit":"900060310-1","act":"Cría y explotación de ganado y otras clases de animales","monto":193211.0,"pct":0.002207719418219525,"periodos":["02-Febrero"]},{"razon":"EMPRESA_002448","nit":"900090576-1","act":" ","monto":-190131.0,"pct":-0.005287307902627505,"periodos":["09-Septiembre"]},{"razon":"EMPRESA_001664","nit":"900061568-7","act":"Compraventa de materiales para construcción tales como: madera, aceros y productos de ferretería, con transporte y/o preparación de mercancías","monto":187321.0,"pct":0.01599658071923597,"periodos":["05-Mayo"]},{"razon":"EMPRESA_001294","nit":"900047878-7","act":"Otros servicios de instalación vinculados al acabado o remodelación de obras de construcción","monto":180544.0,"pct":0.01066802869018076,"periodos":["01-Enero"]},{"razon":"EMPRESA_000443","nit":"900016391-1","act":"Preparación y servicio de alimentos","monto":-176962.0,"pct":-0.0150844818612349,"periodos":["01-Enero"]},{"razon":"EMPRESA_002377","nit":"900087949-2","act":"Compraventa de maquinaria, equipo y sus refacciones y/o accesorios para la producción de bienes, con servicios de instalación","monto":-166040.0,"pct":-0.004281789839728408,"periodos":["06-Junio"]},{"razon":"EMPRESA_002939","nit":"900108743-4","act":"Servicios de reparación, lavado, engrasado, verificación de emisión de contaminantes y estacionamiento de vehículos con servicios mecánicos y/o de hojalatería","monto":-164418.0,"pct":-0.01359486977185031,"periodos":["07-Julio"]},{"razon":"EMPRESA_000842","nit":"900031154-3","act":"Preparación y servicio de alimentos","monto":-164125.0,"pct":-0.008826322548808555,"periodos":["04-Abril"]},{"razon":"EMPRESA_000370","nit":"900013690-3","act":"Transporte de carga","monto":152171.0,"pct":0.01380581693118947,"periodos":["02-Febrero"]},{"razon":"EMPRESA_002446","nit":"900090502-5","act":"Servicios de enseñanza académica, capacitación, investigación científica y difusión cultural","monto":145058.0,"pct":0.005899709573783421,"periodos":["06-Junio"]},{"razon":"EMPRESA_001238","nit":"900045806-8","act":"Compraventa de prendas y accesorios de vestir y artículos para su confección, con transporte","monto":141689.0,"pct":0.008468172201846695,"periodos":["02-Febrero"]},{"razon":"EMPRESA_001797","nit":"900066489-6","act":"Servicios de protección y custodia","monto":-139795.0,"pct":-0.01132274475741407,"periodos":["09-Septiembre"]},{"razon":"EMPRESA_000154","nit":"900005698-8","act":"Compraventa de materiales para construcción tales como: madera, aceros y productos de ferretería, con transporte y/o preparación de mercancías","monto":-136461.0,"pct":-0.005188975071617865,"periodos":["06-Junio"]},{"razon":"EMPRESA_000817","nit":"900030229-2","act":"Construcción de edificaciones; excepto obra pública","monto":134458.0,"pct":0.01169531740220574,"periodos":["04-Abril"]},{"razon":"EMPRESA_000379","nit":"900014023-5","act":"Construcción de edificaciones; excepto obra pública","monto":133017.0,"pct":0.01061067562380406,"periodos":["03-Marzo"]},{"razon":"EMPRESA_000577","nit":"900021349-1","act":"Servicios de reparación, lavado, engrasado, verificación de emisión de contaminantes y estacionamiento de vehículos con servicios mecánicos y/o de hojalatería","monto":126339.0,"pct":0.01246860741211975,"periodos":["06-Junio"]},{"razon":"EMPRESA_001704","nit":"900063048-8","act":"Elaboración y/o envase de refrescos, aguas gaseosas y purificadas","monto":-121214.0,"pct":-0.004421052531757782,"periodos":["06-Junio"]},{"razon":"EMPRESA_000801","nit":"900029637-2","act":"Elaboración de alimentos para animales","monto":-116506.0,"pct":-0.001008339402892158,"periodos":["08-Agosto"]},{"razon":"EMPRESA_002851","nit":"900105487-1","act":"Expendios de ventas al menudeo de otros artículos para el hogar","monto":-101547.0,"pct":-0.007464625780381502,"periodos":["03-Marzo"]},{"razon":"EMPRESA_000531","nit":"900019647-3","act":"Compraventa de materiales para construcción, tales como madera, aceros y productos de ferretería, sin transporte, ni preparación de mercancías","monto":98779.0,"pct":0.005145271797384875,"periodos":["03-Marzo"]},{"razon":"EMPRESA_002291","nit":"900084767-5","act":"Transporte de carga","monto":-95866.0,"pct":-0.005534988133083826,"periodos":["05-Mayo"]},{"razon":"EMPRESA_000342","nit":"900012654-3","act":"Compraventa de chatarra, fierro viejo, partes o mecanismos usados y desperdicios en general","monto":-92581.0,"pct":-0.006704510751614753,"periodos":["07-Julio"]},{"razon":"EMPRESA_002817","nit":"900104229-1","act":"Comunicaciones","monto":-81731.0,"pct":-0.00768165462301094,"periodos":["04-Abril"]},{"razon":"EMPRESA_002682","nit":"900099234-7","act":"Fabricación de artículos y accesorios de madera","monto":81276.0,"pct":0.004298468436593148,"periodos":["02-Febrero"]},{"razon":"EMPRESA_002804","nit":"900103748-8","act":"Fabricación de conductores eléctricos","monto":-79156.0,"pct":-0.0005347029806881071,"periodos":["08-Agosto"]},{"razon":"EMPRESA_001873","nit":"900069301-4","act":"Servicios médicos, paramédicos y auxiliares","monto":-73953.0,"pct":-0.003383895853264487,"periodos":["04-Abril"]},{"razon":"EMPRESA_000043","nit":"900001591-0","act":"Cría y explotación de ganado y otras clases de animales","monto":-73150.0,"pct":-0.006636338192874759,"periodos":["01-Enero"]},{"razon":"EMPRESA_001728","nit":"900063936-3","act":"Transporte de carga","monto":-66395.0,"pct":-0.003283666446156476,"periodos":["06-Junio"]},{"razon":"EMPRESA_000256","nit":"900009472-9","act":"Servicios colaterales a las instituciones financieras y de seguros","monto":-63000.0,"pct":-0.0005762528821562307,"periodos":["03-Marzo"]},{"razon":"EMPRESA_000463","nit":"900017131-6","act":"Estaciones de venta de gasolina, diesel y compraventa de lubricantes y aditivos, con transporte","monto":59847.0,"pct":0.004910351038367722,"periodos":["01-Enero"]},{"razon":"EMPRESA_001654","nit":"900061198-5","act":"Compraventa de artículos diversos no clasificados, sin transporte","monto":57400.0,"pct":0.004455798709681426,"periodos":["04-Abril"]},{"razon":"EMPRESA_001648","nit":"900060976-4","act":"Extracción y beneficio de minerales no metálicos, en minas a cielo abierto","monto":-51192.0,"pct":-0.0009251430558834875,"periodos":["05-Mayo"]},{"razon":"EMPRESA_001673","nit":"900061901-7","act":"Compraventa de bienes inmuebles","monto":39870.0,"pct":0.003500377824829926,"periodos":["09-Septiembre"]},{"razon":"EMPRESA_001998","nit":"900073926-2","act":"Compraventa de equipo de transporte, sus refacciones, accesorios y/o partes, con transporte y/o servicios de instalación, reparación o mantenimiento","monto":-39002.0,"pct":0.007332065679644668,"periodos":["04-Abril","08-Agosto"]},{"razon":"EMPRESA_001867","nit":"900069079-3","act":"Compraventa de materiales para construcción, tales como madera, aceros y productos de ferretería, sin transporte, ni preparación de mercancías","monto":36974.0,"pct":0.001857427121329567,"periodos":["06-Junio"]},{"razon":"EMPRESA_003204","nit":"900118548-7","act":"Construcciones de obras de infraestructura y edificaciones en obra pública","monto":-36577.0,"pct":-0.003131473426866308,"periodos":["01-Enero"]},{"razon":"EMPRESA_000093","nit":"900003441-3","act":"Servicios de estacionamiento y/o pensión para vehículos","monto":-35472.0,"pct":-0.002774794583299338,"periodos":["08-Agosto"]},{"razon":"EMPRESA_000654","nit":"900024198-8","act":"Servicios médicos, paramédicos y auxiliares","monto":-30115.0,"pct":-0.001317341338779248,"periodos":["03-Marzo"]},{"razon":"EMPRESA_002258","nit":"900083546-1","act":"Extracción y beneficio de minerales no metálicos, en minas a cielo abierto","monto":-17547.0,"pct":-0.0003288680534776527,"periodos":["06-Junio"]},{"razon":"EMPRESA_000775","nit":"900028675-8","act":"Fabricación de artículos y accesorios de madera","monto":8239.0,"pct":0.0002487068091148827,"periodos":["01-Enero"]},{"razon":"EMPRESA_000524","nit":"900019388-0","act":"Estaciones de venta de gasolina, diesel y compraventa de lubricantes y aditivos, con transporte","monto":-4884.0,"pct":-0.0004022245223213197,"periodos":["08-Agosto"]},{"razon":"EMPRESA_003170","nit":"900117290-8","act":"Servicios de alojamiento temporal","monto":-2362.0,"pct":-0.0001620671479461728,"periodos":["02-Febrero"]},{"razon":"EMPRESA_000151","nit":"900005587-9","act":"Compraventa de equipo de transporte, sus refacciones, accesorios y/o partes, sin transporte","monto":2275.0,"pct":0.0002221346919318922,"periodos":["06-Junio"]},{"razon":"EMPRESA_000725","nit":"900026825-7","act":"Compraventa de equipo, mobiliario, sus partes y/o accesorios para la prestación de servicios y el comercio, con transporte y/o servicios de instalación, reparación y mantenimiento","monto":-1258.0,"pct":-5.848823533322649e-05,"periodos":["08-Agosto"]},{"razon":"EMPRESA_000798","nit":"900029526-3","act":"Fabricación de abonos, fertilizantes y plaguicidas","monto":400.0,"pct":2.861758055240802e-05,"periodos":["08-Agosto"]}],"detalle":[["806.443.760-2","Constructora Horizonte S.A.S.","01-Enero",310000000.0,305000000.0,5000000.0,"Medio"],["900005587-9","EMPRESA_000151","06-Junio",10243809.0,10241534.0,2275.0,"Bajo"],["900012395-0","EMPRESA_000335","04-Abril",23295482.0,22862713.0,432769.0,"Bajo"],["900013690-3","EMPRESA_000370","02-Febrero",11174409.0,11022238.0,152171.0,"Bajo"],["900014023-5","EMPRESA_000379","03-Marzo",12669165.0,12536148.0,133017.0,"Bajo"],["900017131-6","EMPRESA_000463","01-Enero",12247774.0,12187927.0,59847.0,"Bajo"],["900019462-8","EMPRESA_000526","06-Junio",16150773.0,15865430.0,285343.0,"Bajo"],["900019647-3","EMPRESA_000531","03-Marzo",19296793.0,19198014.0,98779.0,"Bajo"],["900020387-5","EMPRESA_000551","08-Agosto",26881837.0,26409769.0,472068.0,"Bajo"],["900021349-1","EMPRESA_000577","06-Junio",10258906.0,10132567.0,126339.0,"Bajo"],["900023569-2","EMPRESA_000637","04-Abril",21007005.0,20691208.0,315797.0,"Bajo"],["900023976-7","EMPRESA_000648","03-Marzo",22762667.0,22328253.0,434414.0,"Bajo"],["900028675-8","EMPRESA_000775","01-Enero",33135599.0,33127360.0,8239.0,"Bajo"],["900029526-3","EMPRESA_000798","08-Agosto",13977822.0,13977422.0,400.0,"Bajo"],["900030229-2","EMPRESA_000817","04-Abril",11631196.0,11496738.0,134458.0,"Bajo"],["900033152-8","EMPRESA_000896","08-Agosto",35314885.0,34685741.0,629144.0,"Bajo"],["900038369-1","EMPRESA_001037","07-Julio",206724728.0,205643170.0,1081558.0,"Medio"],["900044992-5","EMPRESA_001216","04-Abril",61036874.0,60357016.0,679858.0,"Bajo"],["900045399-1","EMPRESA_001227","06-Junio",140396830.0,138718877.0,1677953.0,"Medio"],["900045806-8","EMPRESA_001238","02-Febrero",16873635.0,16731946.0,141689.0,"Bajo"],["900047878-7","EMPRESA_001294","01-Enero",17104383.0,16923839.0,180544.0,"Bajo"],["900053724-6","EMPRESA_001452","07-Julio",208766743.0,204959910.0,3806833.0,"Medio"],["900053724-6","EMPRESA_001452","03-Marzo",155672614.0,154243945.0,1428669.0,"Medio"],["900059089-4","EMPRESA_001597","03-Marzo",32973609.0,32561100.0,412509.0,"Bajo"],["900060051-7","EMPRESA_001623","01-Enero",218387840.0,216542940.0,1844900.0,"Medio"],["900060310-1","EMPRESA_001630","02-Febrero",87709314.0,87516103.0,193211.0,"Bajo"],["900061198-5","EMPRESA_001654","04-Abril",12939490.0,12882090.0,57400.0,"Bajo"],["900061568-7","EMPRESA_001664","05-Mayo",11897386.0,11710065.0,187321.0,"Bajo"],["900061901-7","EMPRESA_001673","09-Septiembre",11430069.0,11390199.0,39870.0,"Bajo"],["900069079-3","EMPRESA_001867","06-Junio",19943004.0,19906030.0,36974.0,"Bajo"],["900073926-2","EMPRESA_001998","08-Agosto",45644291.0,45312060.0,332231.0,"Bajo"],["900079513-1","EMPRESA_002149","04-Abril",173011670.0,171101843.0,1909827.0,"Medio"],["900079846-9","EMPRESA_002158","03-Marzo",67702863.0,66744293.0,958570.0,"Medio"],["900088763-4","EMPRESA_002399","04-Abril",125097031.0,122686097.0,2410934.0,"Medio"],["900090502-5","EMPRESA_002446","06-Junio",24732370.0,24587312.0,145058.0,"Bajo"],["900090909-9","EMPRESA_002457","07-Julio",18033001.0,17833537.0,199464.0,"Bajo"],["900099234-7","EMPRESA_002682","02-Febrero",18989406.0,18908130.0,81276.0,"Bajo"],["900102638-1","EMPRESA_002774","04-Abril",138778537.0,137113495.0,1665042.0,"Medio"],["900104969-3","EMPRESA_002837","05-Mayo",94190786.0,93455816.0,734970.0,"Bajo"],["900111629-3","EMPRESA_003017","02-Febrero",100897192.0,100118271.0,778921.0,"Bajo"],["900118104-0","EMPRESA_003192","07-Julio",112705625.0,111691137.0,1014488.0,"Medio"],["800.982.581-4","Agrofrutas del Valle S.A.S.","01-Enero",128000000.0,131000000.0,-3000000.0,"Otro"],["804.238.121-6","Comercializadora Caribe Ltda.","01-Enero",242000000.0,250000000.0,-8000000.0,"Otro"],["900001591-0","EMPRESA_000043","01-Enero",10949495.0,11022645.0,-73150.0,"Otro"],["900016391-1","EMPRESA_000443","01-Enero",11554432.0,11731394.0,-176962.0,"Otro"],["900064713-2","EMPRESA_001749","01-Enero",132533967.0,134176944.0,-1642977.0,"Otro"],["900118548-7","EMPRESA_003204","01-Enero",11643867.0,11680444.0,-36577.0,"Otro"],["900057720-5","EMPRESA_001560","02-Febrero",217376375.0,218483104.0,-1106729.0,"Otro"],["900088763-4","EMPRESA_002399","02-Febrero",148011085.0,150627979.0,-2616894.0,"Otro"],["900117290-8","EMPRESA_003170","02-Febrero",14571844.0,14574206.0,-2362.0,"Otro"],["900009472-9","EMPRESA_000256","03-Marzo",109264002.0,109327002.0,-63000.0,"Otro"],["900024198-8","EMPRESA_000654","03-Marzo",22830323.0,22860438.0,-30115.0,"Otro"],["900037074-1","EMPRESA_001002","03-Marzo",10993099.0,11131373.0,-138274.0,"Otro"],["900062789-2","EMPRESA_001697","03-Marzo",22687625.0,23006144.0,-318519.0,"Otro"],["900102638-1","EMPRESA_002774","03-Marzo",118014695.0,118140508.0,-125813.0,"Otro"],["900105487-1","EMPRESA_002851","03-Marzo",13502216.0,13603763.0,-101547.0,"Otro"],["900031154-3","EMPRESA_000842","04-Abril",18430822.0,18594947.0,-164125.0,"Otro"],["900037407-9","EMPRESA_001011","04-Abril",34291526.0,34698509.0,-406983.0,"Otro"],["900062974-9","EMPRESA_001702","04-Abril",124217633.0,124586421.0,-368788.0,"Otro"],["900069301-4","EMPRESA_001873","04-Abril",21780443.0,21854396.0,-73953.0,"Otro"],["900073926-2","EMPRESA_001998","04-Abril",51277673.0,51648906.0,-371233.0,"Otro"],["900104229-1","EMPRESA_002817","04-Abril",10558034.0,10639765.0,-81731.0,"Otro"],["900060976-4","EMPRESA_001648","05-Mayo",55282953.0,55334145.0,-51192.0,"Otro"],["900084767-5","EMPRESA_002291","05-Mayo",17224135.0,17320001.0,-95866.0,"Otro"],["900005698-8","EMPRESA_000154","06-Junio",26161796.0,26298257.0,-136461.0,"Otro"],["900044955-2","EMPRESA_001215","06-Junio",108854947.0,109870803.0,-1015856.0,"Otro"],["900057609-5","EMPRESA_001557","06-Junio",150586265.0,151009100.0,-422835.0,"Otro"],["900058016-2","EMPRESA_001568","06-Junio",294455059.0,299468807.0,-5013748.0,"Otro"],["900063048-8","EMPRESA_001704","06-Junio",27296239.0,27417453.0,-121214.0,"Otro"],["900063936-3","EMPRESA_001728","06-Junio",20153381.0,20219776.0,-66395.0,"Otro"],["900083546-1","EMPRESA_002258","06-Junio",53338198.0,53355745.0,-17547.0,"Otro"],["900087949-2","EMPRESA_002377","06-Junio",38612136.0,38778176.0,-166040.0,"Otro"],["900012654-3","EMPRESA_000342","07-Julio",13716182.0,13808763.0,-92581.0,"Otro"],["900033041-9","EMPRESA_000893","07-Julio",21166176.0,21505744.0,-339568.0,"Otro"],["900045399-1","EMPRESA_001227","07-Julio",147924607.0,150246571.0,-2321964.0,"Otro"],["900108743-4","EMPRESA_002939","07-Julio",11929703.0,12094121.0,-164418.0,"Otro"],["900001887-5","EMPRESA_000051","08-Agosto",16123103.0,16378555.0,-255452.0,"Otro"],["900003441-3","EMPRESA_000093","08-Agosto",12748177.0,12783649.0,-35472.0,"Otro"],["900019388-0","EMPRESA_000524","08-Agosto",12137588.0,12142472.0,-4884.0,"Otro"],["900026825-7","EMPRESA_000725","08-Agosto",21507341.0,21508599.0,-1258.0,"Otro"],["900029637-2","EMPRESA_000801","08-Agosto",115425939.0,115542445.0,-116506.0,"Otro"],["900045510-3","EMPRESA_001230","08-Agosto",62920258.0,63178432.0,-258174.0,"Otro"],["900045954-1","EMPRESA_001242","08-Agosto",66271789.0,67212029.0,-940240.0,"Otro"],["900103748-8","EMPRESA_002804","08-Agosto",147958171.0,148037327.0,-79156.0,"Otro"],["900037074-1","EMPRESA_001002","09-Septiembre",11434010.0,11652942.0,-218932.0,"Otro"],["900066489-6","EMPRESA_001797","09-Septiembre",12206593.0,12346388.0,-139795.0,"Otro"],["900090576-1","EMPRESA_002448","09-Septiembre",35769757.0,35959888.0,-190131.0,"Otro"]],"rangoCounts":{"Medio":11,"Bajo":30,"Otro":46}};
 
-var DETALLE = [
-  { nit:'802.809.221-3', razon:'Soluciones Integrales Colombia S.A.S.', periodo:'01-Enero', fact:2800000000, ing:1200000000 },
-  { nit:'808.613.660-8', razon:'Energía del Norte S.A.S.', periodo:'02-Febrero', fact:2100000000, ing:1650000000 },
-  { nit:'808.029.689-0', razon:'Logística Nacional S.A.S.', periodo:'03-Marzo', fact:2200000000, ing:1700000000 },
-  { nit:'830.030.035-1', razon:'Tecnología Andina S.A.S.', periodo:'04-Abril', fact:3100000000, ing:2050000000 },
-  { nit:'803.166.947-9', razon:'Importaciones del Pacífico S.A.S.', periodo:'05-Mayo', fact:700000000, ing:580000000 },
-];
+/* Empresas agregadas (TODAS, 2213) — barra, treemap, tabla contribuyentes, filtros, autocomplete */
+var EMPRESAS = DATA.empresas.map(function(e){
+  return { nit:e.nit, razon:e.razon, act:e.act, monto:e.monto, montoAbs:Math.abs(e.monto),
+           pct:e.pct, periodos:e.periodos };
+});
 
-var PERIODOS_DATA = [
-  { label:'01-Ene', fact:2900, ing:2250 },
-  { label:'02-Feb', fact:2050, ing:1620 },
-  { label:'03-Mar', fact:2150, ing:1720 },
-  { label:'04-Abr', fact:3050, ing:2020 },
-  { label:'05-May', fact:680, ing:540 },
-  { label:'06-Jun', fact:780, ing:640 },
-  { label:'07-Jul', fact:980, ing:780 },
-  { label:'08-Ago', fact:390, ing:310 },
-  { label:'09-Sep', fact:680, ing:550 },
-];
+/* Detalle: filas individuales [nit,razon,periodo,fact,ing,monto,rango] */
+var DETALLE = DATA.detalle.map(function(d){
+  return { nit:d[0], razon:d[1], periodo:d[2], fact:d[3], ing:d[4], monto:d[5], rango:d[6] };
+});
+
+/* Periodicidad: fact vs ing agregados (en millones para la barra) */
+var PERIODOS_DATA = DATA.periodosData.map(function(p){
+  return { label:p.label, fullLabel:p.label,
+           fact:Math.round(p.fact/1e6), ing:Math.round(p.ing/1e6),
+           factRaw:p.fact, ingRaw:p.ing };
+});
 
 var ANALISIS_DATA = [
   { id:9210, nivel:'Atraso medio', pot:'Alto',  prop:0.9637, dias:17, hist:1 },
@@ -978,6 +993,9 @@ function showPage(name){
   var tabs = document.querySelectorAll('.nav-tab');
   var map = {home:0, disc:1, analisis:2, zon:3};
   tabs[map[name]].classList.add('active');
+  // La barra de filtros solo aplica a Discrepancias detectadas
+  var fb = $('filters-bar');
+  if(fb) fb.style.display = (name==='disc') ? '' : 'none';
   // Refrescar mapas al mostrar su pestaña (Leaflet necesita tamaño visible)
   setTimeout(function(){
     if(name==='home' && typeof _homeMapObj!=='undefined' && _homeMapObj) _homeMapObj.invalidateSize();
@@ -985,73 +1003,142 @@ function showPage(name){
   }, 100);
 }
 
+/* ── Tooltip flotante ── */
+function ttShow(html, ev){
+  var tt = $('viz-tooltip');
+  if(!tt) return;
+  tt.innerHTML = html;
+  tt.style.display = 'block';
+  ttMove(ev);
+}
+function ttMove(ev){
+  var tt = $('viz-tooltip');
+  if(!tt || tt.style.display==='none') return;
+  var x = ev.clientX + 14, y = ev.clientY + 14;
+  var w = tt.offsetWidth, h = tt.offsetHeight;
+  if(x + w > window.innerWidth)  x = ev.clientX - w - 14;
+  if(y + h > window.innerHeight) y = ev.clientY - h - 14;
+  tt.style.left = x + 'px';
+  tt.style.top  = y + 'px';
+}
+function ttHide(){
+  var tt = $('viz-tooltip');
+  if(tt) tt.style.display = 'none';
+}
+function ttRow(k, v){
+  return '<div class="tt-row"><span class="tt-k">'+k+':</span><span class="tt-v">'+v+'</span></div>';
+}
+
 /* ══════════════════════════════════
    HOME — Bar chart razón social
    ══════════════════════════════════ */
 function buildHomeBar(){
-  var max = Math.max.apply(null, EMPRESAS.map(function(e){ return e.monto; }));
+  var lista = EMPRESAS.slice(0, 15);
+  var max = Math.max.apply(null, lista.map(function(e){ return e.montoAbs; })) || 1;
   var html = '';
-  EMPRESAS.forEach(function(e){
-    var pct = (e.monto/max*100).toFixed(1);
-    html += '<div class="hbar-row">'
+  lista.forEach(function(e, i){
+    var pct = (e.montoAbs/max*100).toFixed(1);
+    html += '<div class="hbar-row" data-i="'+i+'">'
       + '<div class="hbar-label" title="'+e.razon+'">'+e.razon+'</div>'
       + '<div class="hbar-track"><div class="hbar-fill" style="width:'+pct+'%"></div></div>'
       + '<div class="hbar-val">'+fmt.format(e.monto)+'</div>'
       + '</div>';
   });
-  $('home-bar-razon').innerHTML = html;
+  var cont = $('home-bar-razon');
+  cont.innerHTML = html;
+  // Hover: Razón social + Monto discrepancia
+  cont.querySelectorAll('.hbar-row').forEach(function(row){
+    var e = lista[+row.getAttribute('data-i')];
+    row.addEventListener('mousemove', function(ev){
+      ttShow('<div style="font-weight:700;margin-bottom:4px">'+e.razon+'</div>'+
+             ttRow('Razón social', e.razon)+
+             ttRow('Monto discrepancia', fmt.format(e.monto)), ev);
+    });
+    row.addEventListener('mouseleave', ttHide);
+  });
 }
 
 function buildHomeTreemap(){
-  var top3 = EMPRESAS.slice().sort(function(a,b){ return b.pct-a.pct; }).slice(0,3);
+  var top3 = EMPRESAS.slice().sort(function(a,b){ return Math.abs(b.pct)-Math.abs(a.pct); }).slice(0,3);
   var html = '';
   var colors = ['#d4a017','#c8960c','#b5820a'];
   top3.forEach(function(e,i){
     var w = (i===0? 100 : i===1? 66 : 50);
-    html += '<div class="treemap-tile" style="width:calc('+w+'% - 4px);height:60px;background:'+colors[i]+';">'
-      + e.razon + '<br><small style="font-weight:400;font-size:9px;">Pct discrepancia: '+e.pct+'%</small>'
+    html += '<div class="treemap-tile" data-i="'+i+'" style="width:calc('+w+'% - 4px);height:60px;background:'+colors[i]+';">'
+      + e.razon + '<br><small style="font-weight:400;font-size:9px;">Pct discrepancia: '+(e.pct*100).toFixed(2)+'%</small>'
       + '</div>';
   });
-  $('home-treemap').innerHTML = html;
+  var cont = $('home-treemap');
+  cont.innerHTML = html;
+  // Hover: Razón social + Pct discrepancia
+  cont.querySelectorAll('.treemap-tile').forEach(function(tile){
+    var e = top3[+tile.getAttribute('data-i')];
+    tile.addEventListener('mousemove', function(ev){
+      ttShow('<div style="font-weight:700;margin-bottom:4px">'+e.razon+'</div>'+
+             ttRow('Razón social', e.razon)+
+             ttRow('Pct discrepancia', (e.pct*100).toFixed(2)+'%'), ev);
+    });
+    tile.addEventListener('mouseleave', ttHide);
+  });
 }
 
 /* ══════════════════════════════════
    DISCREPANCIAS — Grouped bar
    ══════════════════════════════════ */
 function buildDiscBar(){
-  var maxVal = Math.max.apply(null, PERIODOS_DATA.map(function(p){ return Math.max(p.fact,p.ing); }));
+  var maxVal = Math.max.apply(null, PERIODOS_DATA.map(function(p){ return Math.max(p.fact,p.ing); })) || 1;
   var chartH = 160;
   var html = '';
-  PERIODOS_DATA.forEach(function(p){
+  PERIODOS_DATA.forEach(function(p, i){
     var hF = Math.round((p.fact/maxVal)*chartH);
     var hI = Math.round((p.ing/maxVal)*chartH);
-    html += '<div class="gbar-group">'
-      + '<div class="gbar green" style="height:'+hF+'px;" title="Facturación: '+fmtN.format(p.fact)+'M"></div>'
-      + '<div class="gbar red"   style="height:'+hI+'px;" title="Ingresos: '+fmtN.format(p.ing)+'M"></div>'
+    html += '<div class="gbar-group" data-i="'+i+'">'
+      + '<div class="gbar green" style="height:'+hF+'px;"></div>'
+      + '<div class="gbar red"   style="height:'+hI+'px;"></div>'
       + '</div>';
   });
-  $('disc-bar-chart').innerHTML = html;
+  var cont = $('disc-bar-chart');
+  cont.innerHTML = html;
   $('disc-bar-labels').innerHTML = PERIODOS_DATA.map(function(p){ return '<span>'+p.label+'</span>'; }).join('');
+  // Hover: Facturación electronica reportada, Ingresos declarados, Periodicidad
+  cont.querySelectorAll('.gbar-group').forEach(function(g){
+    var p = PERIODOS_DATA[+g.getAttribute('data-i')];
+    g.addEventListener('mousemove', function(ev){
+      ttShow(ttRow('Facturación electronica reportada', fmtN.format(p.factRaw))+
+             ttRow('Ingresos declarados', fmtN.format(p.ingRaw))+
+             ttRow('Periodicidad', p.fullLabel), ev);
+    });
+    g.addEventListener('mouseleave', ttHide);
+  });
 }
 
 function buildDiscTables(){
-  // Contribuyentes
+  var datos = filtrarEmpresas();
+  // Contribuyentes (ordenadas por |monto|, mostrar hasta 150 para no saturar)
+  var emp = datos.empresas.slice().sort(function(a,b){ return Math.abs(b.monto)-Math.abs(a.monto); });
+  var totalEmp = emp.length;
+  emp = emp.slice(0, 150);
   var html = '';
-  EMPRESAS.forEach(function(e){
+  emp.forEach(function(e){
     html += '<tr><td>'+e.nit+'</td><td>'+e.razon+'</td><td>'+e.act+'</td>'
           + '<td class="amount">'+fmt.format(e.monto)+'</td></tr>';
   });
+  if(!html) html = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px;">Sin resultados para los filtros aplicados</td></tr>';
+  else if(totalEmp > 150) html += '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:8px;font-style:italic;">Mostrando 150 de '+fmtN.format(totalEmp)+' contribuyentes (usa los filtros para acotar)</td></tr>';
   $('tbody-contribuyentes').innerHTML = html;
 
-  // Detalle
+  // Detalle (ordenado por |monto|)
+  var det = datos.detalle.slice().sort(function(a,b){ return Math.abs(b.monto)-Math.abs(a.monto); }).slice(0, 200);
   html = '';
-  DETALLE.forEach(function(d){
-    var disc = d.fact - d.ing;
+  det.forEach(function(d){
+    var disc = d.monto;
+    var color = disc < 0 ? '#c62828' : 'var(--green-light)';
     html += '<tr><td>'+d.nit+'</td><td>'+d.razon+'</td><td>'+d.periodo+'</td>'
           + '<td>'+fmt.format(d.fact)+'</td>'
           + '<td class="amount">'+fmt.format(d.ing)+'</td>'
-          + '<td class="amount" style="color:var(--green-light);">'+fmt.format(disc)+'</td></tr>';
+          + '<td class="amount" style="color:'+color+';">'+fmt.format(disc)+'</td></tr>';
   });
+  if(!html) html = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px;">Sin resultados para los filtros aplicados</td></tr>';
   $('tbody-detalle').innerHTML = html;
 }
 
@@ -1125,11 +1212,76 @@ function buildZonTables(){
 /* ══════════════════════════════════
    INTERACTIVITY
    ══════════════════════════════════ */
+/* ══════════════════════════════════
+   FILTROS — Discrepancias detectadas
+   ══════════════════════════════════ */
+var FILTROS = { razon:'', nit:'', periodo:'', rangos:[] };
+
+// Devuelve {empresas, detalle} aplicando los filtros activos
+function filtrarEmpresas(){
+  var fr = FILTROS.razon.toLowerCase();
+  var fn = FILTROS.nit.toLowerCase();
+  var fp = FILTROS.periodo;
+  var rangos = FILTROS.rangos;
+
+  var detalle = DETALLE.filter(function(d){
+    if(fr && d.razon.toLowerCase().indexOf(fr) === -1) return false;
+    if(fn && String(d.nit).toLowerCase().indexOf(fn) === -1) return false;
+    if(fp && d.periodo !== fp) return false;
+    if(rangos.length && rangos.indexOf(d.rango) === -1) return false;
+    return true;
+  });
+
+  // NITs que cumplen el filtro de rango (para acotar contribuyentes)
+  var nitsConRango = null;
+  if(rangos.length){
+    nitsConRango = {};
+    detalle.forEach(function(d){ nitsConRango[d.nit] = true; });
+  }
+
+  var empresas = EMPRESAS.filter(function(e){
+    if(fr && e.razon.toLowerCase().indexOf(fr) === -1) return false;
+    if(fn && String(e.nit).toLowerCase().indexOf(fn) === -1) return false;
+    if(fp && (!e.periodos || e.periodos.indexOf(fp) === -1)) return false;
+    if(nitsConRango && !nitsConRango[e.nit]) return false;
+    return true;
+  });
+
+  return { empresas: empresas, detalle: detalle };
+}
+
+// Autocomplete: rellena el datalist conforme se escribe.
+// NIT encadenado: si hay razón escrita, solo NITs de empresas que coinciden.
+function llenarDatalist(dlId, texto, campo){
+  var dl = $(dlId);
+  if(!dl) return;
+  var t = (texto||'').toLowerCase();
+  // base: si llenamos NIT y hay filtro de razón, restringir a esas empresas
+  var base = EMPRESAS;
+  if(campo === 'nit' && FILTROS.razon){
+    var fr = FILTROS.razon.toLowerCase();
+    base = EMPRESAS.filter(function(e){ return e.razon.toLowerCase().indexOf(fr) !== -1; });
+  }
+  if(campo === 'razon' && FILTROS.nit){
+    var fn = FILTROS.nit.toLowerCase();
+    base = EMPRESAS.filter(function(e){ return String(e.nit).toLowerCase().indexOf(fn) !== -1; });
+  }
+  var vistos = {}, html = '', n = 0;
+  for(var i=0; i<base.length && n<30; i++){
+    var val = campo==='razon' ? base[i].razon : base[i].nit;
+    var vs = String(val);
+    if(vistos[vs]) continue;
+    if(t && vs.toLowerCase().indexOf(t) === -1) continue;
+    vistos[vs] = true; n++;
+    html += '<option value="'+vs.replace(/"/g,'&quot;')+'"></option>';
+  }
+  dl.innerHTML = html;
+}
+
 function switchStab(el, targetId){
   var parent = el.closest('.card') || el.parentElement.parentElement;
   parent.querySelectorAll('.stab').forEach(function(s){ s.classList.remove('active'); });
   el.classList.add('active');
-  // hide siblings
   var container = el.closest('.card');
   var allTabs = container ? container.querySelectorAll('[id]') : [];
   allTabs.forEach(function(t){ t.style.display='none'; });
@@ -1138,6 +1290,12 @@ function switchStab(el, targetId){
 
 function togglePill(el, label){
   el.classList.toggle('active');
+  // reconstruir lista de rangos activos
+  FILTROS.rangos = [];
+  document.querySelectorAll('.pill-filter .pill.active').forEach(function(p){
+    FILTROS.rangos.push(p.getAttribute('data-rango'));
+  });
+  applyFilters();
 }
 
 function toggleBtnBar(el, bbId){
@@ -1146,16 +1304,69 @@ function toggleBtnBar(el, bbId){
   el.classList.add('active');
 }
 
+// Texto de la barra de filtros + KPIs, según filtros activos
+function actualizarTextosYKpis(datos){
+  // KPIs: Total registros y Monto discrepancia (recalculados sobre el detalle filtrado;
+  // si no hay filtros, usar los totales globales del dataset completo)
+  var hayFiltro = FILTROS.razon || FILTROS.nit || FILTROS.periodo || FILTROS.rangos.length;
+  var totalReg, totalMonto;
+  if(hayFiltro){
+    totalReg = datos.detalle.length;
+    totalMonto = datos.detalle.reduce(function(a,d){ return a + Math.abs(d.monto); }, 0);
+  } else {
+    totalReg = DATA.totalRegistros;
+    totalMonto = DATA.totalMontoAbs;
+  }
+  if($('kpi-registros')) $('kpi-registros').textContent = fmtN.format(totalReg);
+  if($('kpi-monto'))     $('kpi-monto').textContent     = fmt.format(totalMonto);
+
+  // Barra de filtros (texto)
+  var partes = [];
+  if(FILTROS.razon)        partes.push('Razón social: '+FILTROS.razon);
+  if(FILTROS.nit)          partes.push('NIT: '+FILTROS.nit);
+  if(FILTROS.periodo)      partes.push('Periodo: '+FILTROS.periodo);
+  if(FILTROS.rangos.length)partes.push('Monto: '+FILTROS.rangos.join(', '));
+  var ft = $('filters-text');
+  if(ft) ft.textContent = partes.length ? partes.join('  ·  ') : 'No selections';
+}
+
 function applyFilters(){
-  var razon = $('f-razon').value.toLowerCase();
-  var nit   = $('f-nit').value.toLowerCase();
-  var rows = $('tbody-contribuyentes').querySelectorAll('tr');
-  rows.forEach(function(r){
-    var tds = r.querySelectorAll('td');
-    var matchR = !razon || tds[1].textContent.toLowerCase().includes(razon);
-    var matchN = !nit   || tds[0].textContent.toLowerCase().includes(nit);
-    r.style.display = (matchR && matchN) ? '' : 'none';
+  // Leer valores de los campos
+  FILTROS.razon  = $('f-razon') ? $('f-razon').value.trim() : '';
+  FILTROS.nit    = $('f-nit')   ? $('f-nit').value.trim()   : '';
+  FILTROS.periodo= $('f-periodo')? $('f-periodo').value     : '';
+
+  // Autocomplete en vivo (encadenado: NIT depende de razón)
+  llenarDatalist('dl-razon', FILTROS.razon, 'razon');
+  llenarDatalist('dl-nit',   FILTROS.nit,   'nit');
+
+  var datos = filtrarEmpresas();
+
+  // Reconstruir tablas
+  buildDiscTables();
+  // Reconstruir barra de periodicidad según filtros
+  buildDiscBarFiltrada(datos);
+  // Actualizar textos y KPIs
+  actualizarTextosYKpis(datos);
+}
+
+// Barra de periodicidad recalculada según el detalle filtrado
+function buildDiscBarFiltrada(datos){
+  var hayFiltro = FILTROS.razon || FILTROS.nit || FILTROS.periodo || FILTROS.rangos.length;
+  if(!hayFiltro){ buildDiscBar(); return; }
+  var per = {};
+  datos.detalle.forEach(function(d){
+    if(!per[d.periodo]) per[d.periodo] = { fullLabel:d.periodo, label:d.periodo.replace('0','').slice(0,6), factRaw:0, ingRaw:0 };
+    per[d.periodo].factRaw += d.fact;
+    per[d.periodo].ingRaw  += d.ing;
   });
+  var arr = Object.keys(per).sort().map(function(k){
+    var p = per[k]; p.fact = Math.round(p.factRaw/1e6); p.ing = Math.round(p.ingRaw/1e6); return p;
+  });
+  var guardado = PERIODOS_DATA;
+  PERIODOS_DATA = arr.length ? arr : guardado;
+  buildDiscBar();
+  PERIODOS_DATA = guardado;
 }
 
 /* ══════════════════════════════════
@@ -1282,12 +1493,17 @@ function marcadorRegistro(reg, maxMonto){
     iconSize: [sz, sz], iconAnchor: [sz/2, sz/2]
   });
   var m = L.marker([reg.lat, reg.lng], { icon:icon, regGeo:reg });
-  m.bindPopup('<div style="min-width:180px">'+
-    '<div style="font-weight:700;color:#1C334F;margin-bottom:2px">'+reg.mun+'</div>'+
-    (reg.razon? '<div style="font-size:11px;color:#64748b;margin-bottom:8px">'+reg.razon+'</div>':'')+
-    '<div style="font-size:12px">Monto: <strong>'+fmt.format(reg.monto)+'</strong></div>'+
-    (reg.alerta? '<div style="font-size:11px;color:#64748b;margin-top:4px">'+reg.alerta+'</div>':'')+
-    '</div>', { maxWidth:260 });
+  m.bindPopup('<div style="min-width:200px">'+
+    '<div style="font-weight:700;color:#1C334F;margin-bottom:6px;font-size:13px">'+reg.mun+'</div>'+
+    '<div class="tt-row" style="display:flex;justify-content:space-between;gap:14px"><span style="color:#64748b">MUNICIPIO:</span><span style="font-weight:700">'+reg.mun+'</span></div>'+
+    '<div class="tt-row" style="display:flex;justify-content:space-between;gap:14px"><span style="color:#64748b">MONTO_PRIORIZACION_COP:</span><span style="font-weight:700">'+fmt.format(reg.monto)+'</span></div>'+
+    (reg.alerta? '<div class="tt-row" style="display:flex;justify-content:space-between;gap:14px"><span style="color:#64748b">TIPO_ALERTA:</span><span style="font-weight:700">'+reg.alerta+'</span></div>':'')+
+    '<div class="tt-row" style="display:flex;justify-content:space-between;gap:14px"><span style="color:#64748b">Latitud:</span><span style="font-weight:700">'+reg.lat.toFixed(4)+'</span></div>'+
+    '<div class="tt-row" style="display:flex;justify-content:space-between;gap:14px"><span style="color:#64748b">Longitud:</span><span style="font-weight:700">'+reg.lng.toFixed(4)+'</span></div>'+
+    '</div>', { maxWidth:300 });
+  // Mostrar popup al pasar el mouse; ocultar al salir
+  m.on('mouseover', function(){ this.openPopup(); });
+  m.on('mouseout',  function(){ this.closePopup(); });
   return m;
 }
 
@@ -1305,6 +1521,24 @@ function pintarCluster(map, clusterRef, setterName){
     iconCreateFunction: clusterIcon
   });
   regs.forEach(function(r){ cluster.addLayer(marcadorRegistro(r, maxMonto)); });
+
+  // Popup de resumen del cluster al pasar el mouse
+  cluster.on('clustermouseover', function(a){
+    var hijos = a.layer.getAllChildMarkers();
+    var total = 0, montoT = 0, alertas = {};
+    hijos.forEach(function(mk){
+      var r = mk.options.regGeo; total++; montoT += (r.monto||0);
+      if(r.alerta) alertas[r.alerta] = (alertas[r.alerta]||0) + 1;
+    });
+    var listaAl = Object.keys(alertas).map(function(k){ return k+' ('+alertas[k]+')'; }).join('<br>');
+    a.layer.bindPopup('<div style="min-width:190px">'+
+      '<div style="font-weight:700;color:#1C334F;margin-bottom:6px">'+total+' contribuyentes</div>'+
+      '<div style="font-size:12px">Monto total: <strong>'+fmt.format(montoT)+'</strong></div>'+
+      (listaAl? '<div style="font-size:11px;color:#64748b;margin-top:6px">'+listaAl+'</div>':'')+
+      '</div>', { maxWidth:280 }).openPopup();
+  });
+  cluster.on('clustermouseout', function(a){ a.layer.closePopup(); });
+
   map.addLayer(cluster);
   // ajustar vista a los puntos
   try { map.fitBounds(cluster.getBounds(), { padding:[40,40], maxZoom:7 }); } catch(e){}
@@ -1329,6 +1563,18 @@ function buildZonMap(){
   function safe(nombre, fn){ try { fn(); } catch(e){ console.error('Error en '+nombre+':', e); } }
 
   function renderDashboard(){
+    // KPIs de HOME con datos reales
+    if($('home-kpi-monto')) $('home-kpi-monto').textContent = fmt.format(DATA.totalMontoAbs);
+    if($('home-kpi-num'))   $('home-kpi-num').textContent   = fmtN.format(DATA.totalRegistros);
+
+    // Poblar el select de periodos con las periodicidades reales
+    var sel = $('f-periodo');
+    if(sel){
+      var html = '<option value="">Periodos</option>';
+      DATA.periodosData.forEach(function(p){ html += '<option value="'+p.label+'">'+p.label+'</option>'; });
+      sel.innerHTML = html;
+    }
+
     safe('buildHomeBar', buildHomeBar);
     safe('buildHomeTreemap', buildHomeTreemap);
     safe('buildDiscBar', buildDiscBar);
@@ -1337,6 +1583,12 @@ function buildZonMap(){
     safe('buildAnalisisTable', buildAnalisisTable);
     safe('buildZonBar', buildZonBar);
     safe('buildZonTables', buildZonTables);
+
+    // Estado inicial de filtros (KPIs de la pestaña discrepancias + textos)
+    safe('applyFilters', applyFilters);
+
+    // Tooltip flotante: seguir el cursor globalmente
+    document.addEventListener('mousemove', function(ev){ ttMove(ev); });
   }
 
   function renderMapas(intentos){
