@@ -665,7 +665,7 @@ body {
     <div class="card" style="margin-bottom:10px;">
       <div class="card-title" style="margin-bottom:8px;">Sector económico</div>
       <div class="button-bar" id="bb-sector">
-        <div class="btn-tag active" onclick="toggleBtnBar(this,'bb-sector')">Agroindustria</div>
+        <div class="btn-tag" onclick="toggleBtnBar(this,'bb-sector')">Agroindustria</div>
         <div class="btn-tag" onclick="toggleBtnBar(this,'bb-sector')">Comercio</div>
         <div class="btn-tag" onclick="toggleBtnBar(this,'bb-sector')">Comercio y turismo</div>
         <div class="btn-tag" onclick="toggleBtnBar(this,'bb-sector')">Construcción</div>
@@ -685,7 +685,7 @@ body {
       <div class="card" style="flex:1;">
         <div class="card-title" style="margin-bottom:8px;">Potencial</div>
         <div class="button-bar" id="bb-potencial">
-          <div class="btn-tag active" onclick="toggleBtnBar(this,'bb-potencial')">Alto</div>
+          <div class="btn-tag" onclick="toggleBtnBar(this,'bb-potencial')">Alto</div>
           <div class="btn-tag" onclick="toggleBtnBar(this,'bb-potencial')">Bajo</div>
           <div class="btn-tag" onclick="toggleBtnBar(this,'bb-potencial')">Medio</div>
         </div>
@@ -693,7 +693,7 @@ body {
       <div class="card" style="flex:1;">
         <div class="card-title" style="margin-bottom:8px;">Nivel de Atraso</div>
         <div class="button-bar" id="bb-atraso">
-          <div class="btn-tag active" onclick="toggleBtnBar(this,'bb-atraso')">Atraso medio</div>
+          <div class="btn-tag" onclick="toggleBtnBar(this,'bb-atraso')">Atraso medio</div>
           <div class="btn-tag" onclick="toggleBtnBar(this,'bb-atraso')">Mayor atraso</div>
           <div class="btn-tag" onclick="toggleBtnBar(this,'bb-atraso')">Menos atraso</div>
         </div>
@@ -746,37 +746,20 @@ body {
     <div class="zon-filters">
       <div class="filter-group">
         <div class="filter-label">Regla rota</div>
-        <select class="filter-select">
-          <option>TIPO_ALERTA</option>
-          <option>Facturación electrónica &gt; ingresos declarados (+35%)</option>
-          <option>IVA acreditable &gt; 90% del IVA trasladado</option>
-          <option>Modelo de propensión a evasión</option>
-          <option>Subvaluación aduanera &gt; 25%</option>
+        <select class="filter-select" id="zf-alerta" onchange="applyZonFilters()">
+          <option value="">TIPO_ALERTA</option>
         </select>
       </div>
       <div class="filter-group">
         <div class="filter-label">Tamaño empresa</div>
-        <select class="filter-select">
-          <option>TAMANO_EMPRESA</option>
-          <option>Grande</option>
-          <option>Mediana</option>
-          <option>Pequeña</option>
+        <select class="filter-select" id="zf-tam" onchange="applyZonFilters()">
+          <option value="">TAMANO_EMPRESA</option>
         </select>
       </div>
       <div class="filter-group">
         <div class="filter-label">Municipio</div>
-        <select class="filter-select" id="zon-municipio-filter">
-          <option>MUNICIPIO</option>
-          <option>Bogotá D.C.</option>
-          <option>Medellín</option>
-          <option>Santiago de Cali</option>
-          <option>Barranquilla</option>
-          <option>Cartagena de Indias</option>
-          <option>Bucaramanga</option>
-          <option>Santa Marta</option>
-          <option>Pereira</option>
-          <option>Ibagué</option>
-          <option>Villavicencio</option>
+        <select class="filter-select" id="zf-mun" onchange="applyZonFilters()">
+          <option value="">MUNICIPIO</option>
         </select>
       </div>
     </div>
@@ -813,22 +796,22 @@ body {
 
         <div class="zon-kpi-box gold">
           <div class="zkpi-label">Monto total de discrepancias</div>
-          <div class="zkpi-value">$480,451,783,440</div>
+          <div class="zkpi-value" id="zkpi-total">$480,451,783,440</div>
         </div>
 
         <div class="zon-kpi-box blue">
           <div class="zkpi-label">Monto de discrepancias en Aduanas</div>
-          <div class="zkpi-value">$73,089,809,360</div>
+          <div class="zkpi-value" id="zkpi-aduanas">$73,089,809,360</div>
         </div>
 
         <div class="zon-kpi-box teal">
           <div class="zkpi-label">Monto de discrepancias en ISR</div>
-          <div class="zkpi-value">$194,078,754,932</div>
+          <div class="zkpi-value" id="zkpi-isr">$194,078,754,932</div>
         </div>
 
         <div class="zon-kpi-box red">
           <div class="zkpi-label">Monto de discrepancias en IVA</div>
-          <div class="zkpi-value">$119,063,614,150</div>
+          <div class="zkpi-value" id="zkpi-iva">$119,063,614,150</div>
         </div>
 
       </div>
@@ -923,57 +906,37 @@ var PERIODOS_DATA = DATA.periodosData.map(function(p){
 });
 
 var ANALISIS_DATA = [
-  { id:9210, nivel:'Atraso medio', pot:'Alto',  prop:0.9637, dias:17, hist:1 },
-  { id:718,  nivel:'Atraso medio', pot:'Alto',  prop:0.9635, dias:16, hist:1 },
-  { id:425,  nivel:'Atraso medio', pot:'Bajo',  prop:0.9634, dias:19, hist:1 },
-  { id:6811, nivel:'Mayor atraso', pot:'Alto',  prop:0.9634, dias:25, hist:1 },
-  { id:1262, nivel:'Atraso medio', pot:'Alto',  prop:0.9630, dias:12, hist:1 },
-  { id:3080, nivel:'Atraso medio', pot:'Alto',  prop:0.9624, dias:13, hist:1 },
-  { id:6266, nivel:'Atraso medio', pot:'Alto',  prop:0.9624, dias:14, hist:1 },
-  { id:4557, nivel:'Mayor atraso', pot:'Alto',  prop:0.9623, dias:24, hist:1 },
-  { id:1766, nivel:'Menos atraso', pot:'Medio', prop:0.9621, dias:7,  hist:1 },
-  { id:9966, nivel:'Atraso medio', pot:'Alto',  prop:0.9621, dias:17, hist:1 },
-  { id:3471, nivel:'Menos atraso', pot:'Bajo',  prop:0.9621, dias:4,  hist:1 },
-  { id:6546, nivel:'Atraso medio', pot:'Medio', prop:0.9608, dias:15, hist:1 },
-  { id:9319, nivel:'Menos atraso', pot:'Alto',  prop:0.9606, dias:1,  hist:1 },
-  { id:4161, nivel:'Atraso medio', pot:'Alto',  prop:0.9599, dias:14, hist:1 },
-  { id:6814, nivel:'Atraso medio', pot:'Alto',  prop:0.9597, dias:15, hist:1 },
-  { id:677,  nivel:'Menos atraso', pot:'Medio', prop:0.9596, dias:1,  hist:1 },
-  { id:2705, nivel:'Atraso medio', pot:'Alto',  prop:0.9595, dias:20, hist:1 },
-  { id:855,  nivel:'Mayor atraso', pot:'Medio', prop:0.9594, dias:29, hist:1 },
-  { id:1349, nivel:'Atraso medio', pot:'Alto',  prop:0.9591, dias:12, hist:1 },
-  { id:5657, nivel:'Atraso medio', pot:'Alto',  prop:0.9590, dias:26, hist:1 },
+  { id:9210, nivel:'Atraso medio', pot:'Alto',  prop:0.9637, dias:17, hist:1, sector:'Tecnología' },
+  { id:718,  nivel:'Atraso medio', pot:'Alto',  prop:0.9635, dias:16, hist:1, sector:'Comercio' },
+  { id:425,  nivel:'Atraso medio', pot:'Bajo',  prop:0.9634, dias:19, hist:1, sector:'Construcción' },
+  { id:6811, nivel:'Mayor atraso', pot:'Alto',  prop:0.9634, dias:25, hist:1, sector:'Energía' },
+  { id:1262, nivel:'Atraso medio', pot:'Alto',  prop:0.9630, dias:12, hist:1, sector:'Manufactura' },
+  { id:3080, nivel:'Atraso medio', pot:'Alto',  prop:0.9624, dias:13, hist:1, sector:'Comercio' },
+  { id:6266, nivel:'Atraso medio', pot:'Alto',  prop:0.9624, dias:14, hist:1, sector:'Salud' },
+  { id:4557, nivel:'Mayor atraso', pot:'Alto',  prop:0.9623, dias:24, hist:1, sector:'Transporte y logística' },
+  { id:1766, nivel:'Menos atraso', pot:'Medio', prop:0.9621, dias:7,  hist:1, sector:'Agroindustria' },
+  { id:9966, nivel:'Atraso medio', pot:'Alto',  prop:0.9621, dias:17, hist:1, sector:'Tecnología' },
+  { id:3471, nivel:'Menos atraso', pot:'Bajo',  prop:0.9621, dias:4,  hist:1, sector:'Educación' },
+  { id:6546, nivel:'Atraso medio', pot:'Medio', prop:0.9608, dias:15, hist:1, sector:'Servicios empresariales' },
+  { id:9319, nivel:'Menos atraso', pot:'Alto',  prop:0.9606, dias:1,  hist:1, sector:'Servicios financieros' },
+  { id:4161, nivel:'Atraso medio', pot:'Alto',  prop:0.9599, dias:14, hist:1, sector:'Comercio y turismo' },
+  { id:6814, nivel:'Atraso medio', pot:'Alto',  prop:0.9597, dias:15, hist:1, sector:'Manufactura' },
+  { id:677,  nivel:'Menos atraso', pot:'Medio', prop:0.9596, dias:1,  hist:1, sector:'Comercio' },
+  { id:2705, nivel:'Atraso medio', pot:'Alto',  prop:0.9595, dias:20, hist:1, sector:'Energía' },
+  { id:855,  nivel:'Mayor atraso', pot:'Medio', prop:0.9594, dias:29, hist:1, sector:'Construcción' },
+  { id:1349, nivel:'Atraso medio', pot:'Alto',  prop:0.9591, dias:12, hist:1, sector:'Tecnología' },
+  { id:5657, nivel:'Atraso medio', pot:'Alto',  prop:0.9590, dias:26, hist:1, sector:'Salud' },
 ];
 
-var MUNICIPIOS_ZON = [
-  { mun:'Bogotá D.C.',      n:2400 },
-  { mun:'Medellín',         n:1600 },
-  { mun:'Santiago de Cali', n:1400 },
-  { mun:'Barranquilla',     n:1100 },
-  { mun:'Cartagena',        n:895  },
-  { mun:'Bucaramanga',      n:813  },
-  { mun:'Santa Marta',      n:693  },
-  { mun:'San José de Cúcuta',n:686 },
-  { mun:'Pereira',          n:628  },
-  { mun:'Ibagué',           n:557  },
-  { mun:'Villavicencio',    n:554  },
-  { mun:'Palmira',          n:523  },
-  { mun:'Manizales',        n:499  },
-  { mun:'Pasto',            n:395  },
-  { mun:'Valledupar',       n:385  },
-];
+var ZONDATA = {"totalMonto":480451783440.0,"totalAduanas":74353828718.0,"totalISR":296562926598.0,"totalIVA":109535028124.0,"barraMuni":[{"mun":"Bogotá D.C.","n":2414},{"mun":"Medellín","n":1585},{"mun":"Santiago de Cali","n":1366},{"mun":"Barranquilla","n":1076},{"mun":"Cartagena de Indias","n":895},{"mun":"Bucaramanga","n":813},{"mun":"Santa Marta","n":693},{"mun":"San José de Cúcuta","n":686},{"mun":"Pereira","n":628},{"mun":"Ibagué","n":557},{"mun":"Villavicencio","n":554},{"mun":"Palmira","n":523},{"mun":"Manizales","n":499},{"mun":"Pasto","n":395},{"mun":"Valledupar","n":385},{"mun":"Armenia","n":383},{"mun":"Neiva","n":378},{"mun":"Montería","n":375},{"mun":"Sincelejo","n":286},{"mun":"Tunja","n":264},{"mun":"Popayán","n":244},{"mun":"Buenaventura","n":1}],"tabla":[{"nit":"830.030.035-1","razon":"SOLUCIONES INTEGRALES COLOMBIA S.A.S.","tam":"Grande","mun":"Bogotá D.C.","ciudad":"Bogotá D.C.","dir":"Calle 29 #21-69","monto":160000000.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":17000000.0,"isr":112000000.0,"iva":31000000.0,"lat":4.711,"lng":-74.0721},{"nit":"804.238.121-6","razon":"IMPORTACIONES DEL CARIBE S.A.S.","tam":"Grande","mun":"Barranquilla","ciudad":"Barranquilla","dir":"Calle 116 #34-2","monto":145000000.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":16000000.0,"isr":88000000.0,"iva":41000000.0,"lat":10.9685,"lng":-74.7813},{"nit":"806.443.760-2","razon":"CONSTRUCTORA DEL VALLE S.A.S.","tam":"Grande","mun":"Santiago de Cali","ciudad":"Santiago de Cali","dir":"Calle 103 #10-64","monto":135000000.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":10000000.0,"isr":103000000.0,"iva":22000000.0,"lat":3.4516,"lng":-76.532},{"nit":"800.982.581-4","razon":"LOGÍSTICA DEL PACÍFICO S.A.S.","tam":"Grande","mun":"Buenaventura","ciudad":"Buenaventura","dir":"Calle 23 #76-33","monto":130000000.0,"alerta":"Subvaluación aduanera > 25%","aduanas":70000000.0,"isr":42000000.0,"iva":18000000.0,"lat":3.8801,"lng":-77.0312},{"nit":"808.613.660-8","razon":"SERVICIOS DIGITALES BOGOTÁ S.A.S.","tam":"Grande","mun":"Bogotá D.C.","ciudad":"Bogotá D.C.","dir":"Calle 87 #78-69","monto":120000000.0,"alerta":"Modelo de propensión a evasión","aduanas":9000000.0,"isr":96000000.0,"iva":15000000.0,"lat":4.711,"lng":-74.0721},{"nit":"900010895","razon":"EMPRESA_10895","tam":"Mediana","mun":"Popayán","ciudad":"Popayán","dir":"Calle 109 #54-40","monto":60995494.0,"alerta":"Modelo de propensión a evasión","aduanas":9482333.0,"isr":37564128.0,"iva":13949033.0,"lat":2.4448,"lng":-76.6147},{"nit":"900002822","razon":"EMPRESA_02822","tam":"Mediana","mun":"Neiva","ciudad":"Neiva","dir":"Calle 6 #93-36","monto":60636463.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":8813154.0,"isr":37912216.0,"iva":13911093.0,"lat":2.9386,"lng":-75.2809},{"nit":"900002512","razon":"EMPRESA_02512","tam":"Mediana","mun":"Medellín","ciudad":"Medellín","dir":"Calle 39 #82-4","monto":60478640.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":9994298.0,"isr":37829571.0,"iva":12654771.0,"lat":6.2442,"lng":-75.5812},{"nit":"900013049","razon":"EMPRESA_13049","tam":"Mediana","mun":"Barranquilla","ciudad":"Barranquilla","dir":"Calle 95 #91-39","monto":60311797.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":8748071.0,"isr":37666587.0,"iva":13897139.0,"lat":10.9685,"lng":-74.7813},{"nit":"900011402","razon":"EMPRESA_11402","tam":"Mediana","mun":"Pasto","ciudad":"Pasto","dir":"Calle 38 #86-31","monto":60200255.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":9865492.0,"isr":37895656.0,"iva":12439107.0,"lat":1.2136,"lng":-77.2811},{"nit":"900011293","razon":"EMPRESA_11293","tam":"Mediana","mun":"Sincelejo","ciudad":"Sincelejo","dir":"Calle 69 #41-40","monto":59687406.0,"alerta":"Modelo de propensión a evasión","aduanas":9922635.0,"isr":35972391.0,"iva":13792380.0,"lat":9.3047,"lng":-75.3978},{"nit":"900007916","razon":"EMPRESA_07916","tam":"Mediana","mun":"Bogotá D.C.","ciudad":"Bogotá D.C.","dir":"Calle 106 #56-72","monto":59655464.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":9767206.0,"isr":37997354.0,"iva":11890904.0,"lat":4.711,"lng":-74.0721},{"nit":"900011446","razon":"EMPRESA_11446","tam":"Mediana","mun":"Valledupar","ciudad":"Valledupar","dir":"Calle 51 #24-2","monto":59561324.0,"alerta":"Modelo de propensión a evasión","aduanas":9960059.0,"isr":36717488.0,"iva":12883777.0,"lat":10.4631,"lng":-73.2532},{"nit":"900003435","razon":"EMPRESA_03435","tam":"Mediana","mun":"Bogotá D.C.","ciudad":"Bogotá D.C.","dir":"Calle 73 #93-76","monto":59550962.0,"alerta":"Modelo de propensión a evasión","aduanas":8069479.0,"isr":37570970.0,"iva":13910513.0,"lat":4.711,"lng":-74.0721},{"nit":"900005482","razon":"EMPRESA_05482","tam":"Mediana","mun":"Villavicencio","ciudad":"Villavicencio","dir":"Calle 74 #16-74","monto":59512087.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":9515519.0,"isr":37293814.0,"iva":12702754.0,"lat":4.142,"lng":-73.6266},{"nit":"900006400","razon":"EMPRESA_06400","tam":"Mediana","mun":"Palmira","ciudad":"Palmira","dir":"Calle 68 #68-26","monto":59350752.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":8544046.0,"isr":37097281.0,"iva":13709425.0,"lat":3.5394,"lng":-76.3036},{"nit":"900005978","razon":"EMPRESA_05978","tam":"Mediana","mun":"Pereira","ciudad":"Pereira","dir":"Calle 105 #61-67","monto":59190359.0,"alerta":"Modelo de propensión a evasión","aduanas":8994020.0,"isr":37259141.0,"iva":12937198.0,"lat":4.8143,"lng":-75.6946},{"nit":"900003542","razon":"EMPRESA_03542","tam":"Mediana","mun":"Villavicencio","ciudad":"Villavicencio","dir":"Calle 90 #80-12","monto":59152175.0,"alerta":"Modelo de propensión a evasión","aduanas":8655728.0,"isr":36797839.0,"iva":13698608.0,"lat":4.142,"lng":-73.6266},{"nit":"900006936","razon":"EMPRESA_06936","tam":"Mediana","mun":"Medellín","ciudad":"Medellín","dir":"Calle 40 #19-24","monto":59036498.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":9456484.0,"isr":35650860.0,"iva":13929154.0,"lat":6.2442,"lng":-75.5812},{"nit":"900002520","razon":"EMPRESA_02520","tam":"Mediana","mun":"Medellín","ciudad":"Medellín","dir":"Calle 87 #14-19","monto":58977539.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":8402642.0,"isr":37711207.0,"iva":12863690.0,"lat":6.2442,"lng":-75.5812},{"nit":"900014033","razon":"EMPRESA_14033","tam":"Mediana","mun":"Palmira","ciudad":"Palmira","dir":"Calle 39 #19-70","monto":58966626.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":9940936.0,"isr":37295022.0,"iva":11730668.0,"lat":3.5394,"lng":-76.3036},{"nit":"900007785","razon":"EMPRESA_07785","tam":"Mediana","mun":"Sincelejo","ciudad":"Sincelejo","dir":"Calle 31 #20-78","monto":58946420.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":8197402.0,"isr":37519443.0,"iva":13229575.0,"lat":9.3047,"lng":-75.3978},{"nit":"900011766","razon":"EMPRESA_11766","tam":"Mediana","mun":"Neiva","ciudad":"Neiva","dir":"Calle 116 #17-33","monto":58929465.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":9347488.0,"isr":36332627.0,"iva":13249350.0,"lat":2.9386,"lng":-75.2809},{"nit":"900003336","razon":"EMPRESA_03336","tam":"Mediana","mun":"Barranquilla","ciudad":"Barranquilla","dir":"Calle 90 #39-35","monto":58914691.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":9442719.0,"isr":37166843.0,"iva":12305129.0,"lat":10.9685,"lng":-74.7813},{"nit":"900001882","razon":"EMPRESA_01882","tam":"Mediana","mun":"Villavicencio","ciudad":"Villavicencio","dir":"Calle 4 #88-9","monto":58814897.0,"alerta":"Subvaluación aduanera > 25%","aduanas":7899926.0,"isr":37929752.0,"iva":12985219.0,"lat":4.142,"lng":-73.6266},{"nit":"900001828","razon":"EMPRESA_01828","tam":"Mediana","mun":"Villavicencio","ciudad":"Villavicencio","dir":"Calle 109 #64-21","monto":58805147.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":9737984.0,"isr":36390736.0,"iva":12676427.0,"lat":4.142,"lng":-73.6266},{"nit":"900005774","razon":"EMPRESA_05774","tam":"Mediana","mun":"Barranquilla","ciudad":"Barranquilla","dir":"Calle 43 #55-1","monto":58763145.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":9917443.0,"isr":35429244.0,"iva":13416458.0,"lat":10.9685,"lng":-74.7813},{"nit":"900007288","razon":"EMPRESA_07288","tam":"Mediana","mun":"Tunja","ciudad":"Tunja","dir":"Calle 79 #48-54","monto":58754218.0,"alerta":"Modelo de propensión a evasión","aduanas":9364337.0,"isr":37910715.0,"iva":11479166.0,"lat":5.5353,"lng":-73.3678},{"nit":"900006915","razon":"EMPRESA_06915","tam":"Mediana","mun":"Valledupar","ciudad":"Valledupar","dir":"Calle 115 #66-66","monto":58608384.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":8293508.0,"isr":36595913.0,"iva":13718963.0,"lat":10.4631,"lng":-73.2532},{"nit":"900004455","razon":"EMPRESA_04455","tam":"Mediana","mun":"Popayán","ciudad":"Popayán","dir":"Calle 106 #95-9","monto":58607861.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":7956726.0,"isr":37336122.0,"iva":13315013.0,"lat":2.4448,"lng":-76.6147},{"nit":"900013407","razon":"EMPRESA_13407","tam":"Mediana","mun":"Pereira","ciudad":"Pereira","dir":"Calle 75 #49-53","monto":58605663.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":8687844.0,"isr":36875421.0,"iva":13042398.0,"lat":4.8143,"lng":-75.6946},{"nit":"900006574","razon":"EMPRESA_06574","tam":"Mediana","mun":"Sincelejo","ciudad":"Sincelejo","dir":"Calle 54 #78-43","monto":58588447.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":9009970.0,"isr":35908029.0,"iva":13670448.0,"lat":9.3047,"lng":-75.3978},{"nit":"900004364","razon":"EMPRESA_04364","tam":"Mediana","mun":"Barranquilla","ciudad":"Barranquilla","dir":"Calle 94 #8-3","monto":58560822.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":7497290.0,"isr":37715743.0,"iva":13347789.0,"lat":10.9685,"lng":-74.7813},{"nit":"900013395","razon":"EMPRESA_13395","tam":"Mediana","mun":"Palmira","ciudad":"Palmira","dir":"Calle 51 #98-72","monto":58440300.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":9909890.0,"isr":36938614.0,"iva":11591796.0,"lat":3.5394,"lng":-76.3036},{"nit":"900007522","razon":"EMPRESA_07522","tam":"Mediana","mun":"San José de Cúcuta","ciudad":"Cúcuta","dir":"Calle 15 #60-49","monto":58426639.0,"alerta":"Modelo de propensión a evasión","aduanas":8572603.0,"isr":36308829.0,"iva":13545207.0,"lat":7.8891,"lng":-72.4967},{"nit":"900005638","razon":"EMPRESA_05638","tam":"Mediana","mun":"Bogotá D.C.","ciudad":"Bogotá D.C.","dir":"Calle 69 #86-39","monto":58350085.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":8327272.0,"isr":36691161.0,"iva":13331652.0,"lat":4.711,"lng":-74.0721},{"nit":"900010101","razon":"EMPRESA_10101","tam":"Mediana","mun":"Santiago de Cali","ciudad":"Santiago de Cali","dir":"Calle 91 #23-73","monto":58281269.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":8288004.0,"isr":37286882.0,"iva":12706383.0,"lat":3.4516,"lng":-76.532},{"nit":"900012924","razon":"EMPRESA_12924","tam":"Mediana","mun":"Neiva","ciudad":"Neiva","dir":"Calle 107 #68-25","monto":58267169.0,"alerta":"Subvaluación aduanera > 25%","aduanas":9299043.0,"isr":36552795.0,"iva":12415331.0,"lat":2.9386,"lng":-75.2809},{"nit":"900004075","razon":"EMPRESA_04075","tam":"Mediana","mun":"Santa Marta","ciudad":"Santa Marta","dir":"Calle 42 #64-20","monto":58261021.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":8341625.0,"isr":35972192.0,"iva":13947204.0,"lat":11.2408,"lng":-74.199},{"nit":"900013081","razon":"EMPRESA_13081","tam":"Mediana","mun":"Villavicencio","ciudad":"Villavicencio","dir":"Calle 57 #19-48","monto":58192732.0,"alerta":"Modelo de propensión a evasión","aduanas":8152994.0,"isr":36274118.0,"iva":13765620.0,"lat":4.142,"lng":-73.6266},{"nit":"900006483","razon":"EMPRESA_06483","tam":"Mediana","mun":"Medellín","ciudad":"Medellín","dir":"Calle 110 #73-10","monto":58190028.0,"alerta":"Subvaluación aduanera > 25%","aduanas":9346688.0,"isr":35583710.0,"iva":13259630.0,"lat":6.2442,"lng":-75.5812},{"nit":"900014812","razon":"EMPRESA_14812","tam":"Mediana","mun":"Neiva","ciudad":"Neiva","dir":"Calle 109 #97-9","monto":58172333.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":8535504.0,"isr":37149113.0,"iva":12487716.0,"lat":2.9386,"lng":-75.2809},{"nit":"900001002","razon":"EMPRESA_01002","tam":"Mediana","mun":"Manizales","ciudad":"Manizales","dir":"Calle 68 #33-76","monto":58139342.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":8369785.0,"isr":36543423.0,"iva":13226134.0,"lat":5.0703,"lng":-75.5138},{"nit":"900011087","razon":"EMPRESA_11087","tam":"Mediana","mun":"Pasto","ciudad":"Pasto","dir":"Calle 26 #75-24","monto":58134461.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":9377648.0,"isr":36019371.0,"iva":12737442.0,"lat":1.2136,"lng":-77.2811},{"nit":"900007641","razon":"EMPRESA_07641","tam":"Mediana","mun":"Ibagué","ciudad":"Ibagué","dir":"Calle 7 #59-9","monto":58072879.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":8073703.0,"isr":37384219.0,"iva":12614957.0,"lat":4.4389,"lng":-75.2322},{"nit":"900002731","razon":"EMPRESA_02731","tam":"Mediana","mun":"Ibagué","ciudad":"Ibagué","dir":"Calle 115 #87-69","monto":58031668.0,"alerta":"Subvaluación aduanera > 25%","aduanas":7759137.0,"isr":37682747.0,"iva":12589784.0,"lat":4.4389,"lng":-75.2322},{"nit":"900009708","razon":"EMPRESA_09708","tam":"Mediana","mun":"Pereira","ciudad":"Pereira","dir":"Calle 12 #16-31","monto":57965025.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":8992343.0,"isr":35673495.0,"iva":13299187.0,"lat":4.8143,"lng":-75.6946},{"nit":"900005906","razon":"EMPRESA_05906","tam":"Mediana","mun":"Bogotá D.C.","ciudad":"Bogotá D.C.","dir":"Calle 98 #77-46","monto":57956902.0,"alerta":"Subvaluación aduanera > 25%","aduanas":9384994.0,"isr":36926448.0,"iva":11645460.0,"lat":4.711,"lng":-74.0721},{"nit":"900008314","razon":"EMPRESA_08314","tam":"Mediana","mun":"Ibagué","ciudad":"Ibagué","dir":"Calle 21 #85-46","monto":57952852.0,"alerta":"Subvaluación aduanera > 25%","aduanas":9294099.0,"isr":34806507.0,"iva":13852246.0,"lat":4.4389,"lng":-75.2322},{"nit":"900001685","razon":"EMPRESA_01685","tam":"Mediana","mun":"Bogotá D.C.","ciudad":"Bogotá D.C.","dir":"Calle 91 #82-59","monto":57865699.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":9919884.0,"isr":34691417.0,"iva":13254398.0,"lat":4.711,"lng":-74.0721},{"nit":"900007658","razon":"EMPRESA_07658","tam":"Mediana","mun":"Tunja","ciudad":"Tunja","dir":"Calle 25 #74-63","monto":57846592.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":8409873.0,"isr":36113469.0,"iva":13323250.0,"lat":5.5353,"lng":-73.3678},{"nit":"900004262","razon":"EMPRESA_04262","tam":"Mediana","mun":"Bogotá D.C.","ciudad":"Bogotá D.C.","dir":"Calle 22 #89-50","monto":57840154.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":8220638.0,"isr":36371564.0,"iva":13247952.0,"lat":4.711,"lng":-74.0721},{"nit":"900001178","razon":"EMPRESA_01178","tam":"Mediana","mun":"Bucaramanga","ciudad":"Bucaramanga","dir":"Calle 116 #35-75","monto":57739903.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":8796761.0,"isr":35788720.0,"iva":13154422.0,"lat":7.1193,"lng":-73.1227},{"nit":"900000812","razon":"EMPRESA_00812","tam":"Mediana","mun":"Cartagena de Indias","ciudad":"Cartagena de Indias","dir":"Calle 82 #56-76","monto":57736563.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":8953054.0,"isr":35257155.0,"iva":13526354.0,"lat":10.391,"lng":-75.4794},{"nit":"900000937","razon":"EMPRESA_00937","tam":"Mediana","mun":"Medellín","ciudad":"Medellín","dir":"Calle 12 #52-79","monto":57648571.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":9499444.0,"isr":36861892.0,"iva":11287235.0,"lat":6.2442,"lng":-75.5812},{"nit":"900000272","razon":"EMPRESA_00272","tam":"Mediana","mun":"Pereira","ciudad":"Pereira","dir":"Calle 55 #51-48","monto":57618318.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":9194818.0,"isr":36172259.0,"iva":12251241.0,"lat":4.8143,"lng":-75.6946},{"nit":"900012473","razon":"EMPRESA_12473","tam":"Mediana","mun":"Neiva","ciudad":"Neiva","dir":"Calle 106 #82-52","monto":57540816.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":8240607.0,"isr":37260676.0,"iva":12039533.0,"lat":2.9386,"lng":-75.2809},{"nit":"900002256","razon":"EMPRESA_02256","tam":"Mediana","mun":"Santa Marta","ciudad":"Santa Marta","dir":"Calle 38 #96-41","monto":57483437.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":7219070.0,"isr":36697597.0,"iva":13566770.0,"lat":11.2408,"lng":-74.199},{"nit":"900002360","razon":"EMPRESA_02360","tam":"Mediana","mun":"Santiago de Cali","ciudad":"Santiago de Cali","dir":"Calle 5 #48-27","monto":57474519.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":7813551.0,"isr":36279143.0,"iva":13381825.0,"lat":3.4516,"lng":-76.532},{"nit":"900012172","razon":"EMPRESA_12172","tam":"Mediana","mun":"Bogotá D.C.","ciudad":"Bogotá D.C.","dir":"Calle 114 #4-5","monto":57469367.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":8713826.0,"isr":35264209.0,"iva":13491332.0,"lat":4.711,"lng":-74.0721},{"nit":"900007013","razon":"EMPRESA_07013","tam":"Mediana","mun":"Santiago de Cali","ciudad":"Santiago de Cali","dir":"Calle 54 #62-19","monto":57463976.0,"alerta":"Modelo de propensión a evasión","aduanas":7122297.0,"isr":37037100.0,"iva":13304579.0,"lat":3.4516,"lng":-76.532},{"nit":"900010612","razon":"EMPRESA_10612","tam":"Mediana","mun":"Barranquilla","ciudad":"Barranquilla","dir":"Calle 45 #44-38","monto":57432078.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":6552717.0,"isr":37598157.0,"iva":13281204.0,"lat":10.9685,"lng":-74.7813},{"nit":"900009324","razon":"EMPRESA_09324","tam":"Mediana","mun":"Sincelejo","ciudad":"Sincelejo","dir":"Calle 115 #14-45","monto":57422682.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":8584294.0,"isr":37834768.0,"iva":11003620.0,"lat":9.3047,"lng":-75.3978},{"nit":"900011668","razon":"EMPRESA_11668","tam":"Mediana","mun":"Ibagué","ciudad":"Ibagué","dir":"Calle 7 #73-25","monto":57422613.0,"alerta":"Modelo de propensión a evasión","aduanas":8137482.0,"isr":37001682.0,"iva":12283449.0,"lat":4.4389,"lng":-75.2322},{"nit":"900000117","razon":"EMPRESA_00117","tam":"Mediana","mun":"Santiago de Cali","ciudad":"Santiago de Cali","dir":"Calle 62 #83-38","monto":57399627.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":8252827.0,"isr":37553769.0,"iva":11593031.0,"lat":3.4516,"lng":-76.532},{"nit":"900001893","razon":"EMPRESA_01893","tam":"Mediana","mun":"Bogotá D.C.","ciudad":"Bogotá D.C.","dir":"Calle 68 #50-22","monto":57396581.0,"alerta":"Modelo de propensión a evasión","aduanas":7907026.0,"isr":35826123.0,"iva":13663432.0,"lat":4.711,"lng":-74.0721},{"nit":"900005378","razon":"EMPRESA_05378","tam":"Mediana","mun":"Palmira","ciudad":"Palmira","dir":"Calle 6 #44-64","monto":57395383.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":9235397.0,"isr":35152126.0,"iva":13007860.0,"lat":3.5394,"lng":-76.3036},{"nit":"900002233","razon":"EMPRESA_02233","tam":"Mediana","mun":"Medellín","ciudad":"Medellín","dir":"Calle 43 #71-16","monto":57380480.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":8705106.0,"isr":35581159.0,"iva":13094215.0,"lat":6.2442,"lng":-75.5812},{"nit":"900014553","razon":"EMPRESA_14553","tam":"Mediana","mun":"Montería","ciudad":"Montería","dir":"Calle 83 #51-47","monto":57367127.0,"alerta":"Subvaluación aduanera > 25%","aduanas":8740827.0,"isr":34965024.0,"iva":13661276.0,"lat":8.7479,"lng":-75.8814},{"nit":"900010159","razon":"EMPRESA_10159","tam":"Mediana","mun":"Pereira","ciudad":"Pereira","dir":"Calle 105 #27-3","monto":57340860.0,"alerta":"Subvaluación aduanera > 25%","aduanas":6304051.0,"isr":37971929.0,"iva":13064880.0,"lat":4.8143,"lng":-75.6946},{"nit":"900010787","razon":"EMPRESA_10787","tam":"Mediana","mun":"Palmira","ciudad":"Palmira","dir":"Calle 15 #78-8","monto":57318057.0,"alerta":"Modelo de propensión a evasión","aduanas":9194557.0,"isr":34841436.0,"iva":13282064.0,"lat":3.5394,"lng":-76.3036},{"nit":"900008213","razon":"EMPRESA_08213","tam":"Mediana","mun":"Ibagué","ciudad":"Ibagué","dir":"Calle 8 #97-61","monto":57288114.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":9325438.0,"isr":35531216.0,"iva":12431460.0,"lat":4.4389,"lng":-75.2322},{"nit":"900013380","razon":"EMPRESA_13380","tam":"Mediana","mun":"Neiva","ciudad":"Neiva","dir":"Calle 101 #30-47","monto":57282641.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":7430236.0,"isr":37580013.0,"iva":12272392.0,"lat":2.9386,"lng":-75.2809},{"nit":"900001945","razon":"EMPRESA_01945","tam":"Mediana","mun":"Villavicencio","ciudad":"Villavicencio","dir":"Calle 35 #20-32","monto":57277862.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":8323567.0,"isr":37309199.0,"iva":11645096.0,"lat":4.142,"lng":-73.6266},{"nit":"900010209","razon":"EMPRESA_10209","tam":"Mediana","mun":"Medellín","ciudad":"Medellín","dir":"Calle 83 #27-29","monto":57271349.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":6780501.0,"isr":37657070.0,"iva":12833778.0,"lat":6.2442,"lng":-75.5812},{"nit":"900009872","razon":"EMPRESA_09872","tam":"Mediana","mun":"Santa Marta","ciudad":"Santa Marta","dir":"Calle 56 #14-37","monto":57254900.0,"alerta":"Modelo de propensión a evasión","aduanas":6119699.0,"isr":37886038.0,"iva":13249163.0,"lat":11.2408,"lng":-74.199},{"nit":"900004503","razon":"EMPRESA_04503","tam":"Mediana","mun":"Sincelejo","ciudad":"Sincelejo","dir":"Calle 103 #90-38","monto":57244019.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":9047252.0,"isr":35560849.0,"iva":12635918.0,"lat":9.3047,"lng":-75.3978},{"nit":"900001601","razon":"EMPRESA_01601","tam":"Mediana","mun":"Cartagena de Indias","ciudad":"Cartagena de Indias","dir":"Calle 94 #37-21","monto":57229742.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":9077238.0,"isr":35148691.0,"iva":13003813.0,"lat":10.391,"lng":-75.4794},{"nit":"900009393","razon":"EMPRESA_09393","tam":"Mediana","mun":"Neiva","ciudad":"Neiva","dir":"Calle 116 #38-72","monto":57192447.0,"alerta":"Subvaluación aduanera > 25%","aduanas":8971889.0,"isr":36146525.0,"iva":12074033.0,"lat":2.9386,"lng":-75.2809},{"nit":"900009486","razon":"EMPRESA_09486","tam":"Mediana","mun":"Santa Marta","ciudad":"Santa Marta","dir":"Calle 35 #73-55","monto":57169052.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":9584672.0,"isr":36212187.0,"iva":11372193.0,"lat":11.2408,"lng":-74.199},{"nit":"900013168","razon":"EMPRESA_13168","tam":"Mediana","mun":"Santiago de Cali","ciudad":"Santiago de Cali","dir":"Calle 104 #84-40","monto":57162733.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":9544905.0,"isr":37905292.0,"iva":9712536.0,"lat":3.4516,"lng":-76.532},{"nit":"900012944","razon":"EMPRESA_12944","tam":"Mediana","mun":"Bogotá D.C.","ciudad":"Bogotá D.C.","dir":"Calle 3 #15-22","monto":57060816.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":8866977.0,"isr":35749632.0,"iva":12444207.0,"lat":4.711,"lng":-74.0721},{"nit":"900013238","razon":"EMPRESA_13238","tam":"Mediana","mun":"Bogotá D.C.","ciudad":"Bogotá D.C.","dir":"Calle 11 #6-23","monto":56938330.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":7666678.0,"isr":37286898.0,"iva":11984754.0,"lat":4.711,"lng":-74.0721},{"nit":"900001016","razon":"EMPRESA_01016","tam":"Mediana","mun":"Pereira","ciudad":"Pereira","dir":"Calle 53 #7-49","monto":56932717.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":9574362.0,"isr":37892987.0,"iva":9465368.0,"lat":4.8143,"lng":-75.6946},{"nit":"900013529","razon":"EMPRESA_13529","tam":"Mediana","mun":"Sincelejo","ciudad":"Sincelejo","dir":"Calle 38 #31-78","monto":56887641.0,"alerta":"Subvaluación aduanera > 25%","aduanas":9408228.0,"isr":36799971.0,"iva":10679442.0,"lat":9.3047,"lng":-75.3978},{"nit":"900012597","razon":"EMPRESA_12597","tam":"Mediana","mun":"Barranquilla","ciudad":"Barranquilla","dir":"Calle 74 #73-42","monto":56855623.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":8261733.0,"isr":34715277.0,"iva":13878613.0,"lat":10.9685,"lng":-74.7813},{"nit":"900009398","razon":"EMPRESA_09398","tam":"Mediana","mun":"Medellín","ciudad":"Medellín","dir":"Calle 103 #72-37","monto":56838409.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":7406013.0,"isr":36962326.0,"iva":12470070.0,"lat":6.2442,"lng":-75.5812},{"nit":"900014485","razon":"EMPRESA_14485","tam":"Mediana","mun":"Medellín","ciudad":"Medellín","dir":"Calle 101 #52-4","monto":56831477.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":7150948.0,"isr":36948332.0,"iva":12732197.0,"lat":6.2442,"lng":-75.5812},{"nit":"900006617","razon":"EMPRESA_06617","tam":"Mediana","mun":"San José de Cúcuta","ciudad":"Cúcuta","dir":"Calle 22 #16-74","monto":56746638.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":7926287.0,"isr":35236508.0,"iva":13583843.0,"lat":7.8891,"lng":-72.4967},{"nit":"900009927","razon":"EMPRESA_09927","tam":"Mediana","mun":"Bogotá D.C.","ciudad":"Bogotá D.C.","dir":"Calle 47 #71-25","monto":56721369.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":6446377.0,"isr":36746117.0,"iva":13528875.0,"lat":4.711,"lng":-74.0721},{"nit":"900002865","razon":"EMPRESA_02865","tam":"Mediana","mun":"Bogotá D.C.","ciudad":"Bogotá D.C.","dir":"Calle 22 #99-10","monto":56662170.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":6625067.0,"isr":36342361.0,"iva":13694742.0,"lat":4.711,"lng":-74.0721},{"nit":"900007093","razon":"EMPRESA_07093","tam":"Mediana","mun":"Bogotá D.C.","ciudad":"Bogotá D.C.","dir":"Calle 115 #79-29","monto":56651168.0,"alerta":"Subvaluación aduanera > 25%","aduanas":8661828.0,"isr":35074256.0,"iva":12915084.0,"lat":4.711,"lng":-74.0721},{"nit":"900009726","razon":"EMPRESA_09726","tam":"Mediana","mun":"Santiago de Cali","ciudad":"Santiago de Cali","dir":"Calle 54 #87-1","monto":56638878.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":9707225.0,"isr":35835905.0,"iva":11095748.0,"lat":3.4516,"lng":-76.532},{"nit":"900005725","razon":"EMPRESA_05725","tam":"Mediana","mun":"Pasto","ciudad":"Pasto","dir":"Calle 91 #97-6","monto":56623374.0,"alerta":"Subvaluación aduanera > 25%","aduanas":9801321.0,"isr":37180718.0,"iva":9641335.0,"lat":1.2136,"lng":-77.2811},{"nit":"900007977","razon":"EMPRESA_07977","tam":"Mediana","mun":"Pasto","ciudad":"Pasto","dir":"Calle 35 #15-47","monto":56498599.0,"alerta":"Modelo de propensión a evasión","aduanas":9700779.0,"isr":36750672.0,"iva":10047148.0,"lat":1.2136,"lng":-77.2811},{"nit":"900002305","razon":"EMPRESA_02305","tam":"Mediana","mun":"Santiago de Cali","ciudad":"Santiago de Cali","dir":"Calle 97 #63-51","monto":56473725.0,"alerta":"Subvaluación aduanera > 25%","aduanas":9641119.0,"isr":32964044.0,"iva":13868562.0,"lat":3.4516,"lng":-76.532},{"nit":"900000451","razon":"EMPRESA_00451","tam":"Mediana","mun":"Santiago de Cali","ciudad":"Santiago de Cali","dir":"Calle 79 #76-59","monto":56471688.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":9853764.0,"isr":32733784.0,"iva":13884140.0,"lat":3.4516,"lng":-76.532},{"nit":"900012415","razon":"EMPRESA_12415","tam":"Mediana","mun":"Barranquilla","ciudad":"Barranquilla","dir":"Calle 102 #50-79","monto":56357717.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":5941067.0,"isr":37007551.0,"iva":13409099.0,"lat":10.9685,"lng":-74.7813},{"nit":"900000750","razon":"EMPRESA_00750","tam":"Mediana","mun":"Popayán","ciudad":"Popayán","dir":"Calle 32 #80-44","monto":56350430.0,"alerta":"Subvaluación aduanera > 25%","aduanas":9758206.0,"isr":36700049.0,"iva":9892175.0,"lat":2.4448,"lng":-76.6147},{"nit":"900002582","razon":"EMPRESA_02582","tam":"Mediana","mun":"Armenia","ciudad":"Armenia","dir":"Calle 27 #54-16","monto":56346838.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":8606350.0,"isr":36747669.0,"iva":10992819.0,"lat":4.5339,"lng":-75.6811},{"nit":"900011060","razon":"EMPRESA_11060","tam":"Mediana","mun":"Bogotá D.C.","ciudad":"Bogotá D.C.","dir":"Calle 67 #87-7","monto":56336648.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":8453543.0,"isr":35557195.0,"iva":12325910.0,"lat":4.711,"lng":-74.0721},{"nit":"900007377","razon":"EMPRESA_07377","tam":"Mediana","mun":"Medellín","ciudad":"Medellín","dir":"Calle 112 #63-10","monto":56306962.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":8733696.0,"isr":36784100.0,"iva":10789166.0,"lat":6.2442,"lng":-75.5812},{"nit":"900006078","razon":"EMPRESA_06078","tam":"Mediana","mun":"Barranquilla","ciudad":"Barranquilla","dir":"Calle 94 #55-23","monto":56273551.0,"alerta":"Modelo de propensión a evasión","aduanas":6866925.0,"isr":37214112.0,"iva":12192514.0,"lat":10.9685,"lng":-74.7813},{"nit":"900001008","razon":"EMPRESA_01008","tam":"Mediana","mun":"Medellín","ciudad":"Medellín","dir":"Calle 54 #43-40","monto":56235533.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":9200801.0,"isr":36479398.0,"iva":10555334.0,"lat":6.2442,"lng":-75.5812},{"nit":"900005510","razon":"EMPRESA_05510","tam":"Mediana","mun":"Pereira","ciudad":"Pereira","dir":"Calle 101 #79-30","monto":56233103.0,"alerta":"Modelo de propensión a evasión","aduanas":7656534.0,"isr":34657085.0,"iva":13919484.0,"lat":4.8143,"lng":-75.6946},{"nit":"900002810","razon":"EMPRESA_02810","tam":"Mediana","mun":"Bogotá D.C.","ciudad":"Bogotá D.C.","dir":"Calle 98 #37-21","monto":56223007.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":9557088.0,"isr":33836258.0,"iva":12829661.0,"lat":4.711,"lng":-74.0721},{"nit":"900001841","razon":"EMPRESA_01841","tam":"Mediana","mun":"Medellín","ciudad":"Medellín","dir":"Calle 70 #22-47","monto":56214361.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":5998747.0,"isr":37652674.0,"iva":12562940.0,"lat":6.2442,"lng":-75.5812},{"nit":"900010724","razon":"EMPRESA_10724","tam":"Mediana","mun":"Villavicencio","ciudad":"Villavicencio","dir":"Calle 77 #59-26","monto":56205222.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":7399030.0,"isr":36121045.0,"iva":12685147.0,"lat":4.142,"lng":-73.6266},{"nit":"900010958","razon":"EMPRESA_10958","tam":"Mediana","mun":"Cartagena de Indias","ciudad":"Cartagena de Indias","dir":"Calle 103 #36-33","monto":56195037.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":7249905.0,"isr":35872838.0,"iva":13072294.0,"lat":10.391,"lng":-75.4794},{"nit":"900010146","razon":"EMPRESA_10146","tam":"Mediana","mun":"San José de Cúcuta","ciudad":"Cúcuta","dir":"Calle 87 #51-31","monto":56193995.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":9253558.0,"isr":37297467.0,"iva":9642970.0,"lat":7.8891,"lng":-72.4967},{"nit":"900010864","razon":"EMPRESA_10864","tam":"Mediana","mun":"Santiago de Cali","ciudad":"Santiago de Cali","dir":"Calle 15 #80-45","monto":56180738.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":9847669.0,"isr":34798452.0,"iva":11534617.0,"lat":3.4516,"lng":-76.532},{"nit":"900008462","razon":"EMPRESA_08462","tam":"Mediana","mun":"Pereira","ciudad":"Pereira","dir":"Calle 73 #13-9","monto":56158869.0,"alerta":"Modelo de propensión a evasión","aduanas":7701255.0,"isr":37384330.0,"iva":11073284.0,"lat":4.8143,"lng":-75.6946},{"nit":"900008566","razon":"EMPRESA_08566","tam":"Mediana","mun":"Pasto","ciudad":"Pasto","dir":"Calle 84 #59-68","monto":56156134.0,"alerta":"Subvaluación aduanera > 25%","aduanas":6925884.0,"isr":37513021.0,"iva":11717229.0,"lat":1.2136,"lng":-77.2811},{"nit":"900002271","razon":"EMPRESA_02271","tam":"Mediana","mun":"Bogotá D.C.","ciudad":"Bogotá D.C.","dir":"Calle 56 #93-21","monto":56139996.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":7693986.0,"isr":35295794.0,"iva":13150216.0,"lat":4.711,"lng":-74.0721},{"nit":"900014444","razon":"EMPRESA_14444","tam":"Mediana","mun":"Barranquilla","ciudad":"Barranquilla","dir":"Calle 56 #11-60","monto":56132425.0,"alerta":"Subvaluación aduanera > 25%","aduanas":9026970.0,"isr":33251283.0,"iva":13854172.0,"lat":10.9685,"lng":-74.7813},{"nit":"900013213","razon":"EMPRESA_13213","tam":"Mediana","mun":"Bucaramanga","ciudad":"Bucaramanga","dir":"Calle 3 #45-68","monto":56127760.0,"alerta":"Subvaluación aduanera > 25%","aduanas":5210906.0,"isr":37840202.0,"iva":13076652.0,"lat":7.1193,"lng":-73.1227},{"nit":"900003710","razon":"EMPRESA_03710","tam":"Mediana","mun":"Ibagué","ciudad":"Ibagué","dir":"Calle 98 #88-58","monto":56117697.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":7456274.0,"isr":36811506.0,"iva":11849917.0,"lat":4.4389,"lng":-75.2322},{"nit":"900012515","razon":"EMPRESA_12515","tam":"Mediana","mun":"Santiago de Cali","ciudad":"Santiago de Cali","dir":"Calle 48 #74-23","monto":56057634.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":8820363.0,"isr":34294545.0,"iva":12942726.0,"lat":3.4516,"lng":-76.532},{"nit":"900004804","razon":"EMPRESA_04804","tam":"Mediana","mun":"Barranquilla","ciudad":"Barranquilla","dir":"Calle 8 #28-22","monto":56005648.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":8207306.0,"isr":36830309.0,"iva":10968033.0,"lat":10.9685,"lng":-74.7813},{"nit":"900010412","razon":"EMPRESA_10412","tam":"Mediana","mun":"Villavicencio","ciudad":"Villavicencio","dir":"Calle 16 #48-47","monto":55972209.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":7794338.0,"isr":36618354.0,"iva":11559517.0,"lat":4.142,"lng":-73.6266},{"nit":"900010938","razon":"EMPRESA_10938","tam":"Mediana","mun":"Montería","ciudad":"Montería","dir":"Calle 71 #92-73","monto":55959858.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":9021763.0,"isr":36236687.0,"iva":10701408.0,"lat":8.7479,"lng":-75.8814},{"nit":"900002551","razon":"EMPRESA_02551","tam":"Mediana","mun":"Santa Marta","ciudad":"Santa Marta","dir":"Calle 49 #57-6","monto":55944522.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":9168011.0,"isr":33153157.0,"iva":13623354.0,"lat":11.2408,"lng":-74.199},{"nit":"900010357","razon":"EMPRESA_10357","tam":"Mediana","mun":"San José de Cúcuta","ciudad":"Cúcuta","dir":"Calle 88 #21-65","monto":55934880.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":9911583.0,"isr":35377547.0,"iva":10645750.0,"lat":7.8891,"lng":-72.4967},{"nit":"900008687","razon":"EMPRESA_08687","tam":"Mediana","mun":"Bogotá D.C.","ciudad":"Bogotá D.C.","dir":"Calle 44 #72-77","monto":55918408.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":7188911.0,"isr":36065201.0,"iva":12664296.0,"lat":4.711,"lng":-74.0721},{"nit":"900012000","razon":"EMPRESA_12000","tam":"Mediana","mun":"Cartagena de Indias","ciudad":"Cartagena de Indias","dir":"Calle 85 #30-76","monto":55858980.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":7976788.0,"isr":36327530.0,"iva":11554662.0,"lat":10.391,"lng":-75.4794},{"nit":"900012560","razon":"EMPRESA_12560","tam":"Mediana","mun":"Pasto","ciudad":"Pasto","dir":"Calle 9 #57-48","monto":55838609.0,"alerta":"Modelo de propensión a evasión","aduanas":7173893.0,"isr":35449239.0,"iva":13215477.0,"lat":1.2136,"lng":-77.2811},{"nit":"900000324","razon":"EMPRESA_00324","tam":"Mediana","mun":"Ibagué","ciudad":"Ibagué","dir":"Calle 2 #85-50","monto":55823478.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":8696533.0,"isr":36810301.0,"iva":10316644.0,"lat":4.4389,"lng":-75.2322},{"nit":"900014926","razon":"EMPRESA_14926","tam":"Mediana","mun":"Medellín","ciudad":"Medellín","dir":"Calle 112 #67-46","monto":55797324.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":7386229.0,"isr":35473367.0,"iva":12937728.0,"lat":6.2442,"lng":-75.5812},{"nit":"900004807","razon":"EMPRESA_04807","tam":"Mediana","mun":"Bogotá D.C.","ciudad":"Bogotá D.C.","dir":"Calle 89 #61-26","monto":55790628.0,"alerta":"Modelo de propensión a evasión","aduanas":7579938.0,"isr":37939315.0,"iva":10271375.0,"lat":4.711,"lng":-74.0721},{"nit":"900005729","razon":"EMPRESA_05729","tam":"Mediana","mun":"Villavicencio","ciudad":"Villavicencio","dir":"Calle 84 #73-58","monto":55778013.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":9779761.0,"isr":33410855.0,"iva":12587397.0,"lat":4.142,"lng":-73.6266},{"nit":"900004897","razon":"EMPRESA_04897","tam":"Mediana","mun":"Tunja","ciudad":"Tunja","dir":"Calle 53 #49-36","monto":55772320.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":8094556.0,"isr":35485553.0,"iva":12192211.0,"lat":5.5353,"lng":-73.3678},{"nit":"900012455","razon":"EMPRESA_12455","tam":"Mediana","mun":"Manizales","ciudad":"Manizales","dir":"Calle 92 #94-6","monto":55769200.0,"alerta":"Subvaluación aduanera > 25%","aduanas":9018923.0,"isr":34771728.0,"iva":11978549.0,"lat":5.0703,"lng":-75.5138},{"nit":"900004611","razon":"EMPRESA_04611","tam":"Mediana","mun":"Medellín","ciudad":"Medellín","dir":"Calle 61 #35-48","monto":55717843.0,"alerta":"Subvaluación aduanera > 25%","aduanas":9700995.0,"isr":34050626.0,"iva":11966222.0,"lat":6.2442,"lng":-75.5812},{"nit":"900009308","razon":"EMPRESA_09308","tam":"Mediana","mun":"Santiago de Cali","ciudad":"Santiago de Cali","dir":"Calle 55 #70-25","monto":55677793.0,"alerta":"Modelo de propensión a evasión","aduanas":9344315.0,"isr":35185470.0,"iva":11148008.0,"lat":3.4516,"lng":-76.532},{"nit":"900008543","razon":"EMPRESA_08543","tam":"Mediana","mun":"Santiago de Cali","ciudad":"Santiago de Cali","dir":"Calle 25 #97-53","monto":55670318.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":8901801.0,"isr":37557590.0,"iva":9210927.0,"lat":3.4516,"lng":-76.532},{"nit":"900005437","razon":"EMPRESA_05437","tam":"Mediana","mun":"Barranquilla","ciudad":"Barranquilla","dir":"Calle 29 #32-73","monto":55669401.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":8205870.0,"isr":36302847.0,"iva":11160684.0,"lat":10.9685,"lng":-74.7813},{"nit":"900009546","razon":"EMPRESA_09546","tam":"Mediana","mun":"Neiva","ciudad":"Neiva","dir":"Calle 70 #25-21","monto":55659325.0,"alerta":"Subvaluación aduanera > 25%","aduanas":6067942.0,"isr":36390488.0,"iva":13200895.0,"lat":2.9386,"lng":-75.2809},{"nit":"900009496","razon":"EMPRESA_09496","tam":"Mediana","mun":"Tunja","ciudad":"Tunja","dir":"Calle 45 #70-28","monto":55658873.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":9928092.0,"isr":34181582.0,"iva":11549199.0,"lat":5.5353,"lng":-73.3678},{"nit":"900005870","razon":"EMPRESA_05870","tam":"Mediana","mun":"Palmira","ciudad":"Palmira","dir":"Calle 85 #90-4","monto":55645628.0,"alerta":"Subvaluación aduanera > 25%","aduanas":7234673.0,"isr":37700988.0,"iva":10709967.0,"lat":3.5394,"lng":-76.3036},{"nit":"900012165","razon":"EMPRESA_12165","tam":"Mediana","mun":"Cartagena de Indias","ciudad":"Cartagena de Indias","dir":"Calle 44 #21-27","monto":55627098.0,"alerta":"Modelo de propensión a evasión","aduanas":7120779.0,"isr":35973508.0,"iva":12532811.0,"lat":10.391,"lng":-75.4794},{"nit":"900014466","razon":"EMPRESA_14466","tam":"Mediana","mun":"Santiago de Cali","ciudad":"Santiago de Cali","dir":"Calle 5 #26-77","monto":55624460.0,"alerta":"Subvaluación aduanera > 25%","aduanas":6263600.0,"isr":35406952.0,"iva":13953908.0,"lat":3.4516,"lng":-76.532},{"nit":"900005679","razon":"EMPRESA_05679","tam":"Mediana","mun":"Armenia","ciudad":"Armenia","dir":"Calle 61 #67-55","monto":55616323.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":6316559.0,"isr":35677256.0,"iva":13622508.0,"lat":4.5339,"lng":-75.6811},{"nit":"900001884","razon":"EMPRESA_01884","tam":"Mediana","mun":"Bogotá D.C.","ciudad":"Bogotá D.C.","dir":"Calle 20 #17-19","monto":55610250.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":7905404.0,"isr":34341814.0,"iva":13363032.0,"lat":4.711,"lng":-74.0721},{"nit":"900009784","razon":"EMPRESA_09784","tam":"Mediana","mun":"Bucaramanga","ciudad":"Bucaramanga","dir":"Calle 103 #22-29","monto":55583898.0,"alerta":"Modelo de propensión a evasión","aduanas":9829466.0,"isr":35688790.0,"iva":10065642.0,"lat":7.1193,"lng":-73.1227},{"nit":"900011367","razon":"EMPRESA_11367","tam":"Mediana","mun":"Ibagué","ciudad":"Ibagué","dir":"Calle 81 #49-73","monto":55569789.0,"alerta":"Subvaluación aduanera > 25%","aduanas":9414304.0,"isr":35543549.0,"iva":10611936.0,"lat":4.4389,"lng":-75.2322},{"nit":"900010827","razon":"EMPRESA_10827","tam":"Mediana","mun":"Cartagena de Indias","ciudad":"Cartagena de Indias","dir":"Calle 19 #47-67","monto":55558661.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":8800948.0,"isr":33306580.0,"iva":13451133.0,"lat":10.391,"lng":-75.4794},{"nit":"900008474","razon":"EMPRESA_08474","tam":"Mediana","mun":"Medellín","ciudad":"Medellín","dir":"Calle 44 #59-59","monto":55558105.0,"alerta":"Modelo de propensión a evasión","aduanas":7367293.0,"isr":37585609.0,"iva":10605203.0,"lat":6.2442,"lng":-75.5812},{"nit":"900001680","razon":"EMPRESA_01680","tam":"Mediana","mun":"Armenia","ciudad":"Armenia","dir":"Calle 26 #77-55","monto":55556171.0,"alerta":"IVA acreditable > 90% del IVA trasladado","aduanas":9606932.0,"isr":36370674.0,"iva":9578565.0,"lat":4.5339,"lng":-75.6811},{"nit":"900014017","razon":"EMPRESA_14017","tam":"Mediana","mun":"Santiago de Cali","ciudad":"Santiago de Cali","dir":"Calle 29 #96-51","monto":55544876.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","aduanas":5657963.0,"isr":36098069.0,"iva":13788844.0,"lat":3.4516,"lng":-76.532},{"nit":"900000993","razon":"EMPRESA_00993","tam":"Mediana","mun":"Neiva","ciudad":"Neiva","dir":"Calle 115 #64-62","monto":55535484.0,"alerta":"Subvaluación aduanera > 25%","aduanas":7031045.0,"isr":37549158.0,"iva":10955281.0,"lat":2.9386,"lng":-75.2809}],"puntos":[{"mun":"Bogotá D.C.","lat":4.711,"lng":-74.0721,"monto":160000000.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"SOLUCIONES INTEGRALES COLOMBIA S.A.S."},{"mun":"Barranquilla","lat":10.9685,"lng":-74.7813,"monto":145000000.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"IMPORTACIONES DEL CARIBE S.A.S."},{"mun":"Santiago de Cali","lat":3.4516,"lng":-76.532,"monto":135000000.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"CONSTRUCTORA DEL VALLE S.A.S."},{"mun":"Buenaventura","lat":3.8801,"lng":-77.0312,"monto":130000000.0,"alerta":"Subvaluación aduanera > 25%","razon":"LOGÍSTICA DEL PACÍFICO S.A.S."},{"mun":"Bogotá D.C.","lat":4.711,"lng":-74.0721,"monto":120000000.0,"alerta":"Modelo de propensión a evasión","razon":"SERVICIOS DIGITALES BOGOTÁ S.A.S."},{"mun":"Popayán","lat":2.4448,"lng":-76.6147,"monto":60995494.0,"alerta":"Modelo de propensión a evasión","razon":"EMPRESA_10895"},{"mun":"Neiva","lat":2.9386,"lng":-75.2809,"monto":60636463.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_02822"},{"mun":"Medellín","lat":6.2442,"lng":-75.5812,"monto":60478640.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_02512"},{"mun":"Barranquilla","lat":10.9685,"lng":-74.7813,"monto":60311797.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_13049"},{"mun":"Pasto","lat":1.2136,"lng":-77.2811,"monto":60200255.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_11402"},{"mun":"Sincelejo","lat":9.3047,"lng":-75.3978,"monto":59687406.0,"alerta":"Modelo de propensión a evasión","razon":"EMPRESA_11293"},{"mun":"Bogotá D.C.","lat":4.711,"lng":-74.0721,"monto":59655464.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_07916"},{"mun":"Valledupar","lat":10.4631,"lng":-73.2532,"monto":59561324.0,"alerta":"Modelo de propensión a evasión","razon":"EMPRESA_11446"},{"mun":"Bogotá D.C.","lat":4.711,"lng":-74.0721,"monto":59550962.0,"alerta":"Modelo de propensión a evasión","razon":"EMPRESA_03435"},{"mun":"Villavicencio","lat":4.142,"lng":-73.6266,"monto":59512087.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_05482"},{"mun":"Palmira","lat":3.5394,"lng":-76.3036,"monto":59350752.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_06400"},{"mun":"Pereira","lat":4.8143,"lng":-75.6946,"monto":59190359.0,"alerta":"Modelo de propensión a evasión","razon":"EMPRESA_05978"},{"mun":"Villavicencio","lat":4.142,"lng":-73.6266,"monto":59152175.0,"alerta":"Modelo de propensión a evasión","razon":"EMPRESA_03542"},{"mun":"Medellín","lat":6.2442,"lng":-75.5812,"monto":59036498.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_06936"},{"mun":"Medellín","lat":6.2442,"lng":-75.5812,"monto":58977539.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_02520"},{"mun":"Palmira","lat":3.5394,"lng":-76.3036,"monto":58966626.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_14033"},{"mun":"Sincelejo","lat":9.3047,"lng":-75.3978,"monto":58946420.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_07785"},{"mun":"Neiva","lat":2.9386,"lng":-75.2809,"monto":58929465.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_11766"},{"mun":"Barranquilla","lat":10.9685,"lng":-74.7813,"monto":58914691.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_03336"},{"mun":"Villavicencio","lat":4.142,"lng":-73.6266,"monto":58814897.0,"alerta":"Subvaluación aduanera > 25%","razon":"EMPRESA_01882"},{"mun":"Villavicencio","lat":4.142,"lng":-73.6266,"monto":58805147.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_01828"},{"mun":"Barranquilla","lat":10.9685,"lng":-74.7813,"monto":58763145.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_05774"},{"mun":"Tunja","lat":5.5353,"lng":-73.3678,"monto":58754218.0,"alerta":"Modelo de propensión a evasión","razon":"EMPRESA_07288"},{"mun":"Valledupar","lat":10.4631,"lng":-73.2532,"monto":58608384.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_06915"},{"mun":"Popayán","lat":2.4448,"lng":-76.6147,"monto":58607861.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_04455"},{"mun":"Pereira","lat":4.8143,"lng":-75.6946,"monto":58605663.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_13407"},{"mun":"Sincelejo","lat":9.3047,"lng":-75.3978,"monto":58588447.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_06574"},{"mun":"Barranquilla","lat":10.9685,"lng":-74.7813,"monto":58560822.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_04364"},{"mun":"Palmira","lat":3.5394,"lng":-76.3036,"monto":58440300.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_13395"},{"mun":"San José de Cúcuta","lat":7.8891,"lng":-72.4967,"monto":58426639.0,"alerta":"Modelo de propensión a evasión","razon":"EMPRESA_07522"},{"mun":"Bogotá D.C.","lat":4.711,"lng":-74.0721,"monto":58350085.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_05638"},{"mun":"Santiago de Cali","lat":3.4516,"lng":-76.532,"monto":58281269.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_10101"},{"mun":"Neiva","lat":2.9386,"lng":-75.2809,"monto":58267169.0,"alerta":"Subvaluación aduanera > 25%","razon":"EMPRESA_12924"},{"mun":"Santa Marta","lat":11.2408,"lng":-74.199,"monto":58261021.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_04075"},{"mun":"Villavicencio","lat":4.142,"lng":-73.6266,"monto":58192732.0,"alerta":"Modelo de propensión a evasión","razon":"EMPRESA_13081"},{"mun":"Medellín","lat":6.2442,"lng":-75.5812,"monto":58190028.0,"alerta":"Subvaluación aduanera > 25%","razon":"EMPRESA_06483"},{"mun":"Neiva","lat":2.9386,"lng":-75.2809,"monto":58172333.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_14812"},{"mun":"Manizales","lat":5.0703,"lng":-75.5138,"monto":58139342.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_01002"},{"mun":"Pasto","lat":1.2136,"lng":-77.2811,"monto":58134461.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_11087"},{"mun":"Ibagué","lat":4.4389,"lng":-75.2322,"monto":58072879.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_07641"},{"mun":"Ibagué","lat":4.4389,"lng":-75.2322,"monto":58031668.0,"alerta":"Subvaluación aduanera > 25%","razon":"EMPRESA_02731"},{"mun":"Pereira","lat":4.8143,"lng":-75.6946,"monto":57965025.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_09708"},{"mun":"Bogotá D.C.","lat":4.711,"lng":-74.0721,"monto":57956902.0,"alerta":"Subvaluación aduanera > 25%","razon":"EMPRESA_05906"},{"mun":"Ibagué","lat":4.4389,"lng":-75.2322,"monto":57952852.0,"alerta":"Subvaluación aduanera > 25%","razon":"EMPRESA_08314"},{"mun":"Bogotá D.C.","lat":4.711,"lng":-74.0721,"monto":57865699.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_01685"},{"mun":"Tunja","lat":5.5353,"lng":-73.3678,"monto":57846592.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_07658"},{"mun":"Bogotá D.C.","lat":4.711,"lng":-74.0721,"monto":57840154.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_04262"},{"mun":"Bucaramanga","lat":7.1193,"lng":-73.1227,"monto":57739903.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_01178"},{"mun":"Cartagena de Indias","lat":10.391,"lng":-75.4794,"monto":57736563.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_00812"},{"mun":"Medellín","lat":6.2442,"lng":-75.5812,"monto":57648571.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_00937"},{"mun":"Pereira","lat":4.8143,"lng":-75.6946,"monto":57618318.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_00272"},{"mun":"Neiva","lat":2.9386,"lng":-75.2809,"monto":57540816.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_12473"},{"mun":"Santa Marta","lat":11.2408,"lng":-74.199,"monto":57483437.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_02256"},{"mun":"Santiago de Cali","lat":3.4516,"lng":-76.532,"monto":57474519.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_02360"},{"mun":"Bogotá D.C.","lat":4.711,"lng":-74.0721,"monto":57469367.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_12172"},{"mun":"Santiago de Cali","lat":3.4516,"lng":-76.532,"monto":57463976.0,"alerta":"Modelo de propensión a evasión","razon":"EMPRESA_07013"},{"mun":"Barranquilla","lat":10.9685,"lng":-74.7813,"monto":57432078.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_10612"},{"mun":"Sincelejo","lat":9.3047,"lng":-75.3978,"monto":57422682.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_09324"},{"mun":"Ibagué","lat":4.4389,"lng":-75.2322,"monto":57422613.0,"alerta":"Modelo de propensión a evasión","razon":"EMPRESA_11668"},{"mun":"Santiago de Cali","lat":3.4516,"lng":-76.532,"monto":57399627.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_00117"},{"mun":"Bogotá D.C.","lat":4.711,"lng":-74.0721,"monto":57396581.0,"alerta":"Modelo de propensión a evasión","razon":"EMPRESA_01893"},{"mun":"Palmira","lat":3.5394,"lng":-76.3036,"monto":57395383.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_05378"},{"mun":"Medellín","lat":6.2442,"lng":-75.5812,"monto":57380480.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_02233"},{"mun":"Montería","lat":8.7479,"lng":-75.8814,"monto":57367127.0,"alerta":"Subvaluación aduanera > 25%","razon":"EMPRESA_14553"},{"mun":"Pereira","lat":4.8143,"lng":-75.6946,"monto":57340860.0,"alerta":"Subvaluación aduanera > 25%","razon":"EMPRESA_10159"},{"mun":"Palmira","lat":3.5394,"lng":-76.3036,"monto":57318057.0,"alerta":"Modelo de propensión a evasión","razon":"EMPRESA_10787"},{"mun":"Ibagué","lat":4.4389,"lng":-75.2322,"monto":57288114.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_08213"},{"mun":"Neiva","lat":2.9386,"lng":-75.2809,"monto":57282641.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_13380"},{"mun":"Villavicencio","lat":4.142,"lng":-73.6266,"monto":57277862.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_01945"},{"mun":"Medellín","lat":6.2442,"lng":-75.5812,"monto":57271349.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_10209"},{"mun":"Santa Marta","lat":11.2408,"lng":-74.199,"monto":57254900.0,"alerta":"Modelo de propensión a evasión","razon":"EMPRESA_09872"},{"mun":"Sincelejo","lat":9.3047,"lng":-75.3978,"monto":57244019.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_04503"},{"mun":"Cartagena de Indias","lat":10.391,"lng":-75.4794,"monto":57229742.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_01601"},{"mun":"Neiva","lat":2.9386,"lng":-75.2809,"monto":57192447.0,"alerta":"Subvaluación aduanera > 25%","razon":"EMPRESA_09393"},{"mun":"Santa Marta","lat":11.2408,"lng":-74.199,"monto":57169052.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_09486"},{"mun":"Santiago de Cali","lat":3.4516,"lng":-76.532,"monto":57162733.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_13168"},{"mun":"Bogotá D.C.","lat":4.711,"lng":-74.0721,"monto":57060816.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_12944"},{"mun":"Bogotá D.C.","lat":4.711,"lng":-74.0721,"monto":56938330.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_13238"},{"mun":"Pereira","lat":4.8143,"lng":-75.6946,"monto":56932717.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_01016"},{"mun":"Sincelejo","lat":9.3047,"lng":-75.3978,"monto":56887641.0,"alerta":"Subvaluación aduanera > 25%","razon":"EMPRESA_13529"},{"mun":"Barranquilla","lat":10.9685,"lng":-74.7813,"monto":56855623.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_12597"},{"mun":"Medellín","lat":6.2442,"lng":-75.5812,"monto":56838409.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_09398"},{"mun":"Medellín","lat":6.2442,"lng":-75.5812,"monto":56831477.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_14485"},{"mun":"San José de Cúcuta","lat":7.8891,"lng":-72.4967,"monto":56746638.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_06617"},{"mun":"Bogotá D.C.","lat":4.711,"lng":-74.0721,"monto":56721369.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_09927"},{"mun":"Bogotá D.C.","lat":4.711,"lng":-74.0721,"monto":56662170.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_02865"},{"mun":"Bogotá D.C.","lat":4.711,"lng":-74.0721,"monto":56651168.0,"alerta":"Subvaluación aduanera > 25%","razon":"EMPRESA_07093"},{"mun":"Santiago de Cali","lat":3.4516,"lng":-76.532,"monto":56638878.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_09726"},{"mun":"Pasto","lat":1.2136,"lng":-77.2811,"monto":56623374.0,"alerta":"Subvaluación aduanera > 25%","razon":"EMPRESA_05725"},{"mun":"Pasto","lat":1.2136,"lng":-77.2811,"monto":56498599.0,"alerta":"Modelo de propensión a evasión","razon":"EMPRESA_07977"},{"mun":"Santiago de Cali","lat":3.4516,"lng":-76.532,"monto":56473725.0,"alerta":"Subvaluación aduanera > 25%","razon":"EMPRESA_02305"},{"mun":"Santiago de Cali","lat":3.4516,"lng":-76.532,"monto":56471688.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_00451"},{"mun":"Barranquilla","lat":10.9685,"lng":-74.7813,"monto":56357717.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_12415"},{"mun":"Popayán","lat":2.4448,"lng":-76.6147,"monto":56350430.0,"alerta":"Subvaluación aduanera > 25%","razon":"EMPRESA_00750"},{"mun":"Armenia","lat":4.5339,"lng":-75.6811,"monto":56346838.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_02582"},{"mun":"Bogotá D.C.","lat":4.711,"lng":-74.0721,"monto":56336648.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_11060"},{"mun":"Medellín","lat":6.2442,"lng":-75.5812,"monto":56306962.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_07377"},{"mun":"Barranquilla","lat":10.9685,"lng":-74.7813,"monto":56273551.0,"alerta":"Modelo de propensión a evasión","razon":"EMPRESA_06078"},{"mun":"Medellín","lat":6.2442,"lng":-75.5812,"monto":56235533.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_01008"},{"mun":"Pereira","lat":4.8143,"lng":-75.6946,"monto":56233103.0,"alerta":"Modelo de propensión a evasión","razon":"EMPRESA_05510"},{"mun":"Bogotá D.C.","lat":4.711,"lng":-74.0721,"monto":56223007.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_02810"},{"mun":"Medellín","lat":6.2442,"lng":-75.5812,"monto":56214361.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_01841"},{"mun":"Villavicencio","lat":4.142,"lng":-73.6266,"monto":56205222.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_10724"},{"mun":"Cartagena de Indias","lat":10.391,"lng":-75.4794,"monto":56195037.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_10958"},{"mun":"San José de Cúcuta","lat":7.8891,"lng":-72.4967,"monto":56193995.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_10146"},{"mun":"Santiago de Cali","lat":3.4516,"lng":-76.532,"monto":56180738.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_10864"},{"mun":"Pereira","lat":4.8143,"lng":-75.6946,"monto":56158869.0,"alerta":"Modelo de propensión a evasión","razon":"EMPRESA_08462"},{"mun":"Pasto","lat":1.2136,"lng":-77.2811,"monto":56156134.0,"alerta":"Subvaluación aduanera > 25%","razon":"EMPRESA_08566"},{"mun":"Bogotá D.C.","lat":4.711,"lng":-74.0721,"monto":56139996.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_02271"},{"mun":"Barranquilla","lat":10.9685,"lng":-74.7813,"monto":56132425.0,"alerta":"Subvaluación aduanera > 25%","razon":"EMPRESA_14444"},{"mun":"Bucaramanga","lat":7.1193,"lng":-73.1227,"monto":56127760.0,"alerta":"Subvaluación aduanera > 25%","razon":"EMPRESA_13213"},{"mun":"Ibagué","lat":4.4389,"lng":-75.2322,"monto":56117697.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_03710"},{"mun":"Santiago de Cali","lat":3.4516,"lng":-76.532,"monto":56057634.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_12515"},{"mun":"Barranquilla","lat":10.9685,"lng":-74.7813,"monto":56005648.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_04804"},{"mun":"Villavicencio","lat":4.142,"lng":-73.6266,"monto":55972209.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_10412"},{"mun":"Montería","lat":8.7479,"lng":-75.8814,"monto":55959858.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_10938"},{"mun":"Santa Marta","lat":11.2408,"lng":-74.199,"monto":55944522.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_02551"},{"mun":"San José de Cúcuta","lat":7.8891,"lng":-72.4967,"monto":55934880.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_10357"},{"mun":"Bogotá D.C.","lat":4.711,"lng":-74.0721,"monto":55918408.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_08687"},{"mun":"Cartagena de Indias","lat":10.391,"lng":-75.4794,"monto":55858980.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_12000"},{"mun":"Pasto","lat":1.2136,"lng":-77.2811,"monto":55838609.0,"alerta":"Modelo de propensión a evasión","razon":"EMPRESA_12560"},{"mun":"Ibagué","lat":4.4389,"lng":-75.2322,"monto":55823478.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_00324"},{"mun":"Medellín","lat":6.2442,"lng":-75.5812,"monto":55797324.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_14926"},{"mun":"Bogotá D.C.","lat":4.711,"lng":-74.0721,"monto":55790628.0,"alerta":"Modelo de propensión a evasión","razon":"EMPRESA_04807"},{"mun":"Villavicencio","lat":4.142,"lng":-73.6266,"monto":55778013.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_05729"},{"mun":"Tunja","lat":5.5353,"lng":-73.3678,"monto":55772320.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_04897"},{"mun":"Manizales","lat":5.0703,"lng":-75.5138,"monto":55769200.0,"alerta":"Subvaluación aduanera > 25%","razon":"EMPRESA_12455"},{"mun":"Medellín","lat":6.2442,"lng":-75.5812,"monto":55717843.0,"alerta":"Subvaluación aduanera > 25%","razon":"EMPRESA_04611"},{"mun":"Santiago de Cali","lat":3.4516,"lng":-76.532,"monto":55677793.0,"alerta":"Modelo de propensión a evasión","razon":"EMPRESA_09308"},{"mun":"Santiago de Cali","lat":3.4516,"lng":-76.532,"monto":55670318.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_08543"},{"mun":"Barranquilla","lat":10.9685,"lng":-74.7813,"monto":55669401.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_05437"},{"mun":"Neiva","lat":2.9386,"lng":-75.2809,"monto":55659325.0,"alerta":"Subvaluación aduanera > 25%","razon":"EMPRESA_09546"},{"mun":"Tunja","lat":5.5353,"lng":-73.3678,"monto":55658873.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_09496"},{"mun":"Palmira","lat":3.5394,"lng":-76.3036,"monto":55645628.0,"alerta":"Subvaluación aduanera > 25%","razon":"EMPRESA_05870"},{"mun":"Cartagena de Indias","lat":10.391,"lng":-75.4794,"monto":55627098.0,"alerta":"Modelo de propensión a evasión","razon":"EMPRESA_12165"},{"mun":"Santiago de Cali","lat":3.4516,"lng":-76.532,"monto":55624460.0,"alerta":"Subvaluación aduanera > 25%","razon":"EMPRESA_14466"},{"mun":"Armenia","lat":4.5339,"lng":-75.6811,"monto":55616323.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_05679"},{"mun":"Bogotá D.C.","lat":4.711,"lng":-74.0721,"monto":55610250.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_01884"},{"mun":"Bucaramanga","lat":7.1193,"lng":-73.1227,"monto":55583898.0,"alerta":"Modelo de propensión a evasión","razon":"EMPRESA_09784"},{"mun":"Ibagué","lat":4.4389,"lng":-75.2322,"monto":55569789.0,"alerta":"Subvaluación aduanera > 25%","razon":"EMPRESA_11367"},{"mun":"Cartagena de Indias","lat":10.391,"lng":-75.4794,"monto":55558661.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_10827"},{"mun":"Medellín","lat":6.2442,"lng":-75.5812,"monto":55558105.0,"alerta":"Modelo de propensión a evasión","razon":"EMPRESA_08474"},{"mun":"Armenia","lat":4.5339,"lng":-75.6811,"monto":55556171.0,"alerta":"IVA acreditable > 90% del IVA trasladado","razon":"EMPRESA_01680"},{"mun":"Santiago de Cali","lat":3.4516,"lng":-76.532,"monto":55544876.0,"alerta":"Facturación electrónica > ingresos declarados (+35%)","razon":"EMPRESA_14017"},{"mun":"Neiva","lat":2.9386,"lng":-75.2809,"monto":55535484.0,"alerta":"Subvaluación aduanera > 25%","razon":"EMPRESA_00993"}],"tiposAlerta":["Facturación electrónica > ingresos declarados (+35%)","IVA acreditable > 90% del IVA trasladado","Modelo de propensión a evasión","Subvaluación aduanera > 25%"],"tamanos":["Grande","Mediana","Micro","Pequeña"],"municipios":["Bogotá D.C.","Medellín","Santiago de Cali","Barranquilla","Cartagena de Indias","Bucaramanga","Santa Marta","San José de Cúcuta","Pereira","Ibagué","Villavicencio","Palmira","Manizales","Pasto","Valledupar","Armenia","Neiva","Montería","Sincelejo","Tunja","Popayán","Buenaventura"],"munCoords":{"Armenia":[4.5339,-75.6811],"Barranquilla":[10.9685,-74.7813],"Bogotá D.C.":[4.711,-74.0721],"Bucaramanga":[7.1193,-73.1227],"Buenaventura":[3.8801,-77.0312],"Cartagena de Indias":[10.391,-75.4794],"San José de Cúcuta":[7.8891,-72.4967],"Ibagué":[4.4389,-75.2322],"Manizales":[5.0703,-75.5138],"Medellín":[6.2442,-75.5812],"Montería":[8.7479,-75.8814],"Neiva":[2.9386,-75.2809],"Palmira":[3.5394,-76.3036],"Pasto":[1.2136,-77.2811],"Pereira":[4.8143,-75.6946],"Popayán":[2.4448,-76.6147],"Santa Marta":[11.2408,-74.199],"Santiago de Cali":[3.4516,-76.532],"Sincelejo":[9.3047,-75.3978],"Tunja":[5.5353,-73.3678],"Valledupar":[10.4631,-73.2532],"Villavicencio":[4.142,-73.6266]}};
 
-var ZON_TABLE = [
-  { nit:'830.030.035-1', razon:'SOLUCIONES INTEGRALES COLOMBIA S.A.S.', tam:'Grande',  mun:'Bogotá D.C.',     ciudad:'Bogotá D.C.',     dir:'Calle 29 #21-69',   monto:160000000 },
-  { nit:'806.443.760-2', razon:'CONSTRUCTORA DEL VALLE S.A.S.', tam:'Grande', mun:'Santiago de Cali', ciudad:'Santiago de Cali', dir:'Calle 103 #10-64', monto:135000000 },
-  { nit:'900002822',     razon:'EMPRESA_02822',         tam:'Mediana', mun:'Neiva',           ciudad:'Neiva',           dir:'Calle 6 #93-36',   monto:60636463 },
-  { nit:'900013049',     razon:'EMPRESA_13049',         tam:'Mediana', mun:'Barranquilla',    ciudad:'Barranquilla',    dir:'Calle 95 #91-39',  monto:60311797 },
-  { nit:'900011402',     razon:'EMPRESA_11402',         tam:'Mediana', mun:'Pasto',           ciudad:'Pasto',           dir:'Calle 38 #86-31',  monto:60200255 },
-  { nit:'900005482',     razon:'EMPRESA_05482',         tam:'Mediana', mun:'Villavicencio',   ciudad:'Villavicencio',   dir:'Calle 74 #16-74',  monto:59512087 },
-  { nit:'900006400',     razon:'EMPRESA_06400',         tam:'Mediana', mun:'Palmira',         ciudad:'Palmira',         dir:'Calle 68 #68-26',  monto:59350752 },
-  { nit:'900006936',     razon:'EMPRESA_06936',         tam:'Mediana', mun:'Medellín',        ciudad:'Medellín',        dir:'Calle 40 #19-24',  monto:59036498 },
-  { nit:'900002520',     razon:'EMPRESA_02520',         tam:'Mediana', mun:'Medellín',        ciudad:'Medellín',        dir:'Calle 87 #14-19',  monto:58977536 },
-];
+/* Barra municipio (frecuencia real) y tabla derivadas de ZONDATA */
+var MUNICIPIOS_ZON = ZONDATA.barraMuni.map(function(m){ return { mun:m.mun, n:m.n }; });
+var ZON_TABLE = ZONDATA.tabla.map(function(t){
+  return { nit:t.nit, razon:t.razon, tam:t.tam, mun:t.mun, ciudad:t.ciudad, dir:t.dir,
+           monto:t.monto, alerta:t.alerta, aduanas:t.aduanas, isr:t.isr, iva:t.iva,
+           lat:t.lat, lng:t.lng };
+});
 
 /* ══════════════════════════════════
    UTILS
@@ -1145,27 +1108,55 @@ function buildDiscTables(){
 /* ══════════════════════════════════
    ANÁLISIS
    ══════════════════════════════════ */
+/* ══════════════════════════════════
+   ANÁLISIS — Modelo de propensión a evasión
+   Button bars (Sector, Potencial, Nivel de atraso) filtran barra + tabla
+   ══════════════════════════════════ */
+var AFILTROS = { sector:'', pot:'', nivel:'' };
+
+function filtrarAnalisis(){
+  return ANALISIS_DATA.filter(function(r){
+    if(AFILTROS.sector && r.sector !== AFILTROS.sector) return false;
+    if(AFILTROS.pot    && r.pot    !== AFILTROS.pot)    return false;
+    if(AFILTROS.nivel  && r.nivel  !== AFILTROS.nivel)  return false;
+    return true;
+  });
+}
+
 function buildAnalisisBar(){
+  var datos = filtrarAnalisis();
   var niveles = ['Menos atraso','Atraso medio','Mayor atraso'];
   var counts = {};
   niveles.forEach(function(n){ counts[n]=0; });
-  ANALISIS_DATA.forEach(function(r){ counts[r.nivel]++; });
-  var max = Math.max.apply(null, Object.values(counts));
+  datos.forEach(function(r){ if(counts[r.nivel]!=null) counts[r.nivel]++; });
+  var max = Math.max.apply(null, niveles.map(function(n){ return counts[n]; })) || 1;
   var html = '';
-  niveles.forEach(function(n){
+  niveles.forEach(function(n, i){
     var pct = (counts[n]/max*100).toFixed(0);
-    html += '<div class="hbar-row">'
+    html += '<div class="hbar-row" data-nivel="'+n+'" data-i="'+i+'">'
       + '<div class="hbar-label" style="width:100px;">'+n+'</div>'
       + '<div class="hbar-track"><div class="hbar-fill" style="width:'+pct+'%;background:#f5c842;"></div></div>'
       + '<div class="hbar-val" style="width:50px;">'+fmtN.format(counts[n])+'</div>'
       + '</div>';
   });
-  $('analisis-bar').innerHTML = html;
+  var cont = $('analisis-bar');
+  cont.innerHTML = html;
+  // Hover: Nivel de atraso + Frecuencia
+  cont.querySelectorAll('.hbar-row').forEach(function(row){
+    var n = row.getAttribute('data-nivel');
+    var c = counts[n];
+    row.addEventListener('mousemove', function(ev){
+      ttShow('<div style="font-weight:700;margin-bottom:4px">'+n+'</div>'+
+             ttRow('Nivel de atraso', n)+ttRow('Frecuencia', fmtN.format(c)), ev);
+    });
+    row.addEventListener('mouseleave', ttHide);
+  });
 }
 
 function buildAnalisisTable(){
+  var datos = filtrarAnalisis().slice().sort(function(a,b){ return b.prop-a.prop; });
   var html = '';
-  ANALISIS_DATA.forEach(function(r){
+  datos.forEach(function(r){
     html += '<tr>'
       + '<td>'+r.id+'</td>'
       + '<td>'+r.nivel+'</td>'
@@ -1175,38 +1166,131 @@ function buildAnalisisTable(){
       + '<td style="text-align:center;">'+r.hist+'</td>'
       + '</tr>';
   });
+  if(!html) html = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px;">Sin resultados para los filtros aplicados</td></tr>';
   $('analisis-table').innerHTML = html;
+}
+
+// Aplica los filtros de análisis a barra + tabla
+function applyAnalisisFilters(){
+  buildAnalisisBar();
+  buildAnalisisTable();
 }
 
 /* ══════════════════════════════════
    ZONIFICACIÓN
    ══════════════════════════════════ */
+/* ══════════════════════════════════
+   ZONIFICACIÓN — filtros encadenados
+   Mapa + barra + tablas linkeados a: TIPO_ALERTA, TAMANO_EMPRESA, MUNICIPIO
+   ══════════════════════════════════ */
+var ZFILTROS = { alerta:'', tam:'', mun:'' };
+
+function filtrarZon(){
+  return ZON_TABLE.filter(function(r){
+    if(ZFILTROS.alerta && r.alerta !== ZFILTROS.alerta) return false;
+    if(ZFILTROS.tam    && r.tam    !== ZFILTROS.tam)    return false;
+    if(ZFILTROS.mun    && r.mun    !== ZFILTROS.mun)    return false;
+    return true;
+  });
+}
+
 function buildZonBar(){
-  var data = MUNICIPIOS_ZON.slice(0, 12);
-  var max = data[0].n;
+  var datos = filtrarZon();
+  // frecuencia por municipio sobre los datos filtrados
+  var acc = {};
+  datos.forEach(function(r){ acc[r.mun] = (acc[r.mun]||0) + 1; });
+  var data = Object.keys(acc).map(function(k){ return {mun:k, n:acc[k]}; })
+             .sort(function(a,b){ return b.n-a.n; }).slice(0, 14);
+  var max = data.length ? data[0].n : 1;
   var html = '';
-  data.forEach(function(m){
+  data.forEach(function(m, i){
     var pct = (m.n/max*100).toFixed(0);
-    html += '<div class="hbar-row" style="margin-bottom:5px;">'
+    html += '<div class="hbar-row" data-i="'+i+'" style="margin-bottom:5px;">'
       + '<div class="hbar-label" style="width:140px;font-size:10px;">'+m.mun+'</div>'
       + '<div class="hbar-track" style="height:16px;"><div class="hbar-fill" style="width:'+pct+'%;"></div></div>'
       + '<div class="hbar-val" style="width:40px;">'+fmtN.format(m.n)+'</div>'
       + '</div>';
   });
-  $('zon-bar').innerHTML = html;
+  if(!html) html = '<div style="color:var(--muted);font-size:11px;padding:10px;">Sin datos para los filtros</div>';
+  var cont = $('zon-bar');
+  cont.innerHTML = html;
+  // Hover: MUNICIPIO + Frecuencia
+  cont.querySelectorAll('.hbar-row').forEach(function(row){
+    var m = data[+row.getAttribute('data-i')];
+    row.addEventListener('mousemove', function(ev){
+      ttShow('<div style="font-weight:700;margin-bottom:4px">'+m.mun+'</div>'+
+             ttRow('MUNICIPIO', m.mun)+ttRow('Frecuencia', fmtN.format(m.n)), ev);
+    });
+    row.addEventListener('mouseleave', ttHide);
+  });
 }
 
 function buildZonTables(){
-  var html = '';
-  ZON_TABLE.forEach(function(r){
-    var row = '<tr><td>'+r.nit+'</td><td>'+r.razon+'</td><td>'+r.tam+'</td>'
-            + '<td>'+r.mun+'</td><td>'+r.ciudad+'</td><td>'+r.dir+'</td>'
-            + '<td class="amount">'+fmt.format(r.monto)+'</td></tr>';
-    html += row;
-  });
-  $('zon-tbody-isr').innerHTML = html;
-  $('zon-tbody-aduanas').innerHTML = html;
-  $('zon-tbody-iva').innerHTML = html;
+  var datos = filtrarZon();
+  function fila(r){
+    return '<tr><td>'+r.nit+'</td><td>'+r.razon+'</td><td>'+r.tam+'</td>'
+         + '<td>'+r.mun+'</td><td>'+r.ciudad+'</td><td>'+r.dir+'</td>'
+         + '<td class="amount">'+fmt.format(r.monto)+'</td></tr>';
+  }
+  // Cada tabla ordenada por su brecha respectiva
+  function tabla(campo, tbodyId){
+    var ordenado = datos.slice().sort(function(a,b){ return (b[campo]||0)-(a[campo]||0); }).slice(0, 100);
+    var html = ordenado.map(fila).join('');
+    if(!html) html = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px;">Sin resultados para los filtros aplicados</td></tr>';
+    if($(tbodyId)) $(tbodyId).innerHTML = html;
+  }
+  tabla('isr', 'zon-tbody-isr');
+  tabla('aduanas', 'zon-tbody-aduanas');
+  tabla('iva', 'zon-tbody-iva');
+}
+
+// KPIs de zonificación recalculados según filtros
+function actualizarZonKpis(){
+  var datos = filtrarZon();
+  var hayFiltro = ZFILTROS.alerta || ZFILTROS.tam || ZFILTROS.mun;
+  var total, aduanas, isr, iva;
+  if(hayFiltro){
+    total = datos.reduce(function(a,r){ return a + r.monto; }, 0);
+    aduanas = datos.reduce(function(a,r){ return a + r.aduanas; }, 0);
+    isr = datos.reduce(function(a,r){ return a + r.isr; }, 0);
+    iva = datos.reduce(function(a,r){ return a + r.iva; }, 0);
+  } else {
+    total = ZONDATA.totalMonto; aduanas = ZONDATA.totalAduanas;
+    isr = ZONDATA.totalISR; iva = ZONDATA.totalIVA;
+  }
+  if($('zkpi-total'))   $('zkpi-total').textContent   = fmt.format(total);
+  if($('zkpi-aduanas')) $('zkpi-aduanas').textContent = fmt.format(aduanas);
+  if($('zkpi-isr'))     $('zkpi-isr').textContent     = fmt.format(isr);
+  if($('zkpi-iva'))     $('zkpi-iva').textContent     = fmt.format(iva);
+}
+
+// Aplica los filtros de zonificación a mapa + barra + tablas + KPIs
+function applyZonFilters(){
+  ZFILTROS.alerta = $('zf-alerta') ? $('zf-alerta').value : '';
+  ZFILTROS.tam    = $('zf-tam')    ? $('zf-tam').value    : '';
+  ZFILTROS.mun    = $('zf-mun')    ? $('zf-mun').value    : '';
+  buildZonBar();
+  buildZonTables();
+  actualizarZonKpis();
+  // Repintar mapa con los puntos filtrados
+  if(typeof _zonMapObj!=='undefined' && _zonMapObj){
+    if(_zonCluster){ _zonMapObj.removeLayer(_zonCluster); _zonCluster = null; }
+    _zonCluster = pintarCluster(_zonMapObj);
+    _zonMapObj.invalidateSize();
+  }
+}
+
+// Poblar los selects de zonificación con valores reales
+function poblarZonFiltros(){
+  function llenar(sel, valores, etiqueta){
+    if(!sel) return;
+    var html = '<option value="">'+etiqueta+'</option>';
+    valores.forEach(function(v){ html += '<option value="'+v+'">'+v+'</option>'; });
+    sel.innerHTML = html;
+  }
+  llenar($('zf-alerta'), ZONDATA.tiposAlerta, 'TIPO_ALERTA');
+  llenar($('zf-tam'),    ZONDATA.tamanos,     'TAMANO_EMPRESA');
+  llenar($('zf-mun'),    ZONDATA.municipios,  'MUNICIPIO');
 }
 
 /* ══════════════════════════════════
@@ -1300,8 +1384,16 @@ function togglePill(el, label){
 
 function toggleBtnBar(el, bbId){
   var bb = $(bbId);
+  var yaActivo = el.classList.contains('active');
   bb.querySelectorAll('.btn-tag').forEach(function(b){ b.classList.remove('active'); });
-  el.classList.add('active');
+  // permitir deseleccionar (volver a "sin selección")
+  var valor = '';
+  if(!yaActivo){ el.classList.add('active'); valor = el.textContent.trim(); }
+  // mapear button bar -> filtro
+  if(bbId === 'bb-sector')    AFILTROS.sector = valor;
+  if(bbId === 'bb-potencial') AFILTROS.pot    = valor;
+  if(bbId === 'bb-atraso')    AFILTROS.nivel  = valor;
+  applyAnalisisFilters();
 }
 
 // Texto de la barra de filtros + KPIs, según filtros activos
@@ -1436,11 +1528,19 @@ function crearMapaBase(elId){
 function registrosGeo(){
   var regs = [];
   if (typeof ZON_TABLE !== 'undefined' && ZON_TABLE.length){
-    ZON_TABLE.forEach(function(t){
-      var coord = COORDS_MUNICIPIOS[t.mun];
-      if(!coord) return;
-      regs.push({ mun:t.mun, monto:(t.monto||0), alerta:(t.alerta||''), lat:coord[0], lng:coord[1],
-                  razon:(t.razon||'') });
+    // Aplicar filtros de zonificación si existen
+    var fuente = (typeof filtrarZon === 'function') ? filtrarZon() : ZON_TABLE;
+    fuente.forEach(function(t){
+      // Usar lat/lng reales de los datos; si faltan, caer a coords del municipio
+      var lat = (t.lat!=null && t.lat!==0) ? t.lat : null;
+      var lng = (t.lng!=null && t.lng!==0) ? t.lng : null;
+      if(lat==null || lng==null){
+        var coord = COORDS_MUNICIPIOS[t.mun];
+        if(!coord) return;
+        lat = coord[0]; lng = coord[1];
+      }
+      regs.push({ mun:t.mun, monto:(t.monto||0), alerta:(t.alerta||''),
+                  lat:lat, lng:lng, razon:(t.razon||'') });
     });
   } else if (typeof MUNICIPIOS_ZON !== 'undefined'){
     MUNICIPIOS_ZON.forEach(function(m){
@@ -1581,8 +1681,10 @@ function buildZonMap(){
     safe('buildDiscTables', buildDiscTables);
     safe('buildAnalisisBar', buildAnalisisBar);
     safe('buildAnalisisTable', buildAnalisisTable);
+    safe('poblarZonFiltros', poblarZonFiltros);
     safe('buildZonBar', buildZonBar);
     safe('buildZonTables', buildZonTables);
+    safe('actualizarZonKpis', actualizarZonKpis);
 
     // Estado inicial de filtros (KPIs de la pestaña discrepancias + textos)
     safe('applyFilters', applyFilters);
