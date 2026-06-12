@@ -185,7 +185,7 @@
 
     <script>
         /* Ruta al archivo de código referenciado */
-        var CODIGO_URL = 'http://127.0.0.1:5501/codigos/Demos/Gobierno/pagina-inicial-recaudacion.html';
+        var CODIGO_URL = 'Demos/Gobierno/pagina-inicial-recaudacion.html';
 
         function fetchCodigo(callback) {
             var status = document.getElementById('codigoStatus');
@@ -228,15 +228,10 @@
             });
         });
 
-        document.getElementById('btnRun').addEventListener('click', function() {
-            fetchCodigo(function(err, text) {
-                if (err) return;
-                var win = window.open('', '_blank');
-                win.document.open();
-                win.document.write(text);
-                win.document.close();
-            });
+        document.getElementById('btnRun').addEventListener('click', function () {
+            window.open(CODIGO_URL, '_blank');
         });
+
     </script>
 
 </body>

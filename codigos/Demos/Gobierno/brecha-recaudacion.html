@@ -6,12 +6,13 @@
 <title>Brecha de Recaudación – DIAN</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
-<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script defer src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
 <style>
+
 /* ── Variables globales ── */
 :root {
   --bg: #ffffff;
@@ -414,9 +415,32 @@ body {
 .zon-kpi-box.red    { border-color: #c62828; }
 .zon-kpi-box.red    .zkpi-value { color: #c62828; }
 
+.nav-link {
+  /* Color y tipografía igual que .nav-tab */
+  color: var(--muted);           /* azul grisáceo #6B8AAB */
+  font-family: 'Montserrat', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+
+  /* Pero como es botón, le añades fondo */
+  background: var(--muted);      /* verde #1a7a3a */
+  color: var(--white);           /* texto blanco encima del verde */
+  padding: 6px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  margin-left: 8px;          /* quita el subrayado de los <a> */
+}
+
+
+
 </style>
 </head>
 <body>
+
+
+
 
 <!-- ══ NAV TABS ══ -->
 <div class="top-nav">
@@ -424,6 +448,14 @@ body {
   <div class="nav-tab" onclick="showPage('disc')">Discrepancias detectadas</div>
   <div class="nav-tab" onclick="showPage('analisis')">Análisis de recaudación</div>
   <div class="nav-tab" onclick="showPage('zon')">Zonificación</div>
+
+  <div style="flex: 1;"></div>
+
+  <!-- Links de navegación -->
+  <a class="nav-link" href="brecha-recaudacion.html" target="_parent">Brecha de Recaudación</a>
+  <a class="nav-link" href="pagina-inicial-recaudacion.html" target="_parent">Análisis de Recaudación</a>
+</div>
+
 </div>
 
 <!-- ══ FILTERS BAR ══ -->
@@ -1294,16 +1326,40 @@ function buildZonMap(){
 }
 
 (function init(){
-  buildHomeBar();
-  buildHomeTreemap();
-  buildDiscBar();
-  buildDiscTables();
-  buildAnalisisBar();
-  buildAnalisisTable();
-  buildZonBar();
-  buildZonTables();
-  if(document.getElementById('home-map')) buildHomeMap();
-  if(document.getElementById('zon-map'))  buildZonMap();
+  function safe(nombre, fn){ try { fn(); } catch(e){ console.error('Error en '+nombre+':', e); } }
+
+  function renderDashboard(){
+    safe('buildHomeBar', buildHomeBar);
+    safe('buildHomeTreemap', buildHomeTreemap);
+    safe('buildDiscBar', buildDiscBar);
+    safe('buildDiscTables', buildDiscTables);
+    safe('buildAnalisisBar', buildAnalisisBar);
+    safe('buildAnalisisTable', buildAnalisisTable);
+    safe('buildZonBar', buildZonBar);
+    safe('buildZonTables', buildZonTables);
+  }
+
+  function renderMapas(intentos){
+    intentos = intentos || 0;
+    if(typeof L === 'undefined'){
+      // Leaflet aún no carga; reintentar hasta ~5s
+      if(intentos < 50){ setTimeout(function(){ renderMapas(intentos+1); }, 100); }
+      return;
+    }
+    if(document.getElementById('home-map')) safe('buildHomeMap', buildHomeMap);
+    if(document.getElementById('zon-map'))  safe('buildZonMap', buildZonMap);
+  }
+
+  function arrancar(){
+    renderDashboard();   // tablas y barras: inmediato, no dependen de Leaflet
+    renderMapas();       // mapas: cuando Leaflet esté disponible
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', arrancar);
+  } else {
+    arrancar();
+  }
 })();
 </script>
 
