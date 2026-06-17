@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galería de Objetos - gob-001</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: #f8f9fa;
+            color: #1C334F;
+            font-family: 'Open Sans', sans-serif;
+            font-size: 13px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #006341 0%, #1a5c36 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #9b1c2e;
+        }
+        
+        .header__title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+        
+        .header__desc {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .breadcrumb {
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+        
+        .breadcrumb a {
+            color: #006341;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 6px 14px;
+            border: 1px solid #C5D5E8;
+            background: white;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #6B8AAB;
+        }
+        
+        .filter-btn.active {
+            background: #006341;
+            color: white;
+            border-color: #006341;
+        }
+        
+        .filter-btn:hover {
+            border-color: #006341;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .card {
+            background: white;
+            border: 1px solid #C5D5E8;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .card:hover {
+            border-color: #006341;
+            box-shadow: 0 8px 24px rgba(0, 99, 65, 0.12);
+            transform: translateY(-4px);
+        }
+        
+        .card__preview {
+            height: 140px;
+            background: linear-gradient(135deg, #006341 0%, #2d7a5e 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            flex-shrink: 0;
+        }
+        
+        .card__preview.kpi { background: linear-gradient(135deg, #006341 0%, #2d7a5e 100%); }
+        .card__preview.chart { background: linear-gradient(135deg, #007f5f 0%, #4a9f7a 100%); }
+        .card__preview.table { background: linear-gradient(135deg, #9b1c2e 0%, #c03e50 100%); }
+        .card__preview.control { background: linear-gradient(135deg, #b8860b 0%, #d4a535 100%); }
+        
+        .card__content {
+            padding: 16px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .card__title {
+            font-weight: 700;
+            color: #1C334F;
+            font-size: 13px;
+            line-height: 1.3;
+        }
+        
+        .card__desc {
+            font-size: 11px;
+            color: #6B8AAB;
+            line-height: 1.4;
+            flex: 1;
+        }
+        
+        .card__meta {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        
+        .badge {
+            padding: 2px 8px;
+            background: #f0f4f8;
+            border: 1px solid #C5D5E8;
+            border-radius: 4px;
+            font-size: 9px;
+            color: #6B8AAB;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .02em;
+        }
+        
+        .badge.type {
+            background: #006341;
+            color: white;
+            border-color: #006341;
+        }
+        
+        .card__actions {
+            display: flex;
+            gap: 8px;
+            padding-top: 12px;
+            border-top: 1px solid #C5D5E8;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-secondary {
+            background: #f0f4f8;
+            color: #1C334F;
+            border: 1px solid #C5D5E8;
+        }
+        
+        .btn-secondary:hover {
+            background: #e8eef5;
+            border-color: #006341;
+        }
+        
+        .btn-primary {
+            background: #006341;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #005030;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stat {
+            background: white;
+            border: 1px solid #C5D5E8;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+        
+        .stat__number {
+            font-size: 28px;
+            font-weight: 800;
+            color: #006341;
+            margin-bottom: 4px;
+        }
+        
+        .stat__label {
+            font-size: 11px;
+            color: #6B8AAB;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            font-weight: 600;
+        }
+        
+        .carrito-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #006341;
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 99, 65, 0.25);
+            transition: all 0.2s;
+            z-index: 100;
+        }
+        
+        .carrito-btn:hover {
+            background: #005030;
+            box-shadow: 0 6px 16px rgba(0, 99, 65, 0.35);
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #22c55e;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            animation: slideIn 0.3s ease;
+            z-index: 1000;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="breadcrumb">
+        <a href="../../../index.html">📊 Dashboard</a> /
+        <a href="../../categorias/gobierno.html">🏛️ Gobierno</a> /
+        <a href="gob-001.html">Análisis de Potencial de Recaudaciónl</a> /
+        <strong>Galería de Objetos</strong>
+    </div>
+    
+    <div class="header">
+        <div class="header__title">🎨 Galería de Objetos</div>
+        <div class="header__desc">Análisis de Potencial de Recaudación - Componentes Reutilizables</div>
+    </div>
+    
+    <div class="stats">
+        <div class="stat">
+            <div class="stat__number" id="stat-total">7</div>
+            <div class="stat__label">Objetos Disponibles</div>
+        </div>
+        <div class="stat">
+            <div class="stat__number" id="stat-seleccionados">0</div>
+            <div class="stat__label">En Tu Carrito</div>
+        </div>
+        <div class="stat">
+            <div class="stat__number">3</div>
+            <div class="stat__label">KPIs + Charts + Tabla</div>
+        </div>
+    </div>
+    
+    <div class="filters">
+        <button class="filter-btn active" data-filter="all">Todos</button>
+        <button class="filter-btn" data-filter="kpi">📊 KPI</button>
+        <button class="filter-btn" data-filter="chart">📈 Charts</button>
+        <button class="filter-btn" data-filter="table">📋 Tablas</button>
+        <button class="filter-btn" data-filter="control">⚙️ Controles</button>
+    </div>
+    
+    <div class="grid" id="gallery-grid">
+        <!-- Se llena con JavaScript -->
+    </div>
+</div>
+
+<button class="carrito-btn" onclick="mostrarCarrito()">🛒 Ver Carrito</button>
+
+<script>
+var catalogo = {
+    "objetos": [
+        {
+            "id": "gob-001-kpi-recaudacion",
+            "nombre": "KPI - Recaudación Potencial",
+            "tipo": "kpi",
+            "subtipo": "metric-card",
+            "ruta": "kpi-recaudacion.html",
+            "tags": ["kpi", "recaudación", "verde"],
+            "descripcion": "KPI mostrando monto total de recaudación potencial anual",
+            "icono": "💰"
+        },
+        {
+            "id": "gob-001-kpi-contribuyentes",
+            "nombre": "KPI - Contribuyentes en Alerta",
+            "tipo": "kpi",
+            "subtipo": "metric-card",
+            "ruta": "kpi-contribuyentes.html",
+            "tags": ["kpi", "contribuyentes", "rojo"],
+            "descripcion": "KPI mostrando cantidad de contribuyentes con riesgo de evasión fiscal",
+            "icono": "⚠️"
+        },
+        {
+            "id": "gob-001-kpi-brecha",
+            "nombre": "KPI - Brecha Fiscal",
+            "tipo": "kpi",
+            "subtipo": "metric-card",
+            "ruta": "kpi-brecha.html",
+            "tags": ["kpi", "brecha", "oro"],
+            "descripcion": "KPI mostrando brecha entre recaudación potencial y actual",
+            "icono": "📉"
+        },
+        {
+            "id": "gob-001-chart-waterfall",
+            "nombre": "Chart - Waterfall Recaudación",
+            "tipo": "chart",
+            "subtipo": "waterfall-chart",
+            "ruta": "chart-waterfall-recaudacion.html",
+            "tags": ["chart", "waterfall", "flujo"],
+            "descripcion": "Gráfico waterfall mostrando composición y brecha de recaudación por fuente",
+            "icono": "📊"
+        },
+        {
+            "id": "gob-001-chart-municipios",
+            "nombre": "Chart - Municipios",
+            "tipo": "chart",
+            "subtipo": "bar-chart",
+            "ruta": "chart-municipios.html",
+            "tags": ["chart", "bar", "municipios"],
+            "descripcion": "Gráfico de barras con ranking de recaudación por municipio",
+            "icono": "📈"
+        },
+        {
+            "id": "gob-001-filtros",
+            "nombre": "Filtros Interactivos",
+            "tipo": "control",
+            "subtipo": "filter-panel",
+            "ruta": "filtros.html",
+            "tags": ["filtros", "control", "período"],
+            "descripcion": "Panel de filtros para período, municipio y tipo de contribuyente",
+            "icono": "⚙️"
+        },
+        {
+            "id": "gob-001-tabla-contribuyentes",
+            "nombre": "Tabla - Top Contribuyentes Riesgo",
+            "tipo": "table",
+            "subtipo": "data-table",
+            "ruta": "kpi-contribuyentes.html",
+            "tags": ["tabla", "datos", "contribuyentes"],
+            "descripcion": "Tabla con top contribuyentes identificados en riesgo de evasión fiscal",
+            "icono": "📋"
+        }
+    ]
+};
+
+var carritoSeleccionados = [];
+var filtroActual = 'all';
+
+function cargarCarrito() {
+    try {
+        carritoSeleccionados = JSON.parse(localStorage.getItem('gob-001-carrito') || '[]');
+    } catch(e) {
+        carritoSeleccionados = [];
+    }
+    actualizarStats();
+}
+
+function guardarCarrito() {
+    localStorage.setItem('gob-001-carrito', JSON.stringify(carritoSeleccionados));
+    actualizarStats();
+}
+
+function actualizarStats() {
+    document.getElementById('stat-seleccionados').textContent = carritoSeleccionados.length;
+}
+
+function renderGallery() {
+    var grid = document.getElementById('gallery-grid');
+    var objetos = catalogo.objetos;
+    
+    if (filtroActual !== 'all') {
+        objetos = objetos.filter(function(obj) {
+            return obj.tipo === filtroActual;
+        });
+    }
+    
+    grid.innerHTML = objetos.map(function(obj) {
+        var isSelected = carritoSeleccionados.includes(obj.id);
+        return '<div class="card">' +
+            '<div class="card__preview ' + obj.tipo + '">' + obj.icono + '</div>' +
+            '<div class="card__content">' +
+                '<div class="card__title">' + obj.nombre + '</div>' +
+                '<div class="card__desc">' + obj.descripcion + '</div>' +
+                '<div class="card__meta">' +
+                    '<span class="badge type">' + obj.tipo + '</span>' +
+                    obj.tags.map(function(tag) {
+                        return '<span class="badge">' + tag + '</span>';
+                    }).join('') +
+                '</div>' +
+            '</div>' +
+            '<div class="card__actions">' +
+                '<button class="btn btn-secondary" onclick="verCodigo(\'' + obj.id + '\')">👁️ Ver</button>' +
+                '<button class="btn btn-primary" onclick="agregarCarrito(\'' + obj.id + '\')">' +
+                    (isSelected ? '✓ Agregado' : '➕ Carrito') +
+                '</button>' +
+            '</div>' +
+        '</div>';
+    }).join('');
+}
+
+function agregarCarrito(id) {
+    if (!carritoSeleccionados.includes(id)) {
+        carritoSeleccionados.push(id);
+        guardarCarrito();
+        renderGallery();
+        mostrarToast('Objeto agregado al carrito');
+    } else {
+        carritoSeleccionados = carritoSeleccionados.filter(function(item) {
+            return item !== id;
+        });
+        guardarCarrito();
+        renderGallery();
+        mostrarToast('Objeto removido del carrito');
+    }
+}
+
+function verCodigo(id) {
+    var obj = catalogo.objetos.find(function(o) { return o.id === id; });
+    if (obj) {
+        window.open(obj.ruta, '_blank');
+    }
+}
+
+function mostrarCarrito() {
+    alert('Carrito (' + carritoSeleccionados.length + ' objetos):\\n' +
+        carritoSeleccionados.map(function(id) {
+            var obj = catalogo.objetos.find(function(o) { return o.id === id; });
+            return '- ' + obj.nombre;
+        }).join('\\n'));
+}
+
+function mostrarToast(msg) {
+    var toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(function() { toast.remove(); }, 2000);
+}
+
+document.querySelectorAll('.filter-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.filter-btn').forEach(function(b) {
+            b.classList.remove('active');
+        });
+        this.classList.add('active');
+        filtroActual = this.getAttribute('data-filter');
+        renderGallery();
+    });
+});
+
+cargarCarrito();
+renderGallery();
+</script>
+
+</body>
+</html>

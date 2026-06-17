@@ -84,75 +84,68 @@
         .seccion-objetos p {
             color: #64748b;
             font-size: 12px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         
-        .objetos-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        
-        .objeto-card {
-            background: white;
-            border: 1px solid #C5D5E8;
-            border-radius: 8px;
-            padding: 12px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
+        /* Preview interactivo */
+        .preview-container {
             position: relative;
+            width: 100%;
+            max-width: 100%;
+            margin-bottom: 20px;
+            border-radius: 8px;
             overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
         
-        .objeto-card:hover {
-            border-color: #006341;
-            box-shadow: 0 4px 12px rgba(0, 99, 65, 0.12);
-            transform: translateY(-2px);
-        }
-        
-        .objeto-icon {
-            font-size: 32px;
-            margin-bottom: 6px;
+        .preview-image {
+            width: 100%;
+            height: auto;
             display: block;
         }
         
-        .objeto-name {
-            font-size: 11px;
-            font-weight: 600;
-            color: #1C334F;
-            line-height: 1.3;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .objeto-type {
-            font-size: 9px;
-            color: #64748b;
-            margin-top: 4px;
-            text-transform: uppercase;
-        }
-        
-        .objeto-hover-label {
+        .hotspot {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            border-radius: 4px;
+        }
+        
+        .hotspot:hover {
+            background: rgba(0, 99, 65, 0.15);
+            border-color: #006341;
+        }
+        
+        .hotspot-tooltip {
+            position: absolute;
             background: rgba(0, 0, 0, 0.9);
             color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 10px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
             white-space: nowrap;
-            opacity: 0;
-            transition: opacity 0.2s;
-            pointer-events: none;
             z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%);
         }
         
-        .objeto-card:hover .objeto-hover-label {
+        .hotspot-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 4px solid transparent;
+            border-top-color: rgba(0, 0, 0, 0.9);
+        }
+        
+        .hotspot:hover .hotspot-tooltip {
             opacity: 1;
         }
         
@@ -171,6 +164,156 @@
         
         .btn-galeria:hover {
             background: #005030;
+        }
+
+        /* CARRITO */
+        .carrito-flotante {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #006341;
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 99, 65, 0.25);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .carrito-flotante:hover {
+            background: #005030;
+        }
+        
+        .modal-carrito {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .modal-carrito.activo {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #006341;
+            padding-bottom: 12px;
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            font-size: 18px;
+            color: #1C334F;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6B8AAB;
+        }
+        
+        .carrito-lista {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 16px 0;
+        }
+        
+        .carrito-item {
+            background: #f8f9fa;
+            padding: 10px;
+            margin-bottom: 6px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid #006341;
+            font-size: 11px;
+        }
+        
+        .carrito-item-nombre {
+            font-weight: 600;
+            color: #1C334F;
+        }
+        
+        .carrito-item-btn {
+            background: #fee2e2;
+            color: #9b1c2e;
+            border: none;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 9px;
+            cursor: pointer;
+        }
+        
+        .carrito-vacio {
+            text-align: center;
+            color: #6B8AAB;
+            padding: 16px;
+            font-size: 12px;
+        }
+        
+        .modal-botones {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-modal {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #C5D5E8;
+            background: white;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        
+        .btn-modal.primary {
+            background: #006341;
+            color: white;
+            border-color: #006341;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            background: #22c55e;
+            color: white;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            z-index: 2000;
         }
     </style>
 </head>
@@ -216,7 +359,7 @@
 
     <div class="contenido">
 
-        <a href="../categorias/gobierno.html" class="boton-volver">← Volver al repositorio</a>
+        <a href="../../categorias/gobierno.html" class="boton-volver">← Volver al repositorio</a>
 
         <div class="tarjeta">
 
@@ -263,77 +406,35 @@
                 </div>
             </div>
 
-            <!-- ════════════════════════════════
-                 NUEVA SECCIÓN: OBJETOS SEPARADOS
-                 ════════════════════════════════ -->
             <div class="seccion-objetos">
                 <h3>🎨 Objetos Reutilizables</h3>
-                <p>
-                    Este proyecto usa una arquitectura modular donde cada componente es un objeto HTML independiente y autocontenido. 
-                    Puedes usar cualquiera de estos objetos en otras demos sin dependencias.
-                </p>
+                <p>Pasa el mouse sobre los objetos en la imagen para verlos resaltados. Haz click en cualquiera para agregarlo al carrito.</p>
 
-                <div class="objetos-grid">
-                    <!-- KPI 1 -->
-                    <div class="objeto-card" onclick="irAlObjeto('kpi-recaudacion.html')">
-                        <span class="objeto-icon">💰</span>
-                        <div class="objeto-name">Recaudación Potencial</div>
-                        <div class="objeto-type">KPI</div>
-                        <div class="objeto-hover-label">Ver código →</div>
+                <div class="preview-container" id="preview-container">
+                    <img src="../../previews/gob-001.png" alt="Preview gob-001" class="preview-image" id="preview-image">
+                    
+                    <!-- HOTSPOT KPI 1 - Recaudación Potencial -->
+                    <div class="hotspot" onclick="agregarCarrito('kpi-recaudacion')" style="left: 1.5%; top: 11%; width: 32%; height: 18%;">
+                        <div class="hotspot-tooltip">💰 Recaudación Potencial (KPI)</div>
                     </div>
-
-                    <!-- KPI 2 -->
-                    <div class="objeto-card" onclick="irAlObjeto('kpi-contribuyentes.html')">
-                        <span class="objeto-icon">⚠️</span>
-                        <div class="objeto-name">Contribuyentes en Alerta</div>
-                        <div class="objeto-type">KPI</div>
-                        <div class="objeto-hover-label">Ver código →</div>
+                    
+                    <!-- HOTSPOT KPI 2 - Contribuyentes en Alerta -->
+                    <div class="hotspot" onclick="agregarCarrito('kpi-contribuyentes')" style="left: 34%; top: 11%; width: 32%; height: 18%;">
+                        <div class="hotspot-tooltip">⚠️ Contribuyentes en Alerta (KPI)</div>
                     </div>
-
-                    <!-- KPI 3 -->
-                    <div class="objeto-card" onclick="irAlObjeto('kpi-brecha.html')">
-                        <span class="objeto-icon">📉</span>
-                        <div class="objeto-name">Brecha Fiscal</div>
-                        <div class="objeto-type">KPI</div>
-                        <div class="objeto-hover-label">Ver código →</div>
+                    
+                    <!-- HOTSPOT KPI 3 - Brecha de Recaudación -->
+                    <div class="hotspot" onclick="agregarCarrito('kpi-brecha')" style="left: 67%; top: 11%; width: 31%; height: 18%;">
+                        <div class="hotspot-tooltip">📉 Brecha de Recaudación (KPI)</div>
                     </div>
-
-                    <!-- CHART 1 -->
-                    <div class="objeto-card" onclick="irAlObjeto('chart-waterfall-recaudacion.html')">
-                        <span class="objeto-icon">📊</span>
-                        <div class="objeto-name">Waterfall Recaudación</div>
-                        <div class="objeto-type">Chart</div>
-                        <div class="objeto-hover-label">Ver código →</div>
-                    </div>
-
-                    <!-- CHART 2 -->
-                    <div class="objeto-card" onclick="irAlObjeto('chart-municipios.html')">
-                        <span class="objeto-icon">📈</span>
-                        <div class="objeto-name">Municipios</div>
-                        <div class="objeto-type">Chart</div>
-                        <div class="objeto-hover-label">Ver código →</div>
-                    </div>
-
-                    <!-- FILTROS -->
-                    <div class="objeto-card" onclick="irAlObjeto('filtros.html')">
-                        <span class="objeto-icon">⚙️</span>
-                        <div class="objeto-name">Filtros</div>
-                        <div class="objeto-type">Control</div>
-                        <div class="objeto-hover-label">Ver código →</div>
-                    </div>
-
-                    <!-- TABLA -->
-                    <div class="objeto-card" onclick="irAlObjeto('tabla-contribuyentes.html')">
-                        <span class="objeto-icon">📋</span>
-                        <div class="objeto-name">Contribuyentes Riesgo</div>
-                        <div class="objeto-type">Tabla</div>
-                        <div class="objeto-hover-label">Ver código →</div>
+                    
+                    <!-- HOTSPOT CHART WATERFALL -->
+                    <div class="hotspot" onclick="agregarCarrito('chart-waterfall')" style="left: 1.5%; top: 32%; width: 97%; height: 65%;">
+                        <div class="hotspot-tooltip">📊 Waterfall - Análisis de Brecha (Chart)</div>
                     </div>
                 </div>
 
-                <a href="gob-001-galeria.html" class="btn-galeria">
-                    🎨 Ver Galería Completa
-                </a>
+                <a href="gob-001-galeria.html" class="btn-galeria">🎨 Ver Galería Completa</a>
             </div>
 
             <div class="seccion-video">
@@ -358,8 +459,155 @@
 
     </div>
 
+    <!-- CARRITO FLOTANTE -->
+    <button class="carrito-flotante" onclick="abrirCarrito()"><span>🛒</span><span id="carrito-count">0</span></button>
+    
+    <!-- MODAL CARRITO -->
+    <div class="modal-carrito" id="modal-carrito" onclick="if(event.target===this)cerrarCarrito()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>🛒 Mi Carrito</h2>
+                <button class="modal-close" onclick="cerrarCarrito()">X</button>
+            </div>
+            <ul class="carrito-lista" id="carrito-lista"><div class="carrito-vacio">Tu carrito esta vacio</div></ul>
+            <div class="modal-botones">
+                <button class="btn-modal" onclick="limpiarCarrito()">Limpiar</button>
+                <button class="btn-modal primary" onclick="descargarCarrito()" id="btn-descargar" disabled>Descargar</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         var CODIGO_URL = 'pagina-inicial-recaudacion.html';
+        var carrito = [];
+        var OBJETOS = [
+            {id: 'kpi-recaudacion', nombre: 'KPI - Recaudacion Potencial'},
+            {id: 'kpi-contribuyentes', nombre: 'KPI - Contribuyentes en Alerta'},
+            {id: 'kpi-brecha', nombre: 'KPI - Brecha de Recaudacion'},
+            {id: 'chart-waterfall', nombre: 'Chart - Waterfall Analisis de Brecha'}
+        ];
+        
+        function cargarCarrito() {
+            carrito = JSON.parse(localStorage.getItem('carrito-gob-001') || '[]');
+            actualizarUI();
+        }
+        
+        function guardarCarrito() {
+            localStorage.setItem('carrito-gob-001', JSON.stringify(carrito));
+            actualizarUI();
+        }
+        
+        function agregarCarrito(id) {
+            if (carrito.includes(id)) {
+                carrito = carrito.filter(function(item) { return item !== id; });
+                mostrarToast('Removido del carrito');
+            } else {
+                carrito.push(id);
+                mostrarToast('Agregado al carrito');
+            }
+            guardarCarrito();
+        }
+        
+        function actualizarUI() {
+            document.getElementById('carrito-count').textContent = carrito.length;
+            document.getElementById('btn-descargar').disabled = carrito.length === 0;
+        }
+        
+        function abrirCarrito() {
+            var lista = document.getElementById('carrito-lista');
+            if (carrito.length === 0) {
+                lista.innerHTML = '<div class="carrito-vacio">Tu carrito esta vacio</div>';
+            } else {
+                var html = '';
+                for (var i = 0; i < carrito.length; i++) {
+                    var id = carrito[i];
+                    var obj = null;
+                    for (var j = 0; j < OBJETOS.length; j++) {
+                        if (OBJETOS[j].id === id) {
+                            obj = OBJETOS[j];
+                            break;
+                        }
+                    }
+                    if (obj) {
+                        html += '<li class="carrito-item"><span class="carrito-item-nombre">' + obj.nombre + '</span><button class="carrito-item-btn" onclick="agregarCarrito(' + "'" + id + "'" + '); abrirCarrito();">X</button></li>';
+                    }
+                }
+                lista.innerHTML = html;
+            }
+            document.getElementById('modal-carrito').classList.add('activo');
+        }
+        
+        function cerrarCarrito() {
+            document.getElementById('modal-carrito').classList.remove('activo');
+        }
+        
+        function descargarCarrito() {
+            if (carrito.length === 0) return;
+            
+            var rutas = {
+                'kpi-recaudacion': 'kpi-recaudacion.html',
+                'kpi-contribuyentes': 'kpi-contribuyentes.html',
+                'kpi-brecha': 'kpi-brecha.html',
+                'chart-waterfall': 'chart-waterfall-recaudacion.html'
+            };
+            
+            var html = '<!-- OBJETOS DEL CARRITO - GOB-001 -->\n\n';
+            var promesas = [];
+            
+            for (var i = 0; i < carrito.length; i++) {
+                var id = carrito[i];
+                var ruta = rutas[id];
+                if (ruta) {
+                    promesas.push(
+                        fetch(ruta)
+                            .then(function(r) { return r.text(); })
+                            .then(function(codigo) {
+                                var obj = OBJETOS.find(function(o) { return o.id === id; });
+                                return {
+                                    nombre: obj.nombre,
+                                    codigo: codigo
+                                };
+                            })
+                            .catch(function(err) {
+                                return {
+                                    nombre: id,
+                                    codigo: '<!-- ERROR: No se pudo cargar ' + id + ' -->'
+                                };
+                            })
+                    );
+                }
+            }
+            
+            Promise.all(promesas).then(function(resultados) {
+                var htmlFinal = html;
+                for (var i = 0; i < resultados.length; i++) {
+                    var result = resultados[i];
+                    htmlFinal += '<!-- ========== ' + result.nombre.toUpperCase() + ' ========== -->\n';
+                    htmlFinal += result.codigo + '\n\n';
+                }
+                
+                navigator.clipboard.writeText(htmlFinal).then(function() {
+                    mostrarToast('Codigo descargado al portapapeles');
+                });
+            });
+        }
+        
+        function limpiarCarrito() {
+            if (confirm('Limpiar carrito?')) {
+                carrito = [];
+                guardarCarrito();
+                cerrarCarrito();
+                mostrarToast('Carrito limpiado');
+            }
+        }
+        
+        function mostrarToast(msg) {
+            var toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(function() { toast.remove(); }, 2000);
+        }
 
         function fetchCodigo(callback) {
             var status = document.getElementById('codigoStatus');
@@ -374,7 +622,7 @@
                     callback(null, text);
                 })
                 .catch(function(err) {
-                    if (status) status.textContent = '⚠️ No se pudo cargar: ' + err.message;
+                    if (status) status.textContent = 'Advertencia: No se pudo cargar: ' + err.message;
                     callback(err, null);
                 });
         }
@@ -392,12 +640,12 @@
                 ta.select();
                 try {
                     document.execCommand('copy');
-                    btn.textContent = '✅ Copiado!';
+                    btn.textContent = 'Copiado!';
                 } catch (e) {
-                    btn.textContent = '❌ Error';
+                    btn.textContent = 'Error';
                 }
                 document.body.removeChild(ta);
-                setTimeout(function () { btn.textContent = '📋 Copiar'; }, 2000);
+                setTimeout(function () { btn.textContent = 'Copiar'; }, 2000);
             });
         });
 
@@ -405,10 +653,7 @@
             window.open(CODIGO_URL, '_blank');
         });
 
-        // Función para ir a un objeto
-        function irAlObjeto(nombre) {
-            window.location.href = nombre;
-        }
+        cargarCarrito();
     </script>
 
 </body>
