@@ -6,6 +6,164 @@
     <title>Dataloop — Repositorio de Demos</title>
     <!-- Aquí se conecta el archivo de estilos -->
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* ── CARRITO FLOTANTE ── */
+        .carrito-flotante {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #006341;
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 99, 65, 0.25);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .carrito-flotante:hover {
+            background: #005030;
+            box-shadow: 0 6px 16px rgba(0, 99, 65, 0.35);
+        }
+
+        .carrito-count {
+            background: #9b1c2e;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        /* ── MODAL CARRITO ── */
+        .modal-carrito {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-carrito.activo {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 70vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #006341;
+            padding-bottom: 12px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 18px;
+            color: #1C334F;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6B8AAB;
+        }
+
+        .carrito-lista {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 16px 0;
+        }
+
+        .carrito-item {
+            background: #f8f9fa;
+            padding: 10px;
+            margin-bottom: 6px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid #006341;
+            font-size: 11px;
+        }
+
+        .carrito-item-nombre {
+            font-weight: 600;
+            color: #1C334F;
+        }
+
+        .carrito-vacio {
+            text-align: center;
+            color: #6B8AAB;
+            padding: 16px;
+            font-size: 12px;
+        }
+
+        .modal-botones {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-modal {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #C5D5E8;
+            background: white;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-modal.primary {
+            background: #006341;
+            color: white;
+            border-color: #006341;
+        }
+
+        .btn-modal:hover {
+            border-color: #006341;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            background: #22c55e;
+            color: white;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            z-index: 2000;
+        }
+    </style>
 </head>
 <body>
 
@@ -226,6 +384,93 @@
 
     </div> <!-- FIN de zona-principal -->
 
+    <!-- CARRITO FLOTANTE -->
+
+    <!-- CARRITO FLOTANTE -->
+    <button class="carrito-flotante" onclick="abrirCarrito()"><span>🛒</span><span id="carrito-count">0</span></button>
+
+    <!-- MODAL CARRITO -->
+    <div class="modal-carrito" id="modal-carrito" onclick="if(event.target===this)cerrarCarrito()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>🛒 Mi Carrito</h2>
+                <button class="modal-close" onclick="cerrarCarrito()">X</button>
+            </div>
+            <ul class="carrito-lista" id="carrito-lista">
+                <div class="carrito-vacio">Tu carrito está vacío</div>
+            </ul>
+            <div class="modal-botones">
+                <button class="btn-modal" onclick="limpiarCarrito()">Limpiar</button>
+                <button class="btn-modal primary" onclick="descargarCarrito()" id="btn-descargar" disabled>Descargar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var carrito = [];
+
+        function cargarCarrito() {
+            carrito = JSON.parse(localStorage.getItem('carrito-global') || '[]');
+            actualizarUI();
+        }
+
+        function guardarCarrito() {
+            localStorage.setItem('carrito-global', JSON.stringify(carrito));
+            actualizarUI();
+        }
+
+        function actualizarUI() {
+            document.getElementById('carrito-count').textContent = carrito.length;
+            document.getElementById('btn-descargar').disabled = carrito.length === 0;
+        }
+
+        function abrirCarrito() {
+            var lista = document.getElementById('carrito-lista');
+            if (carrito.length === 0) {
+                lista.innerHTML = '<div class="carrito-vacio">Tu carrito está vacío</div>';
+            } else {
+                var html = '';
+                carrito.forEach(function(id) {
+                    html += '<li class="carrito-item"><span class="carrito-item-nombre">' + id + '</span></li>';
+                });
+                lista.innerHTML = html;
+            }
+            document.getElementById('modal-carrito').classList.add('activo');
+        }
+
+        function cerrarCarrito() {
+            document.getElementById('modal-carrito').classList.remove('activo');
+        }
+
+        function limpiarCarrito() {
+            if (confirm('¿Limpiar carrito?')) {
+                carrito = [];
+                guardarCarrito();
+                cerrarCarrito();
+                mostrarToast('Carrito limpiado');
+            }
+        }
+
+        function descargarCarrito() {
+            var texto = 'Objetos en carrito:\n\n' + carrito.join('\n');
+            var blob = new Blob([texto], { type: 'text/plain' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'carrito.txt';
+            a.click();
+        }
+
+        function mostrarToast(msg) {
+            var toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(function() { toast.remove(); }, 2000);
+        }
+
+        cargarCarrito();
+    </script>
 
 
 </body>
