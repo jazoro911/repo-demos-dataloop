@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Carrito de Objetos - Sistema de Demos</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #ffffff;
+  --border: #BFD3E6;
+  --muted: #6B8AAB;
+  --navy: #1C334F;
+  --orange: #e8890c;
+  --orange-light: #F1AD61;
+  --orange-dark: #C67319;
+  --success: #22c55e;
+  --error: #b91c1c;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--navy);
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  gap: 20px;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border-bottom: 2px solid var(--orange);
+  padding-bottom: 15px;
+}
+
+.header__title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--navy);
+  margin: 0;
+}
+
+.header__badge {
+  background: var(--orange);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.container {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  overflow: hidden;
+}
+
+.panel--carrito {
+  flex: 0 0 350px;
+  background: #f9fafb;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 15px;
+}
+
+.panel--preview {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 15px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel__title {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--navy);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin: 0;
+}
+
+.panel__divider {
+  width: 28px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--orange-light), var(--orange-dark));
+  border-radius: 2px;
+  margin: 8px 0 12px;
+}
+
+.carrito__items {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 200px;
+}
+
+.carrito__item {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  cursor: grab;
+  transition: all 0.2s ease;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.carrito__item:hover {
+  border-color: var(--orange);
+  box-shadow: 0 2px 8px rgba(232, 137, 12, 0.15);
+}
+
+.carrito__item:active {
+  cursor: grabbing;
+}
+
+.carrito__item-drag {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.carrito__item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.carrito__item-name {
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--navy);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.carrito__item-type {
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.carrito__item-delete {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: var(--error);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.carrito__item-delete:hover {
+  background: #fee2e2;
+}
+
+.carrito__empty {
+  color: var(--muted);
+  text-align: center;
+  padding: 20px;
+  font-size: 12px;
+}
+
+.carrito__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1;
+}
+
+.btn--primary {
+  background: var(--orange);
+  color: white;
+}
+
+.btn--primary:hover {
+  background: var(--orange-dark);
+}
+
+.btn--primary:disabled {
+  background: var(--muted);
+  cursor: not-allowed;
+}
+
+.btn--secondary {
+  background: #e5e7eb;
+  color: var(--navy);
+}
+
+.btn--secondary:hover {
+  background: #d1d5db;
+}
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.preview__info {
+  display: flex;
+  gap: 8px;
+  flex-direction: column;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.preview__name {
+  font-weight: 700;
+  color: var(--navy);
+  font-size: 14px;
+}
+
+.preview__meta {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.preview__code {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.preview__code-title {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.preview__code-wrapper {
+  flex: 1;
+  overflow: auto;
+  background: #1e293b;
+  border-radius: 6px;
+  padding: 12px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: #e2e8f0;
+  border: 1px solid var(--border);
+  position: relative;
+}
+
+.preview__code-copy {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--orange);
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.preview__code-copy:hover {
+  background: var(--orange-dark);
+}
+
+.preview__code-copy.copied {
+  background: var(--success);
+}
+
+.placeholder {
+  color: var(--muted);
+  text-align: center;
+  padding: 40px 20px;
+  font-size: 13px;
+}
+
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--success);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  animation: slideIn 0.3s ease;
+  z-index: 1000;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.loading {
+  text-align: center;
+  color: var(--muted);
+  padding: 20px;
+}
+
+.loading::after {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--orange);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1 class="header__title">🛒 Mi Carrito de Objetos</h1>
+  <span class="header__badge" id="badge-count">0 objetos</span>
+</div>
+
+<div class="container">
+  <!-- PANEL IZQUIERDO: Carrito -->
+  <div class="panel panel--carrito">
+    <div>
+      <h2 class="panel__title">Objetos Seleccionados</h2>
+      <div class="panel__divider"></div>
+    </div>
+    
+    <div class="carrito__items" id="carrito-items">
+      <div class="carrito__empty">Tu carrito está vacío</div>
+    </div>
+    
+    <div class="carrito__actions">
+      <button class="btn btn--secondary" id="btn-clear" disabled>Limpiar</button>
+      <button class="btn btn--primary" id="btn-export" disabled>Exportar</button>
+    </div>
+  </div>
+  
+  <!-- PANEL DERECHO: Preview -->
+  <div class="panel panel--preview">
+    <div>
+      <h2 class="panel__title">Vista Previa</h2>
+      <div class="panel__divider"></div>
+    </div>
+    
+    <div class="preview" id="preview-container">
+      <div class="placeholder">Selecciona un objeto del carrito para ver su código</div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════
+   CONFIGURACIÓN
+   ════════════════════════════════ */
+
+const STORAGE_KEY = 'objetos-carrito';
+const CATALOGO_URL = './catalogo.json';
+
+let catalogo = {};
+let carrito = [];
+
+/* ════════════════════════════════
+   LOAD CATALOGO
+   ════════════════════════════════ */
+
+async function loadCatalogo() {
+  try {
+    const response = await fetch(CATALOGO_URL);
+    const data = await response.json();
+    
+    catalogo = data.objetos.reduce((acc, obj) => {
+      acc[obj.id] = obj;
+      return acc;
+    }, {});
+    
+    loadCarrito();
+    renderCarrito();
+  } catch(e) {
+    console.error('Error cargando catálogo:', e);
+    document.getElementById('carrito-items').innerHTML = '<div class="loading">Error cargando objetos</div>';
+  }
+}
+
+/* ════════════════════════════════
+   LOAD/SAVE CARRITO (localStorage)
+   ════════════════════════════════ */
+
+function loadCarrito() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    carrito = saved ? JSON.parse(saved) : [];
+  } catch(e) {
+    carrito = [];
+  }
+}
+
+function saveCarrito() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(carrito));
+}
+
+/* ════════════════════════════════
+   ADD OBJECT (desde otra página)
+   ════════════════════════════════ */
+
+function addToCarrito(objectId) {
+  if (!carrito.find(item => item === objectId)) {
+    carrito.push(objectId);
+    saveCarrito();
+    renderCarrito();
+  }
+}
+
+/* ════════════════════════════════
+   RENDER CARRITO
+   ════════════════════════════════ */
+
+function renderCarrito() {
+  const container = document.getElementById('carrito-items');
+  const badge = document.getElementById('badge-count');
+  
+  badge.textContent = `${carrito.length} ${carrito.length === 1 ? 'objeto' : 'objetos'}`;
+  
+  if (carrito.length === 0) {
+    container.innerHTML = '<div class="carrito__empty">Tu carrito está vacío</div>';
+    document.getElementById('btn-clear').disabled = true;
+    document.getElementById('btn-export').disabled = true;
+    return;
+  }
+  
+  document.getElementById('btn-clear').disabled = false;
+  document.getElementById('btn-export').disabled = false;
+  
+  container.innerHTML = carrito.map((id, idx) => {
+    const obj = catalogo[id];
+    if (!obj) return '';
+    
+    return `
+      <div class="carrito__item" data-id="${id}" data-index="${idx}">
+        <span class="carrito__item-drag">☰</span>
+        <div class="carrito__item-info">
+          <div class="carrito__item-name">${obj.nombre}</div>
+          <div class="carrito__item-type">${obj.subtipo} • ${obj.demo}</div>
+        </div>
+        <button class="carrito__item-delete" onclick="removeFromCarrito('${id}')">✕</button>
+      </div>
+    `;
+  }).join('');
+  
+  // Agregar listeners de click a items
+  container.querySelectorAll('.carrito__item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      if (!e.target.classList.contains('carrito__item-delete')) {
+        const id = item.dataset.id;
+        showPreview(id);
+        container.querySelectorAll('.carrito__item').forEach(i => i.style.opacity = '0.7');
+        item.style.opacity = '1';
+      }
+    });
+  });
+}
+
+/* ════════════════════════════════
+   REMOVE FROM CARRITO
+   ════════════════════════════════ */
+
+function removeFromCarrito(id) {
+  carrito = carrito.filter(item => item !== id);
+  saveCarrito();
+  renderCarrito();
+  document.getElementById('preview-container').innerHTML = '<div class="placeholder">Selecciona un objeto del carrito para ver su código</div>';
+}
+
+/* ════════════════════════════════
+   SHOW PREVIEW / CODE
+   ════════════════════════════════ */
+
+async function showPreview(id) {
+  const obj = catalogo[id];
+  if (!obj) return;
+  
+  const container = document.getElementById('preview-container');
+  container.innerHTML = '<div class="loading">Cargando...</div>';
+  
+  try {
+    const response = await fetch(obj.ruta);
+    const code = await response.text();
+    
+    const preview = `
+      <div class="preview__info">
+        <div class="preview__name">${obj.nombre}</div>
+        <div class="preview__meta">${obj.descripcion}</div>
+        <div class="preview__meta">📁 ${obj.ruta}</div>
+        <div class="preview__meta">🏷️ ${obj.tags.join(', ')}</div>
+      </div>
+      <div class="preview__code">
+        <div class="preview__code-title">Código HTML</div>
+        <div class="preview__code-wrapper">
+          <button class="preview__code-copy" onclick="copyCode(this)">Copiar</button>
+          <pre id="code-block" style="margin: 0; overflow: auto; max-height: 100%;">${escapeHtml(code)}</pre>
+        </div>
+      </div>
+    `;
+    
+    container.innerHTML = preview;
+  } catch(e) {
+    container.innerHTML = `<div class="placeholder">Error cargando el código</div>`;
+  }
+}
+
+/* ════════════════════════════════
+   COPY CODE
+   ════════════════════════════════ */
+
+function copyCode(btn) {
+  const code = document.getElementById('code-block').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = '✓ Copiado';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copiar';
+      btn.classList.remove('copied');
+    }, 2000);
+    showToast('Código copiado al portapapeles');
+  });
+}
+
+/* ════════════════════════════════
+   EXPORT
+   ════════════════════════════════ */
+
+function exportCarrito() {
+  const data = carrito.map(id => {
+    const obj = catalogo[id];
+    return {
+      id: obj.id,
+      nombre: obj.nombre,
+      ruta: obj.ruta,
+      tipo: obj.tipo
+    };
+  });
+  
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `carrito-objetos-${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  showToast('Carrito exportado');
+}
+
+/* ════════════════════════════════
+   UTILITIES
+   ════════════════════════════════ */
+
+function escapeHtml(text) {
+  const map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+function showToast(message) {
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2000);
+}
+
+/* ════════════════════════════════
+   EVENT LISTENERS
+   ════════════════════════════════ */
+
+document.getElementById('btn-clear').addEventListener('click', () => {
+  if (confirm('¿Estás seguro de que deseas limpiar el carrito?')) {
+    carrito = [];
+    saveCarrito();
+    renderCarrito();
+    document.getElementById('preview-container').innerHTML = '<div class="placeholder">Selecciona un objeto del carrito para ver su código</div>';
+    showToast('Carrito limpiado');
+  }
+});
+
+document.getElementById('btn-export').addEventListener('click', exportCarrito);
+
+/* ════════════════════════════════
+   INIT
+   ════════════════════════════════ */
+
+loadCatalogo();
+
+/* Exponer función global para agregar desde otras páginas */
+window.addToCarrito = addToCarrito;
+</script>
+
+</body>
+</html>

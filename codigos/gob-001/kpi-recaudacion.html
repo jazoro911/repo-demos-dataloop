@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>KPI - Recaudación Potencial</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+.gob-kpi-recaudacion {
+  --gkr-bg: #ffffff;
+  --gkr-border: #C5D5E8;
+  --gkr-muted: #6B8AAB;
+  --gkr-bar-color: #006341;
+  --gkr-title-color: #1C334F;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+.gob-kpi-recaudacion {
+  background: var(--gkr-bg);
+  border: 1px solid var(--gkr-border);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 13px;
+}
+
+.gob-kpi-recaudacion__bar {
+  height: 8px;
+  width: 100%;
+  background: var(--gkr-bar-color);
+  flex-shrink: 0;
+}
+
+.gob-kpi-recaudacion__content {
+  flex: 1;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.gob-kpi-recaudacion__value {
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--gkr-bar-color);
+  line-height: 1.1;
+  margin: 0;
+}
+
+.gob-kpi-recaudacion__label {
+  color: var(--gkr-muted);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  font-weight: 600;
+  font-size: 10px;
+  margin-top: 6px;
+  margin-bottom: 2px;
+}
+
+.gob-kpi-recaudacion__title {
+  color: var(--gkr-title-color);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.gob-kpi-recaudacion__meta {
+  color: var(--gkr-muted);
+  font-size: 10px;
+  margin-top: 4px;
+}
+
+.gob-kpi-recaudacion__error {
+  color: #b91c1c;
+  font-size: 10px;
+  display: none;
+  white-space: pre-wrap;
+  margin-top: 6px;
+}
+</style>
+</head>
+<body style="margin: 0; padding: 10px; height: 100vh; display: flex;">
+
+<div class="gob-kpi-recaudacion">
+  <div class="gob-kpi-recaudacion__bar"></div>
+  <div class="gob-kpi-recaudacion__content">
+    <div class="gob-kpi-recaudacion__label">Recaudación</div>
+    <div class="gob-kpi-recaudacion__value" id="valor">—</div>
+    <div class="gob-kpi-recaudacion__title">Potencial Anual</div>
+    <div class="gob-kpi-recaudacion__meta">Ejercicio fiscal 2025</div>
+    <div class="gob-kpi-recaudacion__error" id="error"></div>
+  </div>
+</div>
+
+<script>
+window.addEventListener('message', function(evt) {
+  var m = evt.data || {};
+  var cols = m.rankingColumns || m.columns || [];
+  var rows = m.rankingData || m.data || [];
+  
+  if (cols.length && rows.length) {
+    try {
+      var idxRecaudacion = cols.findIndex(function(c) {
+        var name = (c.label || c.name || c || '').toString().trim().toUpperCase();
+        return name.includes('RECAUDACION') || name.includes('POTENCIAL');
+      });
+      
+      if (idxRecaudacion >= 0) {
+        var valores = rows.map(function(row) {
+          return parseFloat(row[idxRecaudacion]);
+        }).filter(function(v) { return isFinite(v); });
+        
+        if (valores.length > 0) {
+          var total = valores.reduce(function(a, b) { return a + b; }, 0);
+          var formatter = new Intl.NumberFormat('es-MX', {
+            style: 'currency',
+            currency: 'MXN',
+            minimumFractionDigits: 0
+          });
+          document.getElementById('valor').textContent = formatter.format(total);
+          document.getElementById('error').style.display = 'none';
+        }
+      }
+    } catch(e) {
+      document.getElementById('error').textContent = e.message;
+      document.getElementById('error').style.display = 'block';
+    }
+  }
+});
+
+try { 
+  if (window.parent) window.parent.postMessage({ type: 'ready', object: 'gob-001-kpi-recaudacion' }, '*'); 
+} catch(e) {}
+
+document.getElementById('valor').textContent = '$2,847 M';
+</script>
+
+</body>
+</html>

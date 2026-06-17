@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Filtros</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+.gob-filtros {
+  --gf-bg: #ffffff;
+  --gf-border: #C5D5E8;
+  --gf-muted: #6B8AAB;
+  --gf-navy: #1C334F;
+  --gf-input-bg: #f0f4f8;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 15px;
+  font-family: 'Open Sans', sans-serif;
+  background: var(--gf-bg);
+  font-size: 13px;
+  height: 100vh;
+}
+
+.gob-filtros {
+  background: var(--gf-bg);
+  border: 1px solid var(--gf-border);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gob-filtros__title {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--gf-navy);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin: 0 0 4px 0;
+}
+
+.gob-filtros__divider {
+  width: 28px;
+  height: 3px;
+  background: linear-gradient(90deg, #006341, #9b1c2e);
+  border-radius: 2px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gf-muted);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+select, input {
+  padding: 8px 10px;
+  border: 1px solid var(--gf-border);
+  border-radius: 4px;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 12px;
+  background: var(--gf-input-bg);
+  color: var(--gf-navy);
+}
+
+select:focus, input:focus {
+  outline: none;
+  border-color: #006341;
+  background: var(--gf-bg);
+}
+
+.filter-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.btn-filter {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--gf-border);
+  background: var(--gf-bg);
+  color: var(--gf-navy);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-filter:hover {
+  background: var(--gf-input-bg);
+  border-color: #006341;
+}
+
+.btn-filter.primary {
+  background: #006341;
+  color: white;
+  border-color: #006341;
+}
+
+.btn-filter.primary:hover {
+  background: #005030;
+}
+</style>
+</head>
+<body>
+
+<div class="gob-filtros">
+  <div>
+    <div class="gob-filtros__title">⚙️ Filtros</div>
+    <div class="gob-filtros__divider"></div>
+  </div>
+  
+  <div class="filter-group">
+    <label class="filter-label">Período Fiscal</label>
+    <select id="filtro-periodo">
+      <option value="2025">2025</option>
+      <option value="2024">2024</option>
+      <option value="2023">2023</option>
+    </select>
+  </div>
+  
+  <div class="filter-group">
+    <label class="filter-label">Municipio</label>
+    <select id="filtro-municipio">
+      <option value="">Todos</option>
+      <option value="puebla">Puebla</option>
+      <option value="tlaxcala">Tlaxcala</option>
+      <option value="cholula">Cholula</option>
+      <option value="tehuacan">Tehuacán</option>
+    </select>
+  </div>
+  
+  <div class="filter-group">
+    <label class="filter-label">Tipo de Contribuyente</label>
+    <select id="filtro-tipo">
+      <option value="">Todos</option>
+      <option value="pf">Personas Físicas</option>
+      <option value="pm">Personas Morales</option>
+    </select>
+  </div>
+  
+  <div class="filter-actions">
+    <button class="btn-filter" onclick="clearFilters()">Limpiar</button>
+    <button class="btn-filter primary" onclick="applyFilters()">Aplicar</button>
+  </div>
+</div>
+
+<script>
+function applyFilters() {
+  var periodo = document.getElementById('filtro-periodo').value;
+  var municipio = document.getElementById('filtro-municipio').value;
+  var tipo = document.getElementById('filtro-tipo').value;
+  
+  var m = {
+    type: 'filters-applied',
+    periodo: periodo,
+    municipio: municipio,
+    tipo: tipo
+  };
+  
+  try {
+    if (window.parent) window.parent.postMessage(m, '*');
+  } catch(e) {}
+}
+
+function clearFilters() {
+  document.getElementById('filtro-periodo').value = '2025';
+  document.getElementById('filtro-municipio').value = '';
+  document.getElementById('filtro-tipo').value = '';
+  applyFilters();
+}
+
+try { 
+  if (window.parent) window.parent.postMessage({ type: 'ready', object: 'gob-001-filtros' }, '*'); 
+} catch(e) {}
+</script>
+
+</body>
+</html>

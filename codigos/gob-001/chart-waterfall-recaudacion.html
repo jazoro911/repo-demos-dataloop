@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Chart - Waterfall Recaudación</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+.gob-chart-waterfall {
+  --gcw-bg: #ffffff;
+  --gcw-border: #C5D5E8;
+  --gcw-muted: #6B8AAB;
+  --gcw-navy: #1C334F;
+  --gcw-green: #006341;
+  --gcw-red: #9b1c2e;
+  --gcw-track-bg: #f0f4f8;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 15px;
+  font-family: 'Open Sans', sans-serif;
+  background: var(--gcw-bg);
+  font-size: 13px;
+}
+
+.gob-chart-waterfall {
+  background: var(--gcw-bg);
+  border: 1px solid var(--gcw-border);
+  border-radius: 8px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+}
+
+.gob-chart-waterfall__title {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--gcw-navy);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin: 0 0 4px 0;
+}
+
+.gob-chart-waterfall__divider {
+  width: 28px;
+  height: 3px;
+  background: linear-gradient(90deg, #006341, #9b1c2e);
+  border-radius: 2px;
+  margin: 4px 0 16px;
+}
+
+.gob-chart-waterfall__container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 12px;
+}
+
+.waterfall-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.waterfall-label {
+  font-size: 10px;
+  color: var(--gcw-muted);
+  text-align: center;
+  font-weight: 600;
+  line-height: 1.3;
+  min-height: 20px;
+}
+
+.waterfall-bar {
+  width: 60px;
+  height: 120px;
+  background: var(--gcw-track-bg);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  position: relative;
+}
+
+.waterfall-fill {
+  width: 100%;
+  border-radius: 4px;
+  transition: height 0.3s ease;
+}
+
+.waterfall-value {
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  margin-top: 6px;
+}
+
+.waterfall-arrow {
+  font-size: 12px;
+  color: var(--gcw-muted);
+}
+
+.gob-chart-waterfall__error {
+  color: #b91c1c;
+  font-size: 11px;
+  display: none;
+  white-space: pre-wrap;
+  margin-top: 12px;
+}
+</style>
+</head>
+<body>
+
+<div class="gob-chart-waterfall">
+  <div class="gob-chart-waterfall__title">Flujo de Recaudación</div>
+  <div class="gob-chart-waterfall__divider"></div>
+  <div class="gob-chart-waterfall__error" id="chart-error"></div>
+  <div class="gob-chart-waterfall__container" id="chart-container"></div>
+</div>
+
+<script>
+var defaultData = [
+  { label: 'Potencial', valor: 2847, color: '#006341' },
+  { label: 'Impuestos', valor: 1900, color: '#2d7a5e' },
+  { label: 'Aduanas', valor: 650, color: '#4a8f73' },
+  { label: 'Otros', valor: 297, color: '#7ba499' },
+  { label: 'Evasión', valor: 810, color: '#9b1c2e' }
+];
+
+function render(data) {
+  data = data || defaultData;
+  var cont = document.getElementById('chart-container');
+  
+  if (!data || !data.length) {
+    cont.innerHTML = '<p style="color:var(--gcw-muted); font-size:11px;">Sin datos</p>';
+    return;
+  }
+  
+  var maxVal = Math.max.apply(null, data.map(function(d) { return d.valor; }));
+  if (maxVal <= 0) maxVal = 1;
+  
+  var html = data.map(function(d, i) {
+    var pct = (d.valor / maxVal) * 100;
+    var arrow = i < data.length - 1 ? '<div class="waterfall-arrow">→</div>' : '';
+    
+    return '<div class="waterfall-item">' +
+      '<div class="waterfall-label">' + d.label + '</div>' +
+      '<div class="waterfall-bar">' +
+        '<div class="waterfall-fill" style="height:' + pct + '%;background:' + d.color + '"></div>' +
+      '</div>' +
+      '<div class="waterfall-value" style="color:' + d.color + '">' + d.valor + ' M</div>' +
+      arrow +
+    '</div>';
+  }).join('');
+  
+  cont.innerHTML = html;
+}
+
+window.addEventListener('message', function(evt) {
+  var m = evt.data || {};
+  var cols = m.rankingColumns || m.columns || [];
+  var rows = m.rankingData || m.data || [];
+  
+  if (cols.length && rows.length) {
+    try {
+      render(null);
+      document.getElementById('chart-error').style.display = 'none';
+    } catch(e) {
+      document.getElementById('chart-error').textContent = e.message;
+      document.getElementById('chart-error').style.display = 'block';
+    }
+  }
+});
+
+try { 
+  if (window.parent) window.parent.postMessage({ type: 'ready', object: 'gob-001-chart-waterfall' }, '*'); 
+} catch(e) {}
+
+render(defaultData);
+</script>
+
+</body>
+</html>

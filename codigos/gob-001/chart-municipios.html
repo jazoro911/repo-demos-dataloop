@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Chart - Municipios</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+.gob-chart-municipios {
+  --gcm-bg: #ffffff;
+  --gcm-border: #C5D5E8;
+  --gcm-muted: #6B8AAB;
+  --gcm-navy: #1C334F;
+  --gcm-track-bg: #f0f4f8;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 15px;
+  font-family: 'Open Sans', sans-serif;
+  background: var(--gcm-bg);
+  font-size: 13px;
+}
+
+.gob-chart-municipios {
+  background: var(--gcm-bg);
+  border: 1px solid var(--gcm-border);
+  border-radius: 8px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+}
+
+.gob-chart-municipios__title {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--gcm-navy);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin: 0 0 4px 0;
+}
+
+.gob-chart-municipios__divider {
+  width: 28px;
+  height: 3px;
+  background: linear-gradient(90deg, #006341, #9b1c2e);
+  border-radius: 2px;
+  margin: 4px 0 12px;
+}
+
+.gob-chart-municipios__container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chart-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chart-label {
+  font-size: 10px;
+  font-weight: 600;
+  width: 70px;
+  flex-shrink: 0;
+  color: var(--gcm-navy);
+}
+
+.chart-track {
+  flex: 1;
+  height: 20px;
+  background: var(--gcm-track-bg);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.chart-fill {
+  height: 100%;
+  border-radius: 3px;
+  min-width: 2px;
+  transition: width 0.3s ease;
+}
+
+.chart-value {
+  font-size: 10px;
+  font-weight: 700;
+  width: 50px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.gob-chart-municipios__error {
+  color: #b91c1c;
+  font-size: 11px;
+  display: none;
+}
+</style>
+</head>
+<body>
+
+<div class="gob-chart-municipios">
+  <div class="gob-chart-municipios__title">Top 5 Municipios</div>
+  <div class="gob-chart-municipios__divider"></div>
+  <div class="gob-chart-municipios__error" id="chart-error"></div>
+  <div class="gob-chart-municipios__container" id="chart-container"></div>
+</div>
+
+<script>
+var defaultData = [
+  { municipio: 'Puebla', valor: 850 },
+  { municipio: 'Tlaxcala', valor: 620 },
+  { municipio: 'Cholula', valor: 480 },
+  { municipio: 'Tehuacán', valor: 380 },
+  { municipio: 'Xalapa', valor: 275 }
+];
+
+var PALETTE = ['#006341', '#2d7a5e', '#4a8f73', '#7ba499', '#c5d5e8'];
+
+function render(data) {
+  data = data || defaultData;
+  var cont = document.getElementById('chart-container');
+  
+  if (!data || !data.length) return;
+  
+  var max = Math.max.apply(null, data.map(function(d) { return d.valor; }));
+  if (max <= 0) max = 1;
+  
+  cont.innerHTML = data.map(function(d, i) {
+    var pct = (d.valor / max) * 100;
+    var color = PALETTE[i % PALETTE.length];
+    return '<div class="chart-row">' +
+      '<span class="chart-label">' + d.municipio + '</span>' +
+      '<div class="chart-track"><div class="chart-fill" style="width:' + pct + '%;background:' + color + '"></div></div>' +
+      '<span class="chart-value" style="color:' + color + '">' + d.valor + ' M</span>' +
+    '</div>';
+  }).join('');
+}
+
+window.addEventListener('message', function(evt) {
+  var m = evt.data || {};
+  if ((m.columns || []).length && (m.data || []).length) {
+    render(null);
+  }
+});
+
+try { 
+  if (window.parent) window.parent.postMessage({ type: 'ready', object: 'gob-001-chart-municipios' }, '*'); 
+} catch(e) {}
+
+render(defaultData);
+</script>
+
+</body>
+</html>

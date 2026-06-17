@@ -54,6 +54,27 @@
         .badge-demo     { background: #dbeafe; color: #1e40af; }
         .badge-wip      { background: #fef9c3; color: #854d0e; }
         .badge-pendiente{ background: #f1f5f9; color: #64748b; }
+
+        /* ── NUEVO: Botón Galería ── */
+        .boton-galeria {
+            display: inline-block;
+            background: linear-gradient(135deg, #006341 0%, #1a5c36 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 24px;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .boton-galeria:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 99, 65, 0.2);
+        }
     </style>
 </head>
 <body>
@@ -106,13 +127,14 @@
         <p class="categoria-descripcion">Recaudación fiscal y brecha tributaria — Secretaría de Finanzas</p>
         <p class="categoria-contador">2 códigos disponibles</p>
 
+        <!-- ⭐ NUEVO: BOTÓN GALERÍA DE OBJETOS ⭐ -->
+        <a href="../galeria-objetos.html" class="boton-galeria">
+            🎨 Ver Galería de Objetos Reutilizables
+        </a>
+
         <div class="grid-proyectos">
 
-            <!-- PROYECTO 1
-                 data-preview  → ruta a la imagen de preview (relativa a este archivo)
-                 data-preview-label → texto que aparece debajo de la imagen en el popup
-                 data-estado   → listo | demo | wip | pendiente
-            -->
+            <!-- PROYECTO 1 -->
             <a href="../codigos/gob-001.html"
                class="proyecto-card"
                data-preview="../previews/gob-001.png"
@@ -123,7 +145,6 @@
                         Análisis de Potencial de Recaudación
                         <span class="badge-estado badge-demo">Demo</span>
                     </span>
-                    <!--<span class="badge-tipo badge-proyecto">Proyecto</span>-->
                 </div>
                 <div class="card-desc">
                     Tablero ejecutivo de impuestos y aduanas para visualizar montos de recaudación por nivel municipal, estatal y federal.
@@ -151,7 +172,6 @@
                         Brecha de Recaudación
                         <span class="badge-estado badge-demo">Demo</span>
                     </span>
-                    <!--<span class="badge-tipo badge-notebook">Notebook</span>-->
                 </div>
                 <div class="card-desc">
                     Discrepancias en impuestos y aduanas: modelo de propensión a evasión fiscal con zonificación geográfica y análisis de contribuyentes.
@@ -185,24 +205,20 @@
     </div>
 
     <script>
-        /* ── Preview popup ──────────────────────────────────────────
-           Busca todas las tarjetas que tengan data-preview con valor.
-           Al hacer hover muestra el popup siguiendo el cursor.
-           Si no hay imagen asignada, no muestra nada.
-        ────────────────────────────────────────────────────────── */
+        /* ── Preview popup ─────────────────────────────────────────── */
         var popup  = document.getElementById('previewPopup');
         var popImg = document.getElementById('previewImg');
         var popLbl = document.getElementById('previewLabel');
 
-        var MARGIN = 18;   /* distancia del popup al cursor en px */
-        var POPUP_W = 440; /* ancho popup + padding estimado        */
-        var POPUP_H = 280; /* alto estimado para no salir de pantalla */
+        var MARGIN = 18;
+        var POPUP_W = 440;
+        var POPUP_H = 280;
 
         document.querySelectorAll('.proyecto-card[data-preview]').forEach(function(card) {
             var src   = card.getAttribute('data-preview');
             var label = card.getAttribute('data-preview-label') || '';
 
-            if (!src) return; /* sin imagen → sin popup */
+            if (!src) return;
 
             card.addEventListener('mouseenter', function() {
                 popImg.src       = src;
@@ -214,7 +230,6 @@
                 var x = e.clientX + MARGIN;
                 var y = e.clientY + MARGIN;
 
-                /* Evitar que salga de la pantalla */
                 if (x + POPUP_W > window.innerWidth)  x = e.clientX - POPUP_W - MARGIN;
                 if (y + POPUP_H > window.innerHeight) y = e.clientY - POPUP_H - MARGIN;
 
@@ -228,9 +243,7 @@
             });
         });
 
-        /* ── Buscador del sidebar ───────────────────────────────────
-           Filtra las tarjetas visibles por título, descripción o tags.
-        ────────────────────────────────────────────────────────── */
+        /* ── Buscador del sidebar ─────────────────────────────────── */
         var buscador = document.querySelector('.sidebar-buscador');
         if (buscador) {
             buscador.addEventListener('input', function() {

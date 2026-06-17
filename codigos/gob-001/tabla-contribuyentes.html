@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Tabla - Contribuyentes en Riesgo</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+.gob-tabla-contribuyentes {
+  --gtc-bg: #ffffff;
+  --gtc-border: #C5D5E8;
+  --gtc-muted: #6B8AAB;
+  --gtc-navy: #1C334F;
+  --gtc-row-hover: #f0f4f8;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 15px;
+  font-family: 'Open Sans', sans-serif;
+  background: var(--gtc-bg);
+  font-size: 13px;
+}
+
+.gob-tabla-contribuyentes {
+  background: var(--gtc-bg);
+  border: 1px solid var(--gtc-border);
+  border-radius: 8px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  overflow-y: auto;
+  height: 100%;
+}
+
+.gob-tabla-contribuyentes__title {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--gtc-navy);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin: 0 0 4px 0;
+}
+
+.gob-tabla-contribuyentes__divider {
+  width: 28px;
+  height: 3px;
+  background: linear-gradient(90deg, #006341, #9b1c2e);
+  border-radius: 2px;
+  margin: 4px 0 12px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+thead {
+  background: var(--gtc-row-hover);
+  border-bottom: 1px solid var(--gtc-border);
+}
+
+th {
+  padding: 10px 8px;
+  text-align: left;
+  font-weight: 700;
+  color: var(--gtc-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  border-right: 1px solid var(--gtc-border);
+}
+
+th:last-child {
+  border-right: none;
+}
+
+td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--gtc-border);
+  color: var(--gtc-navy);
+}
+
+tbody tr:hover {
+  background: var(--gtc-row-hover);
+}
+
+.risk-high {
+  color: #9b1c2e;
+  font-weight: 700;
+}
+
+.risk-medium {
+  color: #b8860b;
+  font-weight: 600;
+}
+
+.risk-low {
+  color: #006341;
+}
+
+.gob-tabla-contribuyentes__error {
+  color: #b91c1c;
+  font-size: 11px;
+  display: none;
+}
+</style>
+</head>
+<body>
+
+<div class="gob-tabla-contribuyentes">
+  <div class="gob-tabla-contribuyentes__title">Top Contribuyentes - Riesgo Alto</div>
+  <div class="gob-tabla-contribuyentes__divider"></div>
+  <div class="gob-tabla-contribuyentes__error" id="table-error"></div>
+  <div id="table-container"></div>
+</div>
+
+<script>
+var defaultData = [
+  { rfc: 'ABC123456XYZ', nombre: 'Empresa A S.A.', municipio: 'Puebla', riesgo: 95, declarado: 450 },
+  { rfc: 'DEF789456XYZ', nombre: 'Corp B S.A. de C.V.', municipio: 'Tlaxcala', riesgo: 88, declarado: 320 },
+  { rfc: 'GHI234567XYZ', nombre: 'Negocios C Ltda.', municipio: 'Cholula', riesgo: 82, declarado: 210 },
+  { rfc: 'JKL567890XYZ', nombre: 'Grupo D S.A.', municipio: 'Tehuacán', riesgo: 78, declarado: 185 },
+  { rfc: 'MNO901234XYZ', nombre: 'Servicios E S.A.', municipio: 'Xalapa', riesgo: 72, declarado: 155 }
+];
+
+function render(data) {
+  data = data || defaultData;
+  var cont = document.getElementById('table-container');
+  
+  if (!data || !data.length) {
+    cont.innerHTML = '<p style="color:var(--gtc-muted); font-size:11px;">Sin datos</p>';
+    return;
+  }
+  
+  var html = '<table><thead><tr>' +
+    '<th>RFC</th>' +
+    '<th>Nombre</th>' +
+    '<th>Municipio</th>' +
+    '<th>Riesgo</th>' +
+    '<th>Declarado</th>' +
+  '</tr></thead><tbody>';
+  
+  html += data.map(function(row) {
+    var riesgoClass = row.riesgo >= 80 ? 'risk-high' : row.riesgo >= 70 ? 'risk-medium' : 'risk-low';
+    return '<tr>' +
+      '<td style="font-family: monospace; font-size: 10px;">' + row.rfc + '</td>' +
+      '<td>' + row.nombre + '</td>' +
+      '<td>' + row.municipio + '</td>' +
+      '<td class="' + riesgoClass + '">' + row.riesgo + '%</td>' +
+      '<td>$' + row.declarado + 'M</td>' +
+    '</tr>';
+  }).join('');
+  
+  html += '</tbody></table>';
+  cont.innerHTML = html;
+}
+
+window.addEventListener('message', function(evt) {
+  var m = evt.data || {};
+  if ((m.columns || []).length && (m.data || []).length) {
+    render(null);
+  }
+});
+
+try { 
+  if (window.parent) window.parent.postMessage({ type: 'ready', object: 'gob-001-tabla-contribuyentes' }, '*'); 
+} catch(e) {}
+
+render(defaultData);
+</script>
+
+</body>
+</html>

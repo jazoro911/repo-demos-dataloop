@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>KPI - Brecha Fiscal</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+.gob-kpi-brecha {
+  --gkb-bg: #ffffff;
+  --gkb-border: #C5D5E8;
+  --gkb-muted: #6B8AAB;
+  --gkb-bar-color: #b8860b;
+  --gkb-title-color: #1C334F;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+.gob-kpi-brecha {
+  background: var(--gkb-bg);
+  border: 1px solid var(--gkb-border);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 13px;
+}
+
+.gob-kpi-brecha__bar {
+  height: 8px;
+  width: 100%;
+  background: var(--gkb-bar-color);
+  flex-shrink: 0;
+}
+
+.gob-kpi-brecha__content {
+  flex: 1;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.gob-kpi-brecha__value {
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--gkb-bar-color);
+  line-height: 1.1;
+  margin: 0;
+}
+
+.gob-kpi-brecha__label {
+  color: var(--gkb-muted);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  font-weight: 600;
+  font-size: 10px;
+  margin-top: 6px;
+  margin-bottom: 2px;
+}
+
+.gob-kpi-brecha__title {
+  color: var(--gkb-title-color);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.gob-kpi-brecha__meta {
+  color: var(--gkb-muted);
+  font-size: 10px;
+  margin-top: 4px;
+}
+
+.gob-kpi-brecha__error {
+  color: #b91c1c;
+  font-size: 10px;
+  display: none;
+  white-space: pre-wrap;
+  margin-top: 6px;
+}
+</style>
+</head>
+<body style="margin: 0; padding: 10px; height: 100vh; display: flex;">
+
+<div class="gob-kpi-brecha">
+  <div class="gob-kpi-brecha__bar"></div>
+  <div class="gob-kpi-brecha__content">
+    <div class="gob-kpi-brecha__label">Discrepancia</div>
+    <div class="gob-kpi-brecha__value" id="valor">—</div>
+    <div class="gob-kpi-brecha__title">Brecha Fiscal</div>
+    <div class="gob-kpi-brecha__meta">Potencial vs. Recaudado</div>
+    <div class="gob-kpi-brecha__error" id="error"></div>
+  </div>
+</div>
+
+<script>
+window.addEventListener('message', function(evt) {
+  var m = evt.data || {};
+  var cols = m.rankingColumns || m.columns || [];
+  var rows = m.rankingData || m.data || [];
+  
+  if (cols.length && rows.length) {
+    try {
+      var idxBrecha = cols.findIndex(function(c) {
+        var name = (c.label || c.name || c || '').toString().trim().toUpperCase();
+        return name.includes('BRECHA') || name.includes('GAP');
+      });
+      
+      if (idxBrecha >= 0) {
+        var valores = rows.map(function(row) {
+          return parseFloat(row[idxBrecha]);
+        }).filter(function(v) { return isFinite(v); });
+        
+        if (valores.length > 0) {
+          var total = valores.reduce(function(a, b) { return a + b; }, 0);
+          var pct = (total * 100).toFixed(1);
+          document.getElementById('valor').textContent = pct + '%';
+          document.getElementById('error').style.display = 'none';
+        }
+      }
+    } catch(e) {
+      document.getElementById('error').textContent = e.message;
+      document.getElementById('error').style.display = 'block';
+    }
+  }
+});
+
+try { 
+  if (window.parent) window.parent.postMessage({ type: 'ready', object: 'gob-001-kpi-brecha' }, '*'); 
+} catch(e) {}
+
+document.getElementById('valor').textContent = '28.5%';
+</script>
+
+</body>
+</html>
