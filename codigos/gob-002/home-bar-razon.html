@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Home - Bar Chart Razón Social</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #ffffff;
+  --border: #BFD3E6;
+  --muted: #6B8AAB;
+  --navy: #1C334F;
+  --green-light: #2ea84e;
+  --track-bg: #F2F4F7;
+  --text: #1C334F;
+}
+* { box-sizing: border-box; }
+body { margin: 0; padding: 10px; background: var(--bg); color: var(--text); font-family: 'Open Sans', sans-serif; font-size: 13px; }
+.card { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+.card-title { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 12px; color: var(--navy); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+.divider { width: 28px; height: 3px; background: linear-gradient(90deg, var(--green-light), #145e2c); border-radius: 2px; margin: 4px 0 12px; }
+.hbar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.hbar-label { font-size: 10px; font-weight: 600; width: 160px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--navy); }
+.hbar-track { flex: 1; height: 20px; background: var(--track-bg); border-radius: 4px; overflow: hidden; }
+.hbar-fill { height: 100%; border-radius: 4px; background: var(--green-light); min-width: 2px; }
+.hbar-val { font-size: 10px; font-weight: 700; width: 100px; text-align: right; flex-shrink: 0; color: var(--navy); }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="card-title">Empresas con mayores discrepancias</div>
+  <div class="divider"></div>
+  <div id="home-bar-razon"></div>
+</div>
+
+<script>
+var $ = function(id) { return document.getElementById(id); };
+var EMPRESAS = [];
+var fmt = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+// Demo data
+var DEMO_EMPRESAS = [
+  {razon: 'Comercializadora Caribe Ltda.', monto: 8000000},
+  {razon: 'EMPRESA_001452', monto: 5235502},
+  {razon: 'EMPRESA_001568', monto: 5013748},
+  {razon: 'Constructora Horizonte S.A.S.', monto: 5000000},
+  {razon: 'Agrofrutas del Valle S.A.S.', monto: 3000000},
+  {razon: 'EMPRESA_002149', monto: 1909827},
+  {razon: 'EMPRESA_001623', monto: 1844900}
+];
+
+function buildHomeBar(){
+  var data = EMPRESAS.length ? EMPRESAS : DEMO_EMPRESAS;
+  data.sort(function(a,b){ return b.monto - a.monto; });
+  var maxMonto = Math.max.apply(null, data.map(function(e){ return e.monto; })) || 1;
+  
+  var html = '';
+  data.slice(0, 7).forEach(function(e){
+    var pct = (e.monto / maxMonto) * 100;
+    html += '<div class="hbar-row">' +
+      '<div class="hbar-label" title="' + e.razon + '">' + e.razon + '</div>' +
+      '<div class="hbar-track"><div class="hbar-fill" style="width:' + pct + '%"></div></div>' +
+      '<div class="hbar-val">' + fmt.format(e.monto) + '</div>' +
+      '</div>';
+  });
+  $('home-bar-razon').innerHTML = html;
+}
+
+// SAS VA Integration
+function onSasData(rows, columns){
+  var iRazon = -1, iMonto = -1;
+  for(var i=0; i<columns.length; i++){
+    var label = String(columns[i].label || columns[i].name || '').toLowerCase();
+    if(label.includes('razón')) iRazon = i;
+    if(label.includes('monto')) iMonto = i;
+  }
+  if(iRazon < 0 || iMonto < 0) return;
+  
+  EMPRESAS = rows.map(function(r){
+    return {
+      razon: String(r[iRazon] ? (r[iRazon].formattedValue || r[iRazon].value || r[iRazon]) : ''),
+      monto: Number(String((r[iMonto] ? (r[iMonto].value || r[iMonto]) : 0)).replace(/[^0-9.\-]/g, '')) || 0
+    };
+  });
+  buildHomeBar();
+}
+
+window.addEventListener('message', function(evt){
+  try{
+    var payload = evt.data;
+    if(typeof payload === 'string') payload = JSON.parse(payload);
+    if(!payload) return;
+    var d = payload.data ? payload : (payload.results ? payload.results : payload);
+    var rows = d.data || (d.results && d.results.data);
+    var columns = d.columns || (d.results && d.results.columns);
+    if(rows && columns) onSasData(rows, columns);
+  }catch(e){}
+}, false);
+
+// Init
+buildHomeBar();
+</script>
+</body>
+</html>

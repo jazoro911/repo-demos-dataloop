@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Zonal - KPIs</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+body { margin: 0; padding: 10px; background: #f4f7fb; }
+.kpi-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.kpi-box { background: white; border: 2px solid #1a7a3a; border-radius: 10px; padding: 16px; text-align: center; }
+.kpi-box.blue { border-color: #1565C0; }
+.kpi-box.gold { border-color: #e8a900; }
+.kpi-label { font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; color: #1C334F; margin-bottom: 6px; }
+.kpi-value { font-family: 'Montserrat', sans-serif; font-size: 24px; font-weight: 800; color: #1a7a3a; }
+.kpi-box.blue .kpi-value { color: #1565C0; }
+.kpi-box.gold .kpi-value { color: #e8a900; }
+</style>
+</head>
+<body>
+<div class="kpi-row">
+  <div class="kpi-box">
+    <div class="kpi-label">Monto de discrepancias</div>
+    <div class="kpi-value">$ 61.450.547</div>
+  </div>
+  <div class="kpi-box blue">
+    <div class="kpi-label">Número de discrepancias</div>
+    <div class="kpi-value">87</div>
+  </div>
+  <div class="kpi-box gold">
+    <div class="kpi-label">Zonificación</div>
+    <div class="kpi-value">Ver mapa</div>
+  </div>
+</div>
+</body>
+</html>

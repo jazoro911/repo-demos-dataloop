@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Análisis - Bar Chart</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+body { margin: 0; padding: 10px; background: #f4f7fb; }
+.card { background: white; border: 1px solid #BFD3E6; border-radius: 10px; padding: 16px; }
+.card-title { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 12px; color: #1C334F; text-transform: uppercase; margin-bottom: 12px; }
+.bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.label { font-size: 10px; font-weight: 600; width: 120px; }
+.bar { flex: 1; height: 18px; background: #f5c842; border-radius: 3px; }
+.val { font-size: 10px; font-weight: 700; width: 40px; text-align: right; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="card-title">Contribuyentes por nivel de atraso</div>
+  <div id="analisis-bar">
+    <div class="bar-row">
+      <div class="label">Menor atraso</div>
+      <div class="bar" style="width:35%"></div>
+      <div class="val">4</div>
+    </div>
+    <div class="bar-row">
+      <div class="label">Atraso medio</div>
+      <div class="bar" style="width:65%"></div>
+      <div class="val">13</div>
+    </div>
+    <div class="bar-row">
+      <div class="label">Mayor atraso</div>
+      <div class="bar" style="width:15%"></div>
+      <div class="val">3</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

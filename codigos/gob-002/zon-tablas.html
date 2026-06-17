@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Zonal - Tablas por Tipo</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+body { margin: 0; padding: 10px; background: #f4f7fb; font-family: 'Open Sans', sans-serif; font-size: 10px; }
+.tabs { display: flex; gap: 0; border-bottom: 2px solid #BFD3E6; margin-bottom: 12px; }
+.tab { padding: 8px 16px; cursor: pointer; font-weight: 600; color: #6B8AAB; border-bottom: 2px solid transparent; }
+.tab.active { color: #1a7a3a; border-bottom-color: #1a7a3a; }
+table { width: 100%; border-collapse: collapse; }
+th { background: #f4f7fb; border: 1px solid #BFD3E6; padding: 6px; text-align: left; font-weight: 600; }
+td { border: 1px solid #BFD3E6; padding: 6px; }
+</style>
+</head>
+<body>
+<div class="tabs">
+  <div class="tab active">Discrepancias en ISR</div>
+  <div class="tab">Discrepancias en Aduanas</div>
+  <div class="tab">Discrepancias en IVA</div>
+</div>
+<table>
+  <thead><tr><th>NIT</th><th>RAZON SOCIAL</th><th>MUNICIPIO</th><th>MONTO</th></tr></thead>
+  <tbody>
+    <tr><td>804.238</td><td>Comercializadora</td><td>Bogotá</td><td>-$ 8M</td></tr>
+    <tr><td>900053</td><td>EMPRESA_001452</td><td>Cali</td><td>$ 5.2M</td></tr>
+    <tr><td>900058</td><td>EMPRESA_001568</td><td>Medellín</td><td>-$ 5M</td></tr>
+  </tbody>
+</table>
+</body>
+</html>

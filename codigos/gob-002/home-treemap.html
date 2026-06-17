@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Home - Treemap</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --yellow: #e8a900;
+  --white: #ffffff;
+  --navy: #1C334F;
+}
+* { box-sizing: border-box; }
+body { margin: 0; padding: 10px; background: #f4f7fb; font-family: 'Open Sans', sans-serif; }
+.card { background: var(--white); border: 1px solid #BFD3E6; border-radius: 10px; padding: 16px 18px; }
+.card-title { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 12px; color: var(--navy); text-transform: uppercase; margin-bottom: 4px; }
+.divider { width: 28px; height: 3px; background: #2ea84e; border-radius: 2px; margin: 4px 0 12px; }
+.treemap-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.treemap-tile { background: var(--yellow); border-radius: 4px; display: flex; align-items: center; justify-content: center; text-align: center; padding: 4px 6px; font-size: 10px; font-weight: 700; color: var(--white); cursor: pointer; transition: opacity .15s; }
+.treemap-tile:hover { opacity: .85; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="card-title">Distribución de discrepancias</div>
+  <div class="divider"></div>
+  <div class="treemap-container" id="home-treemap"></div>
+</div>
+
+<script>
+var DEMO_DATA = [
+  {razon: 'Comercializadora Caribe', pct: 15},
+  {razon: 'EMPRESA_001452', pct: 10},
+  {razon: 'EMPRESA_001568', pct: 9},
+  {razon: 'Constructora Horizonte', pct: 8},
+  {razon: 'Agrofrutas Valle', pct: 7},
+  {razon: 'EMPRESA_002149', pct: 6},
+  {razon: 'EMPRESA_001623', pct: 5}
+];
+
+function buildHomeTreemap(){
+  var data = DEMO_DATA;
+  var html = '';
+  data.forEach(function(d){
+    var sz = Math.max(30, d.pct * 3);
+    html += '<div class="treemap-tile" style="width:' + sz + 'px;height:' + sz + 'px;line-height:1.2;" title="' + d.razon + ': ' + d.pct + '%">' + d.razon.substring(0,15) + '<br><small>' + d.pct + '%</small></div>';
+  });
+  document.getElementById('home-treemap').innerHTML = html;
+}
+
+buildHomeTreemap();
+</script>
+</body>
+</html>

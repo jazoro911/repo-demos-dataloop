@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Análisis - Botones Filtro</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+body { margin: 0; padding: 10px; background: #f4f7fb; }
+.botones-grupo { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; background: white; border: 1px solid #BFD3E6; border-radius: 8px; }
+.btn-tag { padding: 6px 12px; border: 1px solid #BFD3E6; background: white; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600; color: #1C334F; transition: all .15s; }
+.btn-tag:hover { border-color: #1a7a3a; color: #1a7a3a; }
+.btn-tag.active { background: #1a7a3a; color: white; border-color: #1a7a3a; }
+</style>
+</head>
+<body>
+<div class="botones-grupo" id="analisis-botones">
+  <button class="btn-tag active" onclick="toggleBtn(this)">Agroindustria</button>
+  <button class="btn-tag" onclick="toggleBtn(this)">Comercio</button>
+  <button class="btn-tag" onclick="toggleBtn(this)">Construcción</button>
+  <button class="btn-tag" onclick="toggleBtn(this)">Educación</button>
+  <button class="btn-tag" onclick="toggleBtn(this)">Manufactura</button>
+  <button class="btn-tag" onclick="toggleBtn(this)">Servicios</button>
+</div>
+<script>
+function toggleBtn(el){
+  document.querySelectorAll('.btn-tag').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+</script>
+</body>
+</html>
