@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dataloop - Galería de Objetos (gob-002)</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <style>
+        .galeria-container {
+            margin-top: 20px;
+        }
+
+        .filtros-galeria {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filtro-btn {
+            padding: 8px 16px;
+            border: 2px solid #C5D5E8;
+            background: white;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #1C334F;
+        }
+
+        .filtro-btn:hover {
+            border-color: #006341;
+            color: #006341;
+        }
+
+        .filtro-btn.activo {
+            background: #006341;
+            color: white;
+            border-color: #006341;
+        }
+
+        .objetos-galeria {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .objeto-visual {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid transparent;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .objeto-visual:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 99, 65, 0.15);
+            border-color: #006341;
+        }
+
+        /* Colores por tipo */
+        .chart { background: linear-gradient(135deg, #1e5a6d 0%, #3d8aa0 100%); }
+        .tabla { background: linear-gradient(135deg, #6b3d7e 0%, #8b5a9f 100%); }
+        .mapa { background: linear-gradient(135deg, #007f5f 0%, #4a9f7a 100%); }
+        .filtro { background: linear-gradient(135deg, #c57c0a 0%, #e09b35 100%); }
+        .kpi { background: linear-gradient(135deg, #9b1c2e 0%, #c03e50 100%); }
+        .boton { background: linear-gradient(135deg, #006341 0%, #2d7a5e 100%); }
+
+        .objeto-icon {
+            font-size: 48px;
+            z-index: 1;
+            transition: transform 0.3s ease;
+        }
+
+        .objeto-visual:hover .objeto-icon {
+            transform: scale(1.1);
+        }
+
+        .objeto-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            backdrop-filter: blur(4px);
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        .objeto-visual:hover .objeto-overlay {
+            opacity: 1;
+        }
+
+        .objeto-nombre {
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 4px;
+        }
+
+        .objeto-tipo {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+        }
+
+        .objeto-btn {
+            padding: 4px 10px;
+            background: white;
+            color: #006341;
+            border: none;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .objeto-btn:hover {
+            background: #006341;
+            color: white;
+        }
+
+        /* Carrito */
+        .carrito-flotante {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #006341;
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 99, 65, 0.25);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .carrito-flotante:hover {
+            background: #005030;
+        }
+
+        .modal-carrito {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-carrito.activo {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #006341;
+            padding-bottom: 12px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 18px;
+            color: #1C334F;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6B8AAB;
+        }
+
+        .carrito-lista {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 16px 0;
+        }
+
+        .carrito-item {
+            background: #f8f9fa;
+            padding: 10px;
+            margin-bottom: 6px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid #006341;
+            font-size: 11px;
+        }
+
+        .carrito-item-nombre {
+            font-weight: 600;
+            color: #1C334F;
+        }
+
+        .carrito-item-btn {
+            background: #fee2e2;
+            color: #9b1c2e;
+            border: none;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 9px;
+            cursor: pointer;
+        }
+
+        .carrito-vacio {
+            text-align: center;
+            color: #6B8AAB;
+            padding: 16px;
+            font-size: 12px;
+        }
+
+        .modal-botones {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-modal {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #C5D5E8;
+            background: white;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .btn-modal.primary {
+            background: #006341;
+            color: white;
+            border-color: #006341;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            background: #22c55e;
+            color: white;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            z-index: 2000;
+        }
+
+        .objeto-vacio {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar">
+        <a href="../index.html" class="sidebar-logo">
+            <img src="../icono_dataloop.svg" alt="Dataloop" class="sidebar-logo-img">
+            <span class="logo-texto">Dataloop</span>
+        </a>
+        <input type="text" class="sidebar-buscador" placeholder="🔍 Buscar código...">
+        <a href="../index.html" class="sidebar-link">
+            <span class="icono">📊</span> Dashboard
+        </a>
+        <div class="sidebar-seccion">Casos de Uso</div>
+        <a href="../categorias/financial-crimes.html" class="sidebar-categoria">
+            <span class="icono">🔒</span> Financial Crimes
+        </a>
+        <a href="../categorias/gobierno.html" class="sidebar-categoria activa">
+            <span class="icono">🏛️</span> Gobierno
+        </a>
+        <a href="../categorias/retail.html" class="sidebar-categoria">
+            <span class="icono">🛒</span> Retail
+        </a>
+        <a href="../categorias/analytics.html" class="sidebar-categoria">
+            <span class="icono">📈</span> Analytics
+        </a>
+        <div class="sidebar-footer">
+            <div class="avatar">R</div>
+            <div class="admin-info">
+                <div class="nombre">Repository Admin</div>
+                <div class="detalle">16 códigos disponibles</div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="zona-principal">
+
+    <div class="header">
+        <span class="logo">Repositorio de Códigos</span>
+        <span class="descripcion">Repositorio Interno de Código</span>
+    </div>
+
+    <div class="contenido">
+
+        <a href="gob-002.html" class="boton-volver">← Volver a gob-002</a>
+
+        <div class="tarjeta">
+
+            <h1 class="tarjeta-titulo">Galería de Objetos - gob-002</h1>
+
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                <span class="etiqueta-lenguaje">objetos</span>
+                <span style="color: #64748b; font-size: 14px;">16 objetos reutilizables · 4 páginas</span>
+            </div>
+
+            <p class="tarjeta-descripcion">Todos los objetos reutilizables de las 4 páginas del dashboard. Filtra por página para ver solo los objetos que necesitas.</p>
+
+            <div class="galeria-container">
+                <div class="filtros-galeria">
+                    <button class="filtro-btn activo" onclick="filtrar('todos')">Todos (16)</button>
+                    <button class="filtro-btn" onclick="filtrar('home')">HOME (3)</button>
+                    <button class="filtro-btn" onclick="filtrar('discrepancia')">DISCREPANCIA (5)</button>
+                    <button class="filtro-btn" onclick="filtrar('analisis')">ANÁLISIS (3)</button>
+                    <button class="filtro-btn" onclick="filtrar('zonal')">ZONAL (5)</button>
+                </div>
+
+                <div class="objetos-galeria" id="galeria">
+                    <!-- HOME -->
+                    <div class="objeto-visual chart" onclick="agregarCarrito('home-bar-razon')" data-pagina="home">
+                        <div class="objeto-icon">📊</div>
+                        <div class="objeto-overlay">
+                            <div class="objeto-nombre">Bar Chart - Razon Social</div>
+                            <div class="objeto-tipo">Chart</div>
+                            <button class="objeto-btn" onclick="event.stopPropagation();">➕ Carrito</button>
+                        </div>
+                    </div>
+
+                    <div class="objeto-visual mapa" onclick="agregarCarrito('home-map')" data-pagina="home">
+                        <div class="objeto-icon">🗺️</div>
+                        <div class="objeto-overlay">
+                            <div class="objeto-nombre">Mapa - Distribucion Geografica</div>
+                            <div class="objeto-tipo">Mapa</div>
+                            <button class="objeto-btn" onclick="event.stopPropagation();">➕ Carrito</button>
+                        </div>
+                    </div>
+
+                    <div class="objeto-visual chart" onclick="agregarCarrito('home-treemap')" data-pagina="home">
+                        <div class="objeto-icon">📈</div>
+                        <div class="objeto-overlay">
+                            <div class="objeto-nombre">Treemap - Analisis Jerarquico</div>
+                            <div class="objeto-tipo">Chart</div>
+                            <button class="objeto-btn" onclick="event.stopPropagation();">➕ Carrito</button>
+                        </div>
+                    </div>
+
+                    <!-- DISCREPANCIA -->
+                    <div class="objeto-visual filtro" onclick="agregarCarrito('disc-filtros')" data-pagina="discrepancia">
+                        <div class="objeto-icon">🔍</div>
+                        <div class="objeto-overlay">
+                            <div class="objeto-nombre">Filtros - Busqueda</div>
+                            <div class="objeto-tipo">Filtro</div>
+                            <button class="objeto-btn" onclick="event.stopPropagation();">➕ Carrito</button>
+                        </div>
+                    </div>
+
+                    <div class="objeto-visual chart" onclick="agregarCarrito('disc-bar-chart')" data-pagina="discrepancia">
+                        <div class="objeto-icon">📊</div>
+                        <div class="objeto-overlay">
+                            <div class="objeto-nombre">Bar Chart - Facturacion vs Ingresos</div>
+                            <div class="objeto-tipo">Chart</div>
+                            <button class="objeto-btn" onclick="event.stopPropagation();">➕ Carrito</button>
+                        </div>
+                    </div>
+
+                    <div class="objeto-visual tabla" onclick="agregarCarrito('disc-tab-contribuyentes')" data-pagina="discrepancia">
+                        <div class="objeto-icon">📋</div>
+                        <div class="objeto-overlay">
+                            <div class="objeto-nombre">Tabla - Contribuyentes Discrepancias</div>
+                            <div class="objeto-tipo">Tabla</div>
+                            <button class="objeto-btn" onclick="event.stopPropagation();">➕ Carrito</button>
+                        </div>
+                    </div>
+
+                    <div class="objeto-visual tabla" onclick="agregarCarrito('disc-tab-detalle')" data-pagina="discrepancia">
+                        <div class="objeto-icon">📋</div>
+                        <div class="objeto-overlay">
+                            <div class="objeto-nombre">Tabla - Detalle Discrepancias</div>
+                            <div class="objeto-tipo">Tabla</div>
+                            <button class="objeto-btn" onclick="event.stopPropagation();">➕ Carrito</button>
+                        </div>
+                    </div>
+
+                    <div class="objeto-visual kpi" onclick="agregarCarrito('disc-kpi')" data-pagina="discrepancia">
+                        <div class="objeto-icon">💰</div>
+                        <div class="objeto-overlay">
+                            <div class="objeto-nombre">KPIs - Discrepancias</div>
+                            <div class="objeto-tipo">KPI</div>
+                            <button class="objeto-btn" onclick="event.stopPropagation();">➕ Carrito</button>
+                        </div>
+                    </div>
+
+                    <!-- ANÁLISIS -->
+                    <div class="objeto-visual boton" onclick="agregarCarrito('analisis-botones')" data-pagina="analisis">
+                        <div class="objeto-icon">🎯</div>
+                        <div class="objeto-overlay">
+                            <div class="objeto-nombre">Botones Filtro - Sectores</div>
+                            <div class="objeto-tipo">Boton</div>
+                            <button class="objeto-btn" onclick="event.stopPropagation();">➕ Carrito</button>
+                        </div>
+                    </div>
+
+                    <div class="objeto-visual chart" onclick="agregarCarrito('analisis-bar')" data-pagina="analisis">
+                        <div class="objeto-icon">📊</div>
+                        <div class="objeto-overlay">
+                            <div class="objeto-nombre">Bar Chart - Nivel de Atraso</div>
+                            <div class="objeto-tipo">Chart</div>
+                            <button class="objeto-btn" onclick="event.stopPropagation();">➕ Carrito</button>
+                        </div>
+                    </div>
+
+                    <div class="objeto-visual tabla" onclick="agregarCarrito('analisis-table')" data-pagina="analisis">
+                        <div class="objeto-icon">📋</div>
+                        <div class="objeto-overlay">
+                            <div class="objeto-nombre">Tabla - Contribuyentes Prioritarios</div>
+                            <div class="objeto-tipo">Tabla</div>
+                            <button class="objeto-btn" onclick="event.stopPropagation();">➕ Carrito</button>
+                        </div>
+                    </div>
+
+                    <!-- ZONAL -->
+                    <div class="objeto-visual filtro" onclick="agregarCarrito('zon-filtros')" data-pagina="zonal">
+                        <div class="objeto-icon">🔍</div>
+                        <div class="objeto-overlay">
+                            <div class="objeto-nombre">Filtros - Municipio, Empresa</div>
+                            <div class="objeto-tipo">Filtro</div>
+                            <button class="objeto-btn" onclick="event.stopPropagation();">➕ Carrito</button>
+                        </div>
+                    </div>
+
+                    <div class="objeto-visual kpi" onclick="agregarCarrito('zon-kpi')" data-pagina="zonal">
+                        <div class="objeto-icon">💰</div>
+                        <div class="objeto-overlay">
+                            <div class="objeto-nombre">KPIs - Resumen Zonal</div>
+                            <div class="objeto-tipo">KPI</div>
+                            <button class="objeto-btn" onclick="event.stopPropagation();">➕ Carrito</button>
+                        </div>
+                    </div>
+
+                    <div class="objeto-visual chart" onclick="agregarCarrito('zon-bar')" data-pagina="zonal">
+                        <div class="objeto-icon">📊</div>
+                        <div class="objeto-overlay">
+                            <div class="objeto-nombre">Bar Chart - Empresas Zonal</div>
+                            <div class="objeto-tipo">Chart</div>
+                            <button class="objeto-btn" onclick="event.stopPropagation();">➕ Carrito</button>
+                        </div>
+                    </div>
+
+                    <div class="objeto-visual mapa" onclick="agregarCarrito('zon-map')" data-pagina="zonal">
+                        <div class="objeto-icon">🗺️</div>
+                        <div class="objeto-overlay">
+                            <div class="objeto-nombre">Mapa - Zonal</div>
+                            <div class="objeto-tipo">Mapa</div>
+                            <button class="objeto-btn" onclick="event.stopPropagation();">➕ Carrito</button>
+                        </div>
+                    </div>
+
+                    <div class="objeto-visual tabla" onclick="agregarCarrito('zon-tablas')" data-pagina="zonal">
+                        <div class="objeto-icon">📋</div>
+                        <div class="objeto-overlay">
+                            <div class="objeto-nombre">Tablas - ISR, Aduanas, IVA</div>
+                            <div class="objeto-tipo">Tabla</div>
+                            <button class="objeto-btn" onclick="event.stopPropagation();">➕ Carrito</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="footer">
+        Dataloop · Repositorio Interno · 2025
+    </div>
+
+    </div>
+
+    <!-- CARRITO FLOTANTE -->
+    <button class="carrito-flotante" onclick="abrirCarrito()"><span>🛒</span><span id="carrito-count">0</span></button>
+    
+    <!-- MODAL CARRITO -->
+    <div class="modal-carrito" id="modal-carrito" onclick="if(event.target===this)cerrarCarrito()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>🛒 Mi Carrito</h2>
+                <button class="modal-close" onclick="cerrarCarrito()">X</button>
+            </div>
+            <ul class="carrito-lista" id="carrito-lista"><div class="carrito-vacio">Tu carrito esta vacio</div></ul>
+            <div class="modal-botones">
+                <button class="btn-modal" onclick="limpiarCarrito()">Limpiar</button>
+                <button class="btn-modal primary" onclick="descargarCarrito()" id="btn-descargar" disabled>Descargar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var carrito = [];
+        var filtroActual = 'todos';
+
+        var OBJETOS = [
+            {id: 'home-bar-razon', nombre: 'Bar Chart - Razon Social', archivo: '../../objetos/gob-002/1_brecha-recaudacion.html'},
+            {id: 'home-map', nombre: 'Mapa - HOME', archivo: '../../objetos/gob-002/1_brecha-recaudacion.html'},
+            {id: 'home-treemap', nombre: 'Treemap - HOME', archivo: '../../objetos/gob-002/1_brecha-recaudacion.html'},
+            {id: 'disc-filtros', nombre: 'Filtros - Discrepancias', archivo: '../../objetos/gob-002/2_brecha-recaudacion.html'},
+            {id: 'disc-bar-chart', nombre: 'Bar Chart - Facturacion vs Ingresos', archivo: '../../objetos/gob-002/2_brecha-recaudacion.html'},
+            {id: 'disc-tab-contribuyentes', nombre: 'Tabla - Contribuyentes Discrepancias', archivo: '../../objetos/gob-002/2_brecha-recaudacion.html'},
+            {id: 'disc-tab-detalle', nombre: 'Tabla - Detalle Discrepancias', archivo: '../../objetos/gob-002/2_brecha-recaudacion.html'},
+            {id: 'disc-kpi', nombre: 'KPIs - Discrepancias', archivo: '../../objetos/gob-002/2_brecha-recaudacion.html'},
+            {id: 'analisis-botones', nombre: 'Botones Filtro - Sectores Economicos', archivo: '../../objetos/gob-002/3_brecha-recaudacion.html'},
+            {id: 'analisis-bar', nombre: 'Bar Chart - Nivel de Atraso', archivo: '../../objetos/gob-002/3_brecha-recaudacion.html'},
+            {id: 'analisis-table', nombre: 'Tabla - Contribuyentes Prioritarios', archivo: '../../objetos/gob-002/3_brecha-recaudacion.html'},
+            {id: 'zon-filtros', nombre: 'Filtros - Zonal', archivo: '../../objetos/gob-002/4_brecha-recaudacion.html'},
+            {id: 'zon-kpi', nombre: 'KPIs - Resumen Zonal', archivo: '../../objetos/gob-002/4_brecha-recaudacion.html'},
+            {id: 'zon-bar', nombre: 'Bar Chart - Empresas Zonal', archivo: '../../objetos/gob-002/4_brecha-recaudacion.html'},
+            {id: 'zon-map', nombre: 'Mapa - Zonal', archivo: '../../objetos/gob-002/4_brecha-recaudacion.html'},
+            {id: 'zon-tablas', nombre: 'Tablas - ISR, Aduanas, IVA', archivo: '../../objetos/gob-002/4_brecha-recaudacion.html'}
+        ];
+
+        function cargarCarrito() {
+            carrito = JSON.parse(localStorage.getItem('carrito-gob-002') || '[]');
+            actualizarUI();
+        }
+
+        function guardarCarrito() {
+            localStorage.setItem('carrito-gob-002', JSON.stringify(carrito));
+            actualizarUI();
+        }
+
+        function agregarCarrito(id) {
+            if (carrito.includes(id)) {
+                carrito = carrito.filter(function(item) { return item !== id; });
+                mostrarToast('Removido del carrito');
+            } else {
+                carrito.push(id);
+                mostrarToast('Agregado al carrito');
+            }
+            guardarCarrito();
+        }
+
+        function actualizarUI() {
+            document.getElementById('carrito-count').textContent = carrito.length;
+            document.getElementById('btn-descargar').disabled = carrito.length === 0;
+        }
+
+        function filtrar(pagina) {
+            filtroActual = pagina;
+            var objetos = document.querySelectorAll('.objeto-visual');
+            objetos.forEach(function(obj) {
+                var pag = obj.getAttribute('data-pagina');
+                if (pagina === 'todos' || pag === pagina) {
+                    obj.style.display = 'flex';
+                } else {
+                    obj.style.display = 'none';
+                }
+            });
+
+            var botones = document.querySelectorAll('.filtro-btn');
+            botones.forEach(function(btn) {
+                btn.classList.remove('activo');
+            });
+            event.target.classList.add('activo');
+        }
+
+        function abrirCarrito() {
+            var lista = document.getElementById('carrito-lista');
+            if (carrito.length === 0) {
+                lista.innerHTML = '<div class="carrito-vacio">Tu carrito esta vacio</div>';
+            } else {
+                var html = '';
+                for (var i = 0; i < carrito.length; i++) {
+                    var id = carrito[i];
+                    var obj = null;
+                    for (var j = 0; j < OBJETOS.length; j++) {
+                        if (OBJETOS[j].id === id) {
+                            obj = OBJETOS[j];
+                            break;
+                        }
+                    }
+                    if (obj) {
+                        html += '<li class="carrito-item"><span class="carrito-item-nombre">' + obj.nombre + '</span><button class="carrito-item-btn" onclick="agregarCarrito(' + "'" + id + "'" + '); abrirCarrito();">X</button></li>';
+                    }
+                }
+                lista.innerHTML = html;
+            }
+            document.getElementById('modal-carrito').classList.add('activo');
+        }
+
+        function cerrarCarrito() {
+            document.getElementById('modal-carrito').classList.remove('activo');
+        }
+
+        function descargarCarrito() {
+            if (carrito.length === 0) return;
+
+            var archivos = {};
+            for (var i = 0; i < carrito.length; i++) {
+                var id = carrito[i];
+                var obj = OBJETOS.find(function(o) { return o.id === id; });
+                if (obj) {
+                    if (!archivos[obj.archivo]) {
+                        archivos[obj.archivo] = [];
+                    }
+                    archivos[obj.archivo].push({id: id, nombre: obj.nombre});
+                }
+            }
+
+            var html = '<!-- OBJETOS DEL CARRITO - GOB-002 -->\n\n';
+            var promesas = [];
+            var archivosArray = Object.keys(archivos);
+
+            for (var i = 0; i < archivosArray.length; i++) {
+                (function(archivo) {
+                    promesas.push(
+                        fetch(archivo)
+                            .then(function(r) { return r.text(); })
+                            .then(function(codigo) {
+                                return {archivo: archivo, codigo: codigo};
+                            })
+                            .catch(function(err) {
+                                return {archivo: archivo, codigo: '<!-- ERROR -->'};
+                            })
+                    );
+                })(archivosArray[i]);
+            }
+
+            Promise.all(promesas).then(function(resultados) {
+                var htmlFinal = html;
+                for (var i = 0; i < resultados.length; i++) {
+                    var result = resultados[i];
+                    var objs = archivos[result.archivo];
+                    htmlFinal += '<!-- ========== ARCHIVO: ' + result.archivo + ' ========== -->\n';
+                    for (var j = 0; j < objs.length; j++) {
+                        htmlFinal += '<!-- ' + objs[j].nombre + ' -->\n';
+                    }
+                    htmlFinal += result.codigo + '\n\n';
+                }
+
+                navigator.clipboard.writeText(htmlFinal).then(function() {
+                    mostrarToast('Codigo descargado');
+                });
+            });
+        }
+
+        function limpiarCarrito() {
+            if (confirm('Limpiar carrito?')) {
+                carrito = [];
+                guardarCarrito();
+                cerrarCarrito();
+                mostrarToast('Carrito limpiado');
+            }
+        }
+
+        function mostrarToast(msg) {
+            var toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(function() { toast.remove(); }, 2000);
+        }
+
+        cargarCarrito();
+    </script>
+
+</body>
+</html>
