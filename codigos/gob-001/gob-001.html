@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dataloop - Análisis de Potencial de Recaudación (gob-001)</title>
     <link rel="stylesheet" href="../../styles.css">
+    <!-- jsPDF: genera el PDF del carrito de objetos para descargar -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Aplica el tema guardado (claro/oscuro) antes de pintar la página, para evitar parpadeos -->
+    <script>
+        (function () {
+            var tema = localStorage.getItem('tema-dataloop') || 'claro';
+            document.documentElement.setAttribute('data-theme', tema);
+        })();
+    </script>
     <style>
         .codigo-referenciado {
             background: #f8f9ff;
@@ -151,19 +160,33 @@
         
         .btn-galeria {
             display: inline-block;
-            background: #006341;
+            background: linear-gradient(135deg, #006341 0%, #1a5c36 100%);;
             color: white;
             padding: 10px 20px;
             border-radius: 7px;
             text-decoration: none;
             font-size: 12px;
             font-weight: 700;
-            transition: background 0.15s;
+            transition: background .15s , box-shadow .15s ease;
             margin-top: 15px;
         }
         
         .btn-galeria:hover {
-            background: #005030;
+            background: linear-gradient(35deg, #006341 0%, #0b2918 100%);
+            box-shadow: 0 4px 10px rgba(0,0,0,.2);
+        }
+
+        /* "Ver Galería Completa" centrado justo abajo del arco del
+           carrusel — ahí queda espacio libre porque las tarjetas al
+           centro se elevan con la curva. */
+        .arco-objetos .btn-galeria {
+            position: absolute;
+            left: 50%;
+            bottom: 10px;
+            transform: translateX(-50%);
+            margin-top: 0;
+            z-index: 6;
+            box-shadow: 0 6px 14px rgba(0,0,0,.2);
         }
 
         /* CARRITO */
@@ -315,16 +338,386 @@
             font-weight: 600;
             z-index: 2000;
         }
+
+        /* ══════════════════════════════════════════════════════════
+           "DENTRO DEL FOLDER" — presentación de este código
+           ══════════════════════════════════════════════════════════
+           Prototipo: al abrir gob-001 la pantalla se ve como si
+           hubiéramos abierto ese folder específico del dashboard.
+           El riel y el sidebar NO cambian — solo la zona de contenido
+           toma el color de este folder: #3BB273, el mismo verde de
+           "Demo SAS con HTML" (Data Driven Content en SAS VA) que
+           tiene en el tablero de "Explorar por Categoría".
+           ══════════════════════════════════════════════════════════ */
+        :root {
+            --folder-color: #3BB273;
+        }
+
+        .zona-principal {
+            background: linear-gradient(180deg, color-mix(in srgb, var(--folder-color) 16%, var(--color-fondo)) 0px, var(--color-fondo) 260px);
+        }
+
+        .header {
+            background-color: color-mix(in srgb, var(--folder-color) 18%, var(--color-fondo-tarjeta));
+            border-bottom: 3px solid var(--folder-color);
+            flex-wrap: wrap;
+            row-gap: 10px;
+        }
+
+        .folder-tag {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 10px;
+            background: var(--folder-color);
+            color: #ffffff;
+            padding: 6px 14px;
+            border-radius: 999px;
+            box-shadow: 0 2px 6px rgba(0,0,0,.15);
+            max-width: 100%;
+        }
+
+        .folder-tag-icono {
+            font-size: 12px;
+        }
+
+        .folder-tag-fecha {
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .tarjeta {
+            border-left: 4px solid var(--folder-color);
+        }
+
+        /* Cliente, debajo del título/etiquetas */
+        .folder-cliente {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-texto-claro);
+            margin: 2px 0 16px 0;
+        }
+
+        /* Fila: imagen de la demo a la izquierda, acciones (Código / lupa) a la derecha */
+        /* 60% para la imagen de la demo, 40% para la columna de acciones */
+        .demo-preview-row {
+            display: grid;
+            grid-template-columns: 60fr 40fr;
+            align-items: stretch;
+            gap: 16px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .demo-preview-row .preview-container {
+            margin-bottom: 0;
+        }
+
+        .demo-preview-acciones {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 0;
+            min-height: 0;
+        }
+
+        .demo-preview-acciones .acciones-botones {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .accion-demo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: none;
+            text-decoration: none;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+            box-sizing: border-box;
+            cursor: pointer;
+            transition: background .15s , box-shadow .15s ease;
+        }
+
+        .accion-codigo {
+            background: linear-gradient(135deg, var(--folder-color) 0%, color-mix(in srgb, var(--folder-color) 65%, black) 100%);
+            color: #ffffff;
+            box-shadow: 0 2px 6px rgba(0,0,0,.15);
+        }
+
+        .accion-codigo:hover {
+            box-shadow: 0 4px 10px rgba(0,0,0,.2);
+        }
+
+        .accion-lupa {
+            background: var(--color-fondo-tarjeta);
+            border: 1px solid var(--color-borde);
+            color: var(--color-texto);
+            font-size: 16px;
+            width: 38px;
+            height: 38px;
+            padding: 0;
+        }
+
+        .accion-lupa:hover {
+            border-color: var(--folder-color);
+            color: var(--folder-color);
+        }
+
+        .fila-lupa-copiar {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Botón "Copiar" — solo aparece junto a la lupa mientras el
+           visor de código está abierto. Degradado con el azul SAS
+           (#0486C2) de la paleta de colores del repositorio. */
+        .accion-copiar {
+            background: linear-gradient(135deg, #0486C2 0%, #035f8a 100%);
+            color: #ffffff;
+            font-size: 16px;
+            width: 38px;
+            height: 38px;
+            padding: 0;
+            box-shadow: 0 2px 6px rgba(4, 134, 194, .35);
+        }
+
+        .accion-copiar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(4, 134, 194, .45);
+        }
+
+        @media (max-width: 700px) {
+            .demo-preview-row {
+                grid-template-columns: 1fr;
+                overflow: visible;
+            }
+
+            .visor-codigo {
+                flex: none;
+                height: 320px !important;
+                margin-top: 10px;
+            }
+        }
+
+        /* Visor de código — se abre con la lupa 🔍, línea por línea.
+           Vive DENTRO de demo-preview-row: el renglón tiene una altura
+           fija (fijada por JS para igualar la altura de la imagen) y
+           overflow:hidden, así que el visor nunca la rebasa — crece
+           como máximo hasta llenar el espacio que le queda en la
+           columna derecha, y el código se consulta con scroll interno
+           dentro de .visor-codigo-cuerpo. */
+        .visor-codigo {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            min-width: 0;
+            width: 100%;
+            border-radius: var(--radio-md);
+            overflow: hidden;
+            border: 1px solid #334155;
+            box-sizing: border-box;
+        }
+
+        .visor-codigo.abierto {
+            display: flex;
+        }
+
+        /* Degradado en el mismo azul (#0486C2) que el botón "Copiar", pero
+           con otro ángulo/tonos para que contrasten entre sí. */
+        .visor-codigo-barra {
+            background: linear-gradient(90deg, #072b40 0%, #0486C2 100%);
+            color: #e0f2fe;
+            padding: 10px 16px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .visor-codigo-cuerpo {
+            background: #1e293b;
+            flex: 1;
+            min-height: 0;
+            min-width: 0;
+            overflow-x: auto;
+            overflow-y: auto;
+        }
+
+        .visor-codigo-linea {
+            display: flex;
+            width: max-content;
+            min-width: 100%;
+            font-family: 'SF Mono', 'Fira Code', 'Courier New', Courier, monospace;
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        .visor-codigo-linea:hover {
+            background: rgba(255,255,255,.04);
+        }
+
+        .visor-codigo-numero {
+            flex-shrink: 0;
+            width: 46px;
+            text-align: right;
+            padding-right: 12px;
+            margin-right: 12px;
+            color: #475569;
+            user-select: none;
+            border-right: 1px solid #334155;
+        }
+
+        .visor-codigo-contenido {
+            white-space: pre;
+            color: #e2e8f0;
+            padding-right: 16px;
+        }
+
+        .visor-codigo-cargando,
+        .visor-codigo-error {
+            padding: 20px;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .visor-codigo-error {
+            color: #f87171;
+        }
+
+        /* Sección de carrusel de objetos */
+        .seccion-carrusel-objetos {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid var(--color-borde);
+        }
+
+        .seccion-carrusel-objetos h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--color-texto);
+            margin-bottom: 10px;
+        }
+
+        .carrusel-desc {
+            color: var(--color-texto-claro);
+            font-size: 12px;
+            margin-bottom: 18px;
+        }
+
+        /* ── Arco de objetos: carrusel curvo en movimiento continuo.
+           Los objetos se desplazan de izquierda a derecha siguiendo
+           una curva (más altos al centro), se desvanecen en las
+           orillas (mask-image) y se agrandan al resaltarse — ya sea
+           pasando el mouse sobre la tarjeta o sobre su hotspot
+           correspondiente en la imagen de arriba. ── */
+        .arco-objetos {
+            position: relative;
+            height: 190px;
+            overflow: hidden;
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%);
+        }
+
+        .arco-objetos-pista {
+            position: absolute;
+            inset: 0;
+        }
+
+        .objeto-arco {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            will-change: transform;
+        }
+
+        .objeto-arco-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            width: 128px;
+            padding: 14px 10px;
+            border-radius: var(--radio-md);
+            background: var(--color-fondo-tarjeta);
+            border: 1px solid var(--color-borde);
+            box-shadow: 0 4px 10px rgba(0,0,0,.08);
+            text-align: center;
+            cursor: pointer;
+            box-sizing: border-box;
+            transform: translate(-50%, -50%) scale(1);
+            transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+        }
+
+        .objeto-arco-icono {
+            font-size: 22px;
+        }
+
+        .objeto-arco-nombre {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--color-texto);
+            line-height: 1.25;
+        }
+
+        .objeto-arco-tipo {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            color: #ffffff;
+            background: var(--folder-color);
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
+        .objeto-arco-card.seleccionado {
+            transform: translate(-50%, -50%) scale(1.32);
+            border-color: var(--folder-color);
+            box-shadow: 0 10px 24px rgba(0,0,0,.28);
+            z-index: 5;
+        }
     </style>
 </head>
+
+<script src="../../global-search.js"></script>   <!-- desde codigos/gob-003/ -->
+<script src="../global-search.js"></script>        <!-- desde categorias/ -->
+<script src="global-search.js"></script>           <!-- desde raíz (index.html) -->
+
 <body>
 
-    <nav class="sidebar">
+        <!-- ============================================
+         RIEL LATERAL (siempre visible)
+         ============================================ -->
+    <div class="sidebar-rail">
+        <button class="rail-boton rail-logo" id="btn-toggle-sidebar" onclick="toggleSidebar()" aria-label="Abrir navegación">
+            <img src="../../previews/icono_dataloop.svg" alt="Dataloop">
+        </button>
+        <button class="rail-boton rail-tema" id="btn-tema" onclick="toggleTema()" aria-label="Cambiar tema">
+            <span id="icono-tema">🌙</span>
+        </button>
+    </div>
+
+    <!-- Fondo oscuro detrás de la navegación cuando está abierta -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+    <nav class="sidebar" id="sidebar">
+
+        <button class="sidebar-cerrar" onclick="cerrarSidebar()" aria-label="Cerrar navegación">×</button>
+
         <a href="../index.html" class="sidebar-logo">
-            <img src="../icono_dataloop.svg" alt="Dataloop" class="sidebar-logo-img">
+            <img src="../previews/icono_dataloop.svg" alt="Dataloop" class="sidebar-logo-img">
             <span class="logo-texto">Dataloop</span>
         </a>
-        <input type="text" class="sidebar-buscador" placeholder="🔍 Buscar código...">
+        <input type="text" class="sidebar-buscador" placeholder="🔍 Buscar código..." id="buscador-sidebar">
         <a href="../index.html" class="sidebar-link">
             <span class="icono">📊</span> Dashboard
         </a>
@@ -354,31 +747,77 @@
 
     <div class="header">
         <span class="logo">Repositorio de Códigos</span>
-        <span class="descripcion">Repositorio Interno de Código</span>
+        <div class="folder-tag">
+            <span class="folder-tag-icono">📁</span>
+            <span class="folder-tag-fecha">2025-05-01</span>
+        </div>
     </div>
 
     <div class="contenido">
 
-        <a href="../../categorias/gobierno.html" class="boton-volver">← Volver al repositorio</a>
+        <a href="../../categorias/gobierno.html" class="boton-volver">← Gobierno</a>
 
         <div class="tarjeta">
 
             <h1 class="tarjeta-titulo">Análisis de Potencial de Recaudación</h1>
 
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                <span class="etiqueta-lenguaje">html</span>
-                <span style="color: #64748b; font-size: 14px;">Data Driven Content · SAS VA</span>
+            <p class="folder-cliente">🏢 Secretaría de Finanzas</p>
+
+            <!-- Imagen de la demo a la izquierda, acciones a la derecha -->
+            <div class="demo-preview-row" id="demo-preview-row">
+                <div class="preview-container" id="preview-container">
+                    <img src="../../previews/gob-001.png" alt="Preview gob-001" class="preview-image" id="preview-image">
+
+                    <!-- HOTSPOT KPI 1 - Recaudación Potencial -->
+                    <div class="hotspot" onclick="agregarCarrito('kpi-recaudacion')" onmouseenter="resaltarObjetoArco('kpi-recaudacion', true)" onmouseleave="resaltarObjetoArco('kpi-recaudacion', false)" style="left: 1.5%; top: 11%; width: 32%; height: 18%;">
+                        <div class="hotspot-tooltip">💰 Recaudación Potencial (KPI)</div>
+                    </div>
+
+                    <!-- HOTSPOT KPI 2 - Contribuyentes en Alerta -->
+                    <div class="hotspot" onclick="agregarCarrito('kpi-contribuyentes')" onmouseenter="resaltarObjetoArco('kpi-contribuyentes', true)" onmouseleave="resaltarObjetoArco('kpi-contribuyentes', false)" style="left: 34%; top: 11%; width: 32%; height: 18%;">
+                        <div class="hotspot-tooltip">⚠️ Contribuyentes en Alerta (KPI)</div>
+                    </div>
+
+                    <!-- HOTSPOT KPI 3 - Brecha de Recaudación -->
+                    <div class="hotspot" onclick="agregarCarrito('kpi-brecha')" onmouseenter="resaltarObjetoArco('kpi-brecha', true)" onmouseleave="resaltarObjetoArco('kpi-brecha', false)" style="left: 67%; top: 11%; width: 31%; height: 18%;">
+                        <div class="hotspot-tooltip">📉 Brecha de Recaudación (KPI)</div>
+                    </div>
+
+                    <!-- HOTSPOT CHART WATERFALL -->
+                    <div class="hotspot" onclick="agregarCarrito('chart-waterfall')" onmouseenter="resaltarObjetoArco('chart-waterfall', true)" onmouseleave="resaltarObjetoArco('chart-waterfall', false)" style="left: 1.5%; top: 32%; width: 97%; height: 65%;">
+                        <div class="hotspot-tooltip">📊 Waterfall - Análisis de Brecha (Chart)</div>
+                    </div>
+                </div>
+
+                <div class="demo-preview-acciones">
+                    <div class="acciones-botones">
+                        <a href="pagina-inicial-recaudacion.html" target="_blank" class="accion-demo accion-codigo">💻 Código</a>
+                        <div class="fila-lupa-copiar">
+                            <button type="button" class="accion-demo accion-lupa" onclick="toggleVisorCodigo()" title="Ver código línea por línea" aria-label="Ver código línea por línea">🔍</button>
+                            <button type="button" class="accion-demo accion-copiar" id="btn-copiar-codigo" onclick="copiarCodigoFuente()" title="Copiar código" aria-label="Copiar código" style="display:none;">📋</button>
+                        </div>
+                    </div>
+
+                    <!-- ══════════════════════════════════════════════
+                         VISOR DE CÓDIGO — se abre con la lupa 🔍
+                         Muestra el HTML real línea por línea, como un
+                         editor de código, a la misma altura que la
+                         imagen de la demo. Carga el archivo la primera
+                         vez que se abre (fetch), luego queda en caché.
+                         ══════════════════════════════════════════════ -->
+                    <div class="visor-codigo" id="visor-codigo">
+                        <div class="visor-codigo-barra">
+                            <span>📝 pagina-inicial-recaudacion.html</span>
+                        </div>
+                        <div class="visor-codigo-cuerpo" id="visor-codigo-cuerpo">
+                            <p class="visor-codigo-cargando">Cargando código…</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <p class="tarjeta-descripcion">Dashboard de página inicial para el módulo de Gobierno. Muestra KPIs de recaudación potencial, contribuyentes en alerta y brecha fiscal, junto con un gráfico waterfall interactivo y análisis por municipio. Diseñado como Data Driven Content para SAS Visual Analytics — recibe datos vía postMessage.</p>
 
-            <div class="etiquetas">
-                <span class="etiqueta">#gobierno</span>
-                <span class="etiqueta">#recaudacion</span>
-                <span class="etiqueta">#waterfall</span>
-                <span class="etiqueta">#impuestos</span>
-                <span class="etiqueta">#objetos-separados</span>
-            </div>
+            <p class="tarjeta-descripcion" style="margin-top: 20px;">Dashboard de página inicial para el módulo de Gobierno. Muestra KPIs de recaudación potencial, contribuyentes en alerta y brecha fiscal, junto con un gráfico waterfall interactivo y análisis por municipio. Diseñado como Data Driven Content para SAS Visual Analytics — recibe datos vía postMessage.</p>
 
             <div class="info-meta">
                 <span><strong>Autor:</strong> JuanMa</span>
@@ -386,55 +825,19 @@
                 <span><strong>Versión:</strong> 2.0 (Objetos Separados)</span>
             </div>
 
-            <div class="bloque-codigo">
-                <div class="barra-archivo">
-                    <span>CÓDIGO PRINCIPAL</span>
+            <!-- ══════════════════════════════════════════════
+                 Carrusel en arco de los objetos reutilizables
+                 (KPIs + gráfico waterfall). Se mueven solos de
+                 izquierda a derecha; se resaltan al pasar el mouse
+                 sobre ellos o sobre su hotspot en la imagen de arriba.
+                 ══════════════════════════════════════════════ -->
+            <div class="seccion-carrusel-objetos">
+                <h3>Objetos</h3> 
+                <div class="arco-objetos" id="arco-objetos">
+                    <div class="arco-objetos-pista" id="arco-objetos-pista"></div>
+                    <a href="gob-001-galeria.html" class="btn-galeria">🎨 Ver Galería Completa</a>
                 </div>
-
-                <div class="codigo-referenciado">
-                    <div class="archivo-info">
-                        <div class="archivo-icono">📄</div>
-                        <div>
-                            <div class="archivo-nombre">pagina-inicial-recaudacion.html</div>
-                            <div class="archivo-desc">Data Driven Content · SAS VA · Demo Completo</div>
-                        </div>
-                    </div>
-                    <div class="acciones">
-                        <button class="btn-copiar" id="btnCopiar">📋 Copiar</button>
-                        <button class="btn-run" id="btnRun">▶ Abrir Demo</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="seccion-objetos">
-                <h3>🎨 Objetos Reutilizables</h3>
-                <p>Pasa el mouse sobre los objetos en la imagen para verlos resaltados. Haz click en cualquiera para agregarlo al carrito.</p>
-
-                <div class="preview-container" id="preview-container">
-                    <img src="../../previews/gob-001.png" alt="Preview gob-001" class="preview-image" id="preview-image">
-                    
-                    <!-- HOTSPOT KPI 1 - Recaudación Potencial -->
-                    <div class="hotspot" onclick="agregarCarrito('kpi-recaudacion')" style="left: 1.5%; top: 11%; width: 32%; height: 18%;">
-                        <div class="hotspot-tooltip">💰 Recaudación Potencial (KPI)</div>
-                    </div>
-                    
-                    <!-- HOTSPOT KPI 2 - Contribuyentes en Alerta -->
-                    <div class="hotspot" onclick="agregarCarrito('kpi-contribuyentes')" style="left: 34%; top: 11%; width: 32%; height: 18%;">
-                        <div class="hotspot-tooltip">⚠️ Contribuyentes en Alerta (KPI)</div>
-                    </div>
-                    
-                    <!-- HOTSPOT KPI 3 - Brecha de Recaudación -->
-                    <div class="hotspot" onclick="agregarCarrito('kpi-brecha')" style="left: 67%; top: 11%; width: 31%; height: 18%;">
-                        <div class="hotspot-tooltip">📉 Brecha de Recaudación (KPI)</div>
-                    </div>
-                    
-                    <!-- HOTSPOT CHART WATERFALL -->
-                    <div class="hotspot" onclick="agregarCarrito('chart-waterfall')" style="left: 1.5%; top: 32%; width: 97%; height: 65%;">
-                        <div class="hotspot-tooltip">📊 Waterfall - Análisis de Brecha (Chart)</div>
-                    </div>
-                </div>
-
-                <a href="gob-001-galeria.html" class="btn-galeria">🎨 Ver Galería Completa</a>
+                
             </div>
 
             <div class="seccion-video">
@@ -579,17 +982,58 @@
             }
             
             Promise.all(promesas).then(function(resultados) {
-                var htmlFinal = html;
-                for (var i = 0; i < resultados.length; i++) {
-                    var result = resultados[i];
-                    htmlFinal += '<!-- ========== ' + result.nombre.toUpperCase() + ' ========== -->\n';
-                    htmlFinal += result.codigo + '\n\n';
-                }
-                
-                navigator.clipboard.writeText(htmlFinal).then(function() {
-                    mostrarToast('Codigo descargado al portapapeles');
-                });
+                generarPdfCarrito(resultados);
             });
+        }
+
+        // Arma un PDF con el código de cada objeto del carrito, uno debajo
+        // del otro. El nombre de cada objeto va como comentario HTML
+        // (<!-- nombre -->) dentro del propio código, no como texto aparte,
+        // para que no interfiera al copiar y pegar directo en SAS.
+        function generarPdfCarrito(resultados) {
+            if (!window.jspdf || !window.jspdf.jsPDF) {
+                mostrarToast('No se pudo generar el PDF');
+                return;
+            }
+
+            var jsPDF = window.jspdf.jsPDF;
+            var doc = new jsPDF({ unit: 'pt', format: 'letter' });
+
+            var margen = 40;
+            var anchoUtil = doc.internal.pageSize.getWidth() - margen * 2;
+            var altoPagina = doc.internal.pageSize.getHeight();
+            var alturaLinea = 11;
+            var y = margen;
+
+            doc.setFont('courier', 'normal');
+            doc.setFontSize(8);
+
+            for (var i = 0; i < resultados.length; i++) {
+                var resultado = resultados[i];
+
+                if (y > altoPagina - margen - 30) {
+                    doc.addPage();
+                    y = margen;
+                }
+
+                var lineas = ('<!-- ' + resultado.nombre + ' -->\n' + resultado.codigo).split('\n');
+                for (var j = 0; j < lineas.length; j++) {
+                    var envueltas = doc.splitTextToSize(lineas[j] || ' ', anchoUtil);
+                    for (var k = 0; k < envueltas.length; k++) {
+                        if (y > altoPagina - margen) {
+                            doc.addPage();
+                            y = margen;
+                        }
+                        doc.text(envueltas[k], margen, y);
+                        y += alturaLinea;
+                    }
+                }
+
+                y += 16; // espacio entre objetos
+            }
+
+            doc.save('gob-001-objetos.pdf');
+            mostrarToast('PDF descargado');
         }
         
         function limpiarCarrito() {
@@ -609,49 +1053,240 @@
             setTimeout(function() { toast.remove(); }, 2000);
         }
 
-        function fetchCodigo(callback) {
-            var status = document.getElementById('codigoStatus');
-            if (status) status.textContent = 'Cargando archivo...';
+        /* El botón "💻 Código" abre el archivo original en una pestaña nueva
+           (ver .accion-codigo en la tarjeta). La lupa "🔍" ahora abre el
+           visor de código línea por línea de abajo (toggleVisorCodigo). */
+
+        var visorCodigoCargado = false;
+        var codigoFuenteTexto = '';
+
+        function toggleVisorCodigo() {
+            var visor = document.getElementById('visor-codigo');
+            var btnCopiar = document.getElementById('btn-copiar-codigo');
+            if (!visor) return;
+
+            var estaAbierto = visor.classList.contains('abierto');
+
+            if (estaAbierto) {
+                visor.classList.remove('abierto');
+                if (btnCopiar) btnCopiar.style.display = 'none';
+                return;
+            }
+
+            fijarAlturaDemoPreviewRow();
+            visor.classList.add('abierto');
+            if (btnCopiar) btnCopiar.style.display = 'flex';
+
+            if (!visorCodigoCargado) {
+                cargarCodigoFuente();
+            }
+        }
+
+        function copiarCodigoFuente() {
+            if (!codigoFuenteTexto) return;
+
+            navigator.clipboard.writeText(codigoFuenteTexto).then(function () {
+                mostrarToast('Código copiado al portapapeles');
+            });
+        }
+
+        // El renglón demo-preview-row mantiene una altura fija (igual a la
+        // altura natural de la imagen de la demo). El visor de código vive
+        // dentro de ese renglón y nunca lo rebasa: como máximo llena el
+        // espacio que le queda debajo de los botones, con scroll interno.
+        function fijarAlturaDemoPreviewRow() {
+            var row = document.getElementById('demo-preview-row');
+            var preview = document.getElementById('preview-container');
+            if (!row || !preview) return;
+
+            if (window.innerWidth <= 700) {
+                row.style.height = ''; // en móvil el renglón se apila, sin altura fija
+                return;
+            }
+
+            row.style.height = preview.offsetHeight + 'px';
+        }
+
+        (function () {
+            var previewImg = document.getElementById('preview-image');
+            if (previewImg) {
+                if (previewImg.complete) {
+                    fijarAlturaDemoPreviewRow();
+                } else {
+                    previewImg.addEventListener('load', fijarAlturaDemoPreviewRow);
+                }
+            }
+            window.addEventListener('resize', fijarAlturaDemoPreviewRow);
+        })();
+
+        function cargarCodigoFuente() {
+            var cuerpo = document.getElementById('visor-codigo-cuerpo');
+            if (!cuerpo) return;
+
             fetch(CODIGO_URL)
-                .then(function(r) {
-                    if (!r.ok) throw new Error('HTTP ' + r.status);
-                    return r.text();
+                .then(function (respuesta) {
+                    if (!respuesta.ok) {
+                        throw new Error('No se pudo cargar el archivo (' + respuesta.status + ')');
+                    }
+                    return respuesta.text();
                 })
-                .then(function(text) {
-                    if (status) status.textContent = '';
-                    callback(null, text);
+                .then(function (texto) {
+                    cuerpo.innerHTML = renderizarCodigoConLineas(texto);
+                    codigoFuenteTexto = texto;
+                    visorCodigoCargado = true;
                 })
-                .catch(function(err) {
-                    if (status) status.textContent = 'Advertencia: No se pudo cargar: ' + err.message;
-                    callback(err, null);
+                .catch(function (error) {
+                    cuerpo.innerHTML = '<p class="visor-codigo-error">⚠️ No se pudo cargar el código: '
+                        + escaparHtml(error.message) + '</p>';
                 });
         }
 
-        document.getElementById('btnCopiar').addEventListener('click', function () {
-            var btn = this;
-            fetchCodigo(function (err, text) {
-                if (err) return;
-                var ta = document.createElement('textarea');
-                ta.value = text;
-                ta.style.position = 'fixed';
-                ta.style.opacity = '0';
-                document.body.appendChild(ta);
-                ta.focus();
-                ta.select();
-                try {
-                    document.execCommand('copy');
-                    btn.textContent = 'Copiado!';
-                } catch (e) {
-                    btn.textContent = 'Error';
-                }
-                document.body.removeChild(ta);
-                setTimeout(function () { btn.textContent = 'Copiar'; }, 2000);
-            });
-        });
+        function escaparHtml(texto) {
+            return texto
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
 
-        document.getElementById('btnRun').addEventListener('click', function () {
-            window.open(CODIGO_URL, '_blank');
-        });
+        function resaltarLineaHtml(linea) {
+            return linea.replace(
+                /(&lt;!--[\s\S]*?--&gt;)|(&lt;\/?[a-zA-Z][\w:-]*)|(&quot;[^&]*?&quot;)/g,
+                function (coincidencia, comentario, etiqueta, cadena) {
+                    if (comentario) return '<span class="comment">' + comentario + '</span>';
+                    if (etiqueta) return '<span class="keyword">' + etiqueta + '</span>';
+                    if (cadena) return '<span class="string">' + cadena + '</span>';
+                    return coincidencia;
+                }
+            );
+        }
+
+        function renderizarCodigoConLineas(texto) {
+            var lineas = escaparHtml(texto).split('\n');
+            var html = '';
+
+            for (var i = 0; i < lineas.length; i++) {
+                var numero = i + 1;
+                var contenido = resaltarLineaHtml(lineas[i]) || '&nbsp;';
+                html += '<div class="visor-codigo-linea">'
+                    + '<span class="visor-codigo-numero">' + numero + '</span>'
+                    + '<span class="visor-codigo-contenido">' + contenido + '</span>'
+                    + '</div>';
+            }
+
+            return html;
+        }
+
+        /* ══════════════════════════════════════════════
+           CARRUSEL EN ARCO — objetos por separado (KPIs + waterfall)
+           Se mueven solos de izquierda a derecha siguiendo una curva
+           (más altos al centro), se desvanecen en las orillas (mask
+           en CSS) y se agrandan al resaltarse: al pasar el mouse
+           sobre la tarjeta misma, o sobre su hotspot correspondiente
+           en la imagen de la demo (ver resaltarObjetoArco, expuesta
+           globalmente para los onmouseenter/onmouseleave de arriba).
+           ══════════════════════════════════════════════ */
+        (function () {
+            var OBJETOS_ARCO = [
+                { id: 'kpi-recaudacion',    icono: '💰', nombre: 'Recaudación Potencial',    tipo: 'KPI' },
+                { id: 'kpi-contribuyentes', icono: '⚠️', nombre: 'Contribuyentes en Alerta',  tipo: 'KPI' },
+                { id: 'kpi-brecha',         icono: '📉', nombre: 'Brecha de Recaudación',     tipo: 'KPI' },
+                { id: 'chart-waterfall',    icono: '📊', nombre: 'Waterfall de Brecha',       tipo: 'Gráfico' }
+            ];
+
+            var ESPACIO = 170;  // separación horizontal entre tarjetas (px)
+            var VELOCIDAD = 26; // px por segundo
+            var ALTO_ARCO = 46; // qué tanto se eleva el centro del arco (px)
+
+            var contenedor = document.getElementById('arco-objetos');
+            var pista = document.getElementById('arco-objetos-pista');
+            if (!contenedor || !pista) return;
+
+            var tarjetas = [];
+            var anchoContenedor = 0;
+            var anchoTotal = 0;
+            var ultimoTick = null;
+
+            function construirPista() {
+                anchoContenedor = contenedor.offsetWidth;
+                if (anchoContenedor <= 0) return;
+
+                var vueltas = Math.ceil((anchoContenedor * 2) / (ESPACIO * OBJETOS_ARCO.length)) + 1;
+                var totalTarjetas = OBJETOS_ARCO.length * Math.max(vueltas, 3);
+
+                pista.innerHTML = '';
+                tarjetas = [];
+
+                for (var i = 0; i < totalTarjetas; i++) {
+                    var datos = OBJETOS_ARCO[i % OBJETOS_ARCO.length];
+
+                    var outer = document.createElement('div');
+                    outer.className = 'objeto-arco';
+                    outer.dataset.objeto = datos.id;
+
+                    var card = document.createElement('div');
+                    card.className = 'objeto-arco-card';
+                    card.innerHTML =
+                        '<span class="objeto-arco-icono">' + datos.icono + '</span>'
+                        + '<span class="objeto-arco-nombre">' + datos.nombre + '</span>'
+                        + '<span class="objeto-arco-tipo">' + datos.tipo + '</span>';
+
+                    (function (idObjeto) {
+                        card.addEventListener('mouseenter', function () { resaltarObjetoArco(idObjeto, true); });
+                        card.addEventListener('mouseleave', function () { resaltarObjetoArco(idObjeto, false); });
+                        card.addEventListener('click', function () { agregarCarrito(idObjeto); });
+                    })(datos.id);
+
+                    outer.appendChild(card);
+                    pista.appendChild(outer);
+
+                    tarjetas.push({ el: outer, x: i * ESPACIO });
+                }
+
+                anchoTotal = totalTarjetas * ESPACIO;
+            }
+
+            function animar(tiempo) {
+                if (ultimoTick === null) ultimoTick = tiempo;
+                var dt = (tiempo - ultimoTick) / 1000;
+                ultimoTick = tiempo;
+
+                var mitad = anchoContenedor / 2;
+
+                for (var i = 0; i < tarjetas.length; i++) {
+                    var t = tarjetas[i];
+                    t.x += VELOCIDAD * dt;
+                    if (t.x > anchoContenedor + ESPACIO) {
+                        t.x -= anchoTotal;
+                    }
+
+                    var posRelativa = mitad > 0 ? (t.x - mitad) / mitad : 0;
+                    posRelativa = Math.max(-1, Math.min(1, posRelativa));
+                    var y = -ALTO_ARCO * (1 - posRelativa * posRelativa);
+
+                    t.el.style.transform = 'translate(' + t.x + 'px,' + y + 'px)';
+                }
+
+                requestAnimationFrame(animar);
+            }
+
+            window.resaltarObjetoArco = function (idObjeto, activar) {
+                var seleccionados = pista.querySelectorAll('.objeto-arco[data-objeto="' + idObjeto + '"] .objeto-arco-card');
+                for (var i = 0; i < seleccionados.length; i++) {
+                    seleccionados[i].classList.toggle('seleccionado', activar);
+                }
+            };
+
+            construirPista();
+            requestAnimationFrame(animar);
+
+            var reconstruyendoTimeout;
+            window.addEventListener('resize', function () {
+                clearTimeout(reconstruyendoTimeout);
+                reconstruyendoTimeout = setTimeout(construirPista, 200);
+            });
+        })();
 
         cargarCarrito();
     </script>

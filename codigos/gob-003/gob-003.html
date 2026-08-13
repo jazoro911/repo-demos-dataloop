@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dataloop - Fiscalización Comercio Exterior · Tamaulipas (Admin)</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <!-- Aplica el tema guardado (claro/oscuro) antes de pintar la página, para evitar parpadeos -->
+    <script>
+        (function () {
+            var tema = localStorage.getItem('tema-dataloop') || 'claro';
+            document.documentElement.setAttribute('data-theme', tema);
+        })();
+    </script>
+    <style>
+        .codigo-referenciado {
+            background: #f8f9ff;
+            border: 1px solid #e8ecf5;
+            border-radius: 10px;
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .codigo-referenciado .archivo-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .codigo-referenciado .archivo-icono { font-size: 28px; }
+        .codigo-referenciado .archivo-nombre {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1C334F;
+        }
+        .codigo-referenciado .archivo-desc {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+        .codigo-referenciado .acciones {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        /* Bloque principal — más destacado */
+        .bloque-principal { margin-bottom: 10px; }
+        .bloque-principal .codigo-referenciado {
+            border: 2px solid #c7d7f0;
+            background: #f0f5ff;
+        }
+
+        /* Archivos de soporte */
+        .soporte-titulo {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            color: #6B8AAB;
+            margin: 18px 0 8px 0;
+        }
+        .soporte-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 8px;
+        }
+        .soporte-grid .codigo-referenciado {
+            padding: 12px 16px;
+        }
+        .soporte-grid .archivo-nombre { font-size: 12px; }
+        .soporte-grid .archivo-icono  { font-size: 20px; }
+
+        /* Botones */
+        .btn-copiar {
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 7px;
+            border: 1px solid #d8dce8;
+            background: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            color: #1C334F;
+            transition: background 0.15s;
+            white-space: nowrap;
+        }
+        .btn-copiar:hover { background: #eef0f5; }
+        .btn-copiar.sm    { padding: 5px 11px; font-size: 11px; }
+
+        .btn-run {
+            cursor: pointer;
+            background: #4caf50;
+            color: #fff;
+            padding: 8px 18px;
+            border-radius: 7px;
+            border: none;
+            font-size: 12px;
+            font-weight: 700;
+            transition: background 0.15s;
+            white-space: nowrap;
+        }
+        .btn-run:hover    { background: #388e3c; }
+
+        .codigo-status {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 8px;
+            min-height: 16px;
+        }
+
+
+        /* ── Carrusel de pestañas ── */
+        .carousel {
+            position: relative;
+            background: #f8f9ff;
+            border: 1px solid #e8ecf5;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        /* Slides */
+        .carousel-slides {
+            position: relative;
+        }
+
+        .carousel-slide {
+            display: none;
+            flex-direction: column;
+            gap: 0;
+        }
+        .carousel-slide.activo { display: flex; }
+
+        /* Imagen grande */
+        .carousel-img-wrap {
+            width: 100%;
+            background: #0C2340;
+            position: relative;
+            overflow: hidden;
+        }
+        .carousel-img-wrap img {
+            width: 100%;
+            display: block;
+            object-fit: cover;
+            max-height: 420px;
+        }
+        .carousel-img-wrap .slide-badge {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            background: rgba(12,35,64,.75);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            backdrop-filter: blur(4px);
+            letter-spacing: .04em;
+        }
+        .carousel-img-wrap .slide-badge-num {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            background: rgba(255,255,255,.15);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            backdrop-filter: blur(4px);
+        }
+
+        /* Pie del slide */
+        .carousel-footer {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            border-top: 3px solid #1C334F;
+            background: #1C334F;
+        }
+        /* Footer DDO — tono cálido */
+        .carousel-slide.tipo-ddo .carousel-footer {
+            background: #2d1f00;
+            border-top-color: #9E7B3B;
+        }
+        /* Footer Embebido */
+        .carousel-slide.tipo-embebido .carousel-footer {
+            background: #1a1a2e;
+            border-top-color: #6B5B95;
+        }
+
+        .carousel-info { flex: 1; min-width: 0; }
+
+        .carousel-tipo-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            padding: 3px 9px;
+            border-radius: 20px;
+            margin-bottom: 5px;
+        }
+        .tipo-principal-tag { background: rgba(255,255,255,.15); color: #a8c4e0; }
+        .tipo-ddo-tag       { background: rgba(158,123,59,.25);  color: #D4A84B; }
+        .tipo-embebido-tag  { background: rgba(107,91,149,.25);  color: #b39ddb; }
+
+        .carousel-nombre {
+            font-size: 14px;
+            font-weight: 700;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .carousel-desc {
+            font-size: 11px;
+            color: rgba(255,255,255,.6);
+            margin-top: 3px;
+        }
+        .carousel-acciones {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+            align-items: center;
+        }
+        /* Botón copiar en footer oscuro */
+        .carousel-footer .btn-copiar {
+            background: rgba(255,255,255,.1);
+            border-color: rgba(255,255,255,.25);
+            color: #fff;
+        }
+        .carousel-footer .btn-copiar:hover {
+            background: rgba(255,255,255,.2);
+        }
+
+        /* Navegación */
+        .carousel-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: #f0f4f8;
+            border-top: 1px solid #e8ecf5;
+        }
+        .carousel-dots {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .carousel-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #c5d5e8;
+            cursor: pointer;
+            transition: all .2s;
+            border: none;
+            padding: 0;
+        }
+        .carousel-dot.activo          { width: 22px; border-radius: 4px; }
+        .carousel-dot[data-tipo="principal"]         { background: #1C334F; }
+        .carousel-dot[data-tipo="principal"].activo  { background: #1C334F; }
+        .carousel-dot[data-tipo="ddo"]               { background: #9E7B3B; }
+        .carousel-dot[data-tipo="ddo"].activo        { background: #9E7B3B; }
+        .carousel-dot[data-tipo="embebido"]          { background: #6B5B95; }
+        .carousel-dot[data-tipo="embebido"].activo   { background: #6B5B95; }
+        .btn-nav {
+            cursor: pointer;
+            background: #fff;
+            border: 1px solid #d8dce8;
+            border-radius: 7px;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #1C334F;
+            transition: background .15s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-nav:hover { background: #eef0f5; }
+        .btn-nav:disabled { opacity: .35; cursor: not-allowed; }
+        .nav-grupo { display: flex; gap: 6px; }
+
+        /* Slide sin archivo (buscador embebido) */
+        .slide-embebido {
+            background: #f8f6ff;
+        }
+        .slide-embebido .carousel-img-wrap {
+            background: #2a1a3a;
+        }
+
+        /* Tab badge */
+        .tab-badge {
+            display: inline-block;
+            background: #e8edf5;
+            color: #1C334F;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 10px;
+            margin-left: 6px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+
+<script src="../../global-search.js"></script>   <!-- desde codigos/gob-003/ -->
+<script src="../global-search.js"></script>        <!-- desde categorias/ -->
+<script src="global-search.js"></script>           <!-- desde raíz (index.html) -->
+
+<body>
+
+        <!-- ============================================
+         RIEL LATERAL (siempre visible)
+         ============================================ -->
+    <div class="sidebar-rail">
+        <button class="rail-boton rail-logo" id="btn-toggle-sidebar" onclick="toggleSidebar()" aria-label="Abrir navegación">
+            <img src="../../previews/icono_dataloop.svg" alt="Dataloop">
+        </button>
+        <button class="rail-boton rail-tema" id="btn-tema" onclick="toggleTema()" aria-label="Cambiar tema">
+            <span id="icono-tema">🌙</span>
+        </button>
+    </div>
+
+    <!-- Fondo oscuro detrás de la navegación cuando está abierta -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+    <nav class="sidebar" id="sidebar">
+
+        <button class="sidebar-cerrar" onclick="cerrarSidebar()" aria-label="Cerrar navegación">×</button>
+
+        <a href="../../index.html" class="sidebar-logo">
+            <img src="../../previews/icono_dataloop.svg" alt="Dataloop" class="sidebar-logo-img">
+            <span class="logo-texto">Dataloop</span>
+        </a>
+        <input type="text" class="sidebar-buscador" placeholder="🔍 Buscar código..." id="buscador-sidebar">
+        <a href="../../index.html" class="sidebar-link">
+            <span class="icono">📊</span> Dashboard
+        </a>
+        <div class="sidebar-seccion">Casos de Uso</div>
+        <a href="../../categorias/financial-crimes.html" class="sidebar-categoria">
+            <span class="icono">🔒</span> Financial Crimes
+        </a>
+        <a href="../../categorias/gobierno.html" class="sidebar-categoria activa">
+            <span class="icono">🏛️</span> Gobierno
+        </a>
+        <a href="../../categorias/retail.html" class="sidebar-categoria">
+            <span class="icono">🛒</span> Retail
+        </a>
+        <a href="../../categorias/analytics.html" class="sidebar-categoria">
+            <span class="icono">📈</span> Analytics
+        </a>
+        <div class="sidebar-footer">
+            <div class="avatar">R</div>
+            <div class="admin-info">
+                <div class="nombre">Repository Admin</div>
+                <div class="detalle">16 códigos disponibles</div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="zona-principal">
+
+    <div class="header">
+        <a href="../../index.html" class="logo">Repositorio de Códigos</a>
+        <span class="descripcion">Repositorio Interno de Código</span>
+    </div>
+
+    <div class="contenido">
+
+        <a href="../../categorias/gobierno.html" class="boton-volver">← Volver al repositorio</a>
+
+        <div class="tarjeta">
+
+            <h1 class="tarjeta-titulo">Fiscalización Comercio Exterior · Tamaulipas
+                <span style="font-size:13px;font-weight:600;color:#6B8AAB;margin-left:8px;">Vista Admin</span>
+            </h1>
+
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:15px;">
+                <span class="etiqueta-lenguaje">html</span>
+                <span style="color:#64748b;font-size:14px;">Data Driven Content · SAS VA · 5 pestañas</span>
+            </div>
+
+            <p class="tarjeta-descripcion">
+                Dashboard multi-pestaña para fiscalización de comercio exterior en aduanas de Tamaulipas.
+                Vista de Administrador con acceso completo a las 5 pestañas: Centro de Control (DDOs SAS),
+                Regularización Espontánea, No Regularización, Retornos Simulados y Buscador Integral.
+                El archivo principal (<code>concatTamaulipas_A</code>) orquesta el diseño, el sistema de pestañas
+                y llama a los HTMLs de cada sección como Data Driven Content.
+            </p>
+
+            <div class="etiquetas">
+                <span class="etiqueta">#tamaulipas</span>
+                <span class="etiqueta">#aduanas</span>
+                <span class="etiqueta">#fiscalización</span>
+                <span class="etiqueta">#comercio-exterior</span>
+                <span class="etiqueta">#multi-pestaña</span>
+                <span class="etiqueta">#admin</span>
+                <span class="etiqueta">#sas-va</span>
+            </div>
+
+            <div class="info-meta">
+                <span><strong>Autor:</strong> Dataloop Team</span>
+                <span><strong>Fecha:</strong> 2025-06-10</span>
+            </div>
+
+            <div class="instrucciones">
+                <h2>📋 Instrucciones de Uso</h2>
+                <p>Este proyecto se compone de tres tipos de archivos:</p>
+                <ul style="margin-top:8px;margin-left:18px;font-size:13px;line-height:1.9;color:#444;">
+                    <li><strong>🗂️ HTML Principal — <code>concatTamaulipas_A.html</code>:</strong> Orquestador. Define el topbar, el sistema de pestañas y carga los DDOs. Es el único archivo que se despliega directamente en SAS VA.</li>
+                    <li><strong>🔗 DDOs — <code>IMM_NOREG.html</code>, <code>IMM_NORET.html</code>, <code>IMM_RETSIM.html</code>:</strong> HTMLs que se cargan primero como Data Driven Content dentro de un reporte de SAS VA para recibir los datos. Luego son llamados por el archivo principal vía <code>createReportObject()</code>.</li>
+                    <li><strong>⚙️ Embebido — Buscador Integral:</strong> HTML incluido directamente dentro del archivo principal como <code>srcdoc</code>. No requiere archivo separado.</li>
+                </ul>
+                <p style="margin-top:8px;color:#6B8AAB;font-size:12px;">
+                    ⚠️ El botón <strong>Abrir Demo</strong> abre el archivo principal en el navegador. Sin conexión a SAS VA los paneles de datos aparecerán vacíos — solo el Buscador Integral funciona de forma autónoma.
+                </p>
+            </div>
+
+            <!-- ══ BLOQUE CÓDIGO CON CARRUSEL ══ -->
+            <div class="bloque-codigo">
+                <div class="barra-archivo">
+                    <span>CÓDIGO</span>
+                    <div style="display:flex;gap:10px;align-items:center;">
+                        <button class="btn-copiar" id="btnCopiarMain">📋 Copiar archivo principal</button>
+                        <button class="btn-run" id="btnRun">▶ Abrir Demo</button>
+                    </div>
+                </div>
+                <div class="codigo-status" id="status-main"></div>
+
+                <!-- Carrusel -->
+                <div class="carousel" id="carousel">
+                    <div class="carousel-slides">
+
+                        <!-- SLIDE 1 — Centro de Control (archivo principal) -->
+                        <div class="carousel-slide activo tipo-principal" data-target="main">
+                            <div class="carousel-img-wrap">
+                                <img src="../../previews/gob-003/Centro-control.png" alt="Centro de Control">
+                            </div>
+                            <div class="carousel-footer">
+                                <div class="carousel-info">
+                                    <div class="carousel-tipo-tag tipo-principal-tag">🗂️ HTML Principal</div>
+                                    <div class="carousel-nombre">concatTamaulipas_A.html</div>
+                                    <div class="carousel-desc">Orquestador · une el topbar, sistema de pestañas y carga los DDOs en cada sección. Es el archivo que se despliega en SAS VA.</div>
+                                </div>
+                                <div class="carousel-acciones">
+                                    <button class="btn-copiar" data-target="main">📋 Copiar</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SLIDE 2 — Regularización Espontánea -->
+                        <div class="carousel-slide tipo-ddo" data-target="noreg">
+                            <div class="carousel-img-wrap">
+                                <img src="../../previews/gob-003/reg-espontanea.png" alt="Regularización Espontánea">
+                            </div>
+                            <div class="carousel-footer">
+                                <div class="carousel-info">
+                                    <div class="carousel-tipo-tag tipo-ddo-tag">🔗 Data Driven Object</div>
+                                    <div class="carousel-nombre">IMM_NOREG.html · Regularización Espontánea</div>
+                                    <div class="carousel-desc">HTML cargado como DDO en un reporte de SAS VA. Alimenta datos al archivo principal vía postMessage. Recuperación lograda y comportamiento recurrente.</div>
+                                </div>
+                                <div class="carousel-acciones">
+                                    <button class="btn-copiar" data-target="noreg">📋 Copiar</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SLIDE 3 — No Regularización -->
+                        <div class="carousel-slide tipo-ddo" data-target="noret">
+                            <div class="carousel-img-wrap">
+                                <img src="../../previews/gob-003/no-reg.png" alt="No Regularización">
+                            </div>
+                            <div class="carousel-footer">
+                                <div class="carousel-info">
+                                    <div class="carousel-tipo-tag tipo-ddo-tag">🔗 Data Driven Object</div>
+                                    <div class="carousel-nombre">IMM_NORET.html · No Regularización</div>
+                                    <div class="carousel-desc">HTML cargado como DDO en un reporte de SAS VA. Alimenta datos al archivo principal vía postMessage. Monto recuperable y empresas recurrentes.</div>
+                                </div>
+                                <div class="carousel-acciones">
+                                    <button class="btn-copiar" data-target="noret">📋 Copiar</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SLIDE 4 — Retornos Simulados -->
+                        <div class="carousel-slide tipo-ddo" data-target="retsim">
+                            <div class="carousel-img-wrap">
+                                <img src="../../previews/gob-003/retornos-simulados.png" alt="Retornos Simulados">
+                            </div>
+                            <div class="carousel-footer">
+                                <div class="carousel-info">
+                                    <div class="carousel-tipo-tag tipo-ddo-tag">🔗 Data Driven Object</div>
+                                    <div class="carousel-nombre">IMM_RETSIM.html · Retornos Simulados</div>
+                                    <div class="carousel-desc">HTML cargado como DDO en un reporte de SAS VA. Alimenta datos al archivo principal vía postMessage. Indicios EFOS y comprobación documental.</div>
+                                </div>
+                                <div class="carousel-acciones">
+                                    <button class="btn-copiar" data-target="retsim">📋 Copiar</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SLIDE 5 — Buscador Integral (embebido, sin copiar) -->
+                        <div class="carousel-slide tipo-embebido">
+                            <div class="carousel-img-wrap">
+                                <img src="../../previews/gob-003/buscador-integral.png" alt="Buscador Integral">
+                            </div>
+                            <div class="carousel-footer">
+                                <div class="carousel-info">
+                                    <div class="carousel-tipo-tag tipo-embebido-tag">⚙️ Embebido en Principal</div>
+                                    <div class="carousel-nombre">Buscador Integral</div>
+                                    <div class="carousel-desc">Motor de búsqueda RFC/folio incluido directamente dentro de concatTamaulipas_A.html como <code style="color:rgba(255,255,255,.7)">srcdoc</code>. No es un archivo separado — se copia junto con el principal.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Navegación -->
+                    <div class="carousel-nav">
+                        <div class="nav-grupo">
+                            <button class="btn-nav" id="btnPrev" disabled>← Anterior</button>
+                            <button class="btn-nav" id="btnNext">Siguiente →</button>
+                        </div>
+                        <div class="carousel-dots" id="carouselDots">
+                            <button class="carousel-dot activo" data-idx="0" data-tipo="principal"></button>
+                            <button class="carousel-dot" data-idx="1" data-tipo="ddo"></button>
+                            <button class="carousel-dot" data-idx="2" data-tipo="ddo"></button>
+                            <button class="carousel-dot" data-idx="3" data-tipo="ddo"></button>
+                            <button class="carousel-dot" data-idx="4" data-tipo="embebido"></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="codigo-status" id="status-soporte"></div>
+            </div>
+
+            <div class="seccion-video">
+                <h2>🎬 Video Demo</h2>
+                <div class="video-container">
+                    <div class="video-wrapper">
+                        <div class="video-placeholder">
+                            <div class="placeholder-icono">🎥</div>
+                            <p>No hay video disponible para este código.</p>
+                            <p style="font-size:12px;margin-top:5px;">Agrega un video pegando un iframe de YouTube o un archivo .mp4</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="footer">
+        Dataloop · Repositorio Interno · 2025
+    </div>
+
+    </div>
+
+    <script>
+        /* ── Rutas de los archivos (ajusta si cambia la estructura de carpetas) ── */
+        var RUTAS = {
+            main:   './concatTamaulipas_A.html',
+            noreg:  './IMM_NOREG.html',
+            noret:  './IMM_NORET.html',
+            retsim: './IMM_RETSIM.html'
+        };
+
+        /* Cache de contenido pre-cargado */
+        var cache = {};
+
+        /* Pre-cargar todos los archivos al abrir la página */
+        Object.keys(RUTAS).forEach(function(key) {
+            fetch(RUTAS[key])
+                .then(function(r) {
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    return r.text();
+                })
+                .then(function(text) {
+                    cache[key] = text;
+                    if (key === 'main') {
+                        var s = document.getElementById('status-main');
+                        s.textContent = '✓ Listo (' + text.length + ' caracteres)';
+                        setTimeout(function() { s.textContent = ''; }, 2500);
+                    }
+                })
+                .catch(function(err) {
+                    if (key === 'main') {
+                        document.getElementById('status-main').textContent = '⚠️ No se pudo cargar: ' + err.message;
+                    }
+                });
+        });
+
+        /* Copiar con fallback (compatible con SAS VA) */
+        function copiarTexto(text, btn) {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'absolute';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            ta.setSelectionRange(0, text.length);
+            var exito = false;
+            try { exito = document.execCommand('copy'); } catch(e) { exito = false; }
+            document.body.removeChild(ta);
+
+            var original = btn.textContent;
+            if (exito) {
+                btn.textContent = '✅ Copiado!';
+            } else {
+                btn.textContent = '❌ Error';
+            }
+            setTimeout(function() { btn.textContent = original; }, 2500);
+        }
+
+        /* ── Carrusel ── */
+        var slides = document.querySelectorAll('.carousel-slide');
+        var dots   = document.querySelectorAll('.carousel-dot');
+        var btnPrev = document.getElementById('btnPrev');
+        var btnNext = document.getElementById('btnNext');
+        var current = 0;
+
+        function irA(idx) {
+            slides[current].classList.remove('activo');
+            dots[current].classList.remove('activo');
+            current = idx;
+            slides[current].classList.add('activo');
+            dots[current].classList.add('activo');
+            btnPrev.disabled = current === 0;
+            btnNext.disabled = current === slides.length - 1;
+        }
+
+        btnPrev.addEventListener('click', function() { if (current > 0) irA(current - 1); });
+        btnNext.addEventListener('click', function() { if (current < slides.length - 1) irA(current + 1); });
+        dots.forEach(function(dot) {
+            dot.addEventListener('click', function() { irA(parseInt(this.getAttribute('data-idx'))); });
+        });
+
+        /* Botones de la barra superior */
+        document.getElementById('btnCopiarMain').addEventListener('click', function() {
+            if (!cache['main']) {
+                document.getElementById('status-main').textContent = '⚠️ Archivo aún cargando, reintenta en un momento.';
+                setTimeout(function() { document.getElementById('status-main').textContent = ''; }, 2500);
+                return;
+            }
+            copiarTexto(cache['main'], this);
+        });
+        document.getElementById('btnRun').addEventListener('click', function() {
+            if (!cache['main']) {
+                document.getElementById('status-main').textContent = '⚠️ Archivo aún cargando, reintenta en un momento.';
+                return;
+            }
+            var win = window.open('', '_blank');
+            win.document.open();
+            win.document.write(cache['main']);
+            win.document.close();
+        });
+
+        /* Asignar eventos a todos los botones por data-target */
+        document.querySelectorAll('.btn-copiar[data-target]').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var key = this.getAttribute('data-target');
+                var statusEl = key === 'main'
+                    ? document.getElementById('status-main')
+                    : document.getElementById('status-soporte');
+
+                if (!cache[key]) {
+                    statusEl.textContent = '⚠️ Archivo aún cargando, reintenta en un momento.';
+                    setTimeout(function() { statusEl.textContent = ''; }, 2500);
+                    return;
+                }
+                copiarTexto(cache[key], this);
+            });
+        });
+
+        document.querySelectorAll('.btn-run[data-target]').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var key = this.getAttribute('data-target');
+                if (!cache[key]) {
+                    document.getElementById('status-main').textContent = '⚠️ Archivo aún cargando, reintenta en un momento.';
+                    return;
+                }
+                var win = window.open('', '_blank');
+                win.document.open();
+                win.document.write(cache[key]);
+                win.document.close();
+            });
+        });
+    </script>
+
+</body>
+</html>

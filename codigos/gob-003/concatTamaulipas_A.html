@@ -1,0 +1,1631 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>SAS VA Dashboard</title>
+
+  <script src="/SASJobExecution/resources/sap/ui/thirdparty/jquery.js"></script>
+  <script src="/SASJobExecution/resources/dynamic.min.js"></script>
+  <script
+    src="https://cdn.developer.sas.com/packages/va-report-components/latest/dist/umd/va-report-components.js"></script>
+
+  <style>
+    /* ============================================================
+       VARIABLES DE IDENTIDAD INSTITUCIONAL / GOBIERNO
+       (mismas que el DDO IMM_REGESP_DASH de la pestaña 2)
+       ============================================================ */
+    :root {
+      --gob-navy: #0C2340;     /* Azul Institucional / Heráldico */
+      --gob-deep: #051122;     /* Azul Oscuro de Contraste */
+      --gob-gold: #9E7B3B;     /* Oro / Bronce de Estado */
+      --gob-emerald: #1E4620;  /* Verde Bandera / Aprobaciones */
+      --gob-red: #8C232C;      /* Guinda / Alertas Oficiales */
+      --gob-wine: #5B2541;     /* Variación Sobria Administrativa */
+
+      --text: #1C2530;         /* Texto Principal */
+      --muted: #4A5568;        /* Subtítulos y Metadatos */
+      --faint: #626E7D;        /* Etiquetas Secundarias */
+      --border: #CCD4E0;       /* Línea Divisoria Formal */
+      --bg: #F4F6F9;           /* Fondo de aplicación */
+      --panel: #FFFFFF;
+
+/* CAMBIOS TIPOGRÁFICOS */
+        --ff-disp: "Calibri", Arial, sans-serif; /* Títulos Solemnes */
+        --ff-body: Arial, "Helvetica Neue", sans-serif; /* Cuerpo Técnico / Administrativo */
+        --mono: "Courier New", Courier, monospace;
+      --topbar-h: 44px;
+      --tabs-h: 50px;
+      --filtros-h: 80px;  /* alto de la banda de filtros (el DDO entra en modo compacto) */
+    }
+
+    html,
+    body {
+      margin: 0px;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--ff-body);
+      font-size: 15px;
+      overflow-x: hidden;
+    }
+
+    /* ===== Barra superior (original guinda) ===== */
+    .topbar {
+      background: #6C1D3D;
+      color: #fff;
+      padding: 8px 20px;
+      border-bottom: 3px solid #B98A2F;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: var(--topbar-h);
+      box-sizing: border-box;
+    }
+
+    .topbar h1 {
+      font-family: "Palatino Linotype", "Iowan Old Style", "Book Antiqua", Georgia, serif;
+      font-size: 26px;
+      margin: 0;
+      font-weight: 600;
+    }
+
+    /* --- AVATAR DE USUARIO (lado derecho del topbar) --- */
+    .user-avatar {
+      display: right;
+      align-items: right;
+      gap: 9px;
+      flex-shrink: 0;
+    }
+
+.user-circle {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--ff-body);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  
+  /* Borde plateado sutil */
+  border: 2px solid #d1d5db; 
+  
+  /* Fondo con degradado metálico/plateado */
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 50%, #9ca3af 100%);
+  
+  /* Color de texto oscuro para que contraste bien con el plateado claro */
+  color: #1f2937;
+  
+  /* Sombra exterior para darle relieve y sombra interior para profundidad */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+              0 2px 4px -1px rgba(0, 0, 0, 0.06),
+              inset 0 2px 3px rgba(255, 255, 255, 0.8),
+              inset 0 -2px 3px rgba(0, 0, 0, 0.15);
+              
+  flex-shrink: 0;
+  cursor: default;
+  user-select: none;
+}
+
+    /* Admin → fondo dorado oscuro */
+    .user-circle.admin {
+      background: var(--gob-gold);
+      color: #fff;
+    }
+
+    /* Usuario estándar → fondo transparente con borde dorado */
+    .user-circle.usuario {
+      background: rgba(158, 123, 59, 0.18);
+      color: var(--gob-gold);
+    }
+
+    .user-label {
+      font-family: var(--ff-body);
+      font-size: 13px;
+      color: rgba(255,255,255,0.75);
+      white-space: nowrap;
+      line-height: 1.2;
+    }
+
+    .user-label strong {
+      display: block;
+      color: #fff;
+      font-size: 13.5px;
+      font-weight: 700;
+    }
+
+    /* ===== Fila de pestañas (tamaño y estética del DDO) ===== */
+    .contenedor-horizontal {
+      display: flex;
+      flex-wrap: nowrap;
+      flex-direction: row;
+      gap: 8px;
+      width: 100%;
+      height: var(--tabs-h);
+      background: var(--bg);
+      border-bottom: 2px solid var(--border);
+      padding: 8px 18px 0 18px;
+      box-sizing: border-box;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .tab-wrapper {
+      position: relative;
+      height: 100%;
+      flex: 0 0 330px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-bottom: none;
+      border-radius: 4px 4px 0 0;
+      box-shadow: 0 1px 3px rgba(12, 35, 64, 0.04);
+      cursor: pointer;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+    }
+
+    /* Línea superior de acento, como los KPI del DDO */
+    .tab-wrapper:before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 3px;
+      background: var(--border);
+      z-index: 11;
+    }
+
+    .tab-wrapper.active:before {
+      background: linear-gradient(90deg, var(--gob-navy) 0%, var(--gob-navy) 40%, var(--gob-gold) 70%, var(--gob-emerald) 100%);
+    }
+
+    .tab-wrapper.active {
+      border-color: var(--gob-navy);
+    }
+
+    .tab-label {
+      font-family: var(--ff-body);
+      font-size: 22.5px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: .01em;
+      text-align: center;
+      padding: 0 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tab-wrapper:hover .tab-label {
+      color: var(--gob-navy);
+    }
+
+    .tab-wrapper.active .tab-label {
+      color: var(--gob-navy);
+      font-weight: 700;
+    }
+
+    /* ===== Contenido de páginas ===== */
+    .page-content {
+      display: none;
+    }
+
+    .page-content.active {
+      display: block;
+    }
+
+    /* ===== Grid principal — Pestaña 1 =====
+       header  header  header
+       filtros filtros filtros
+       kpi     kpi     kpi
+       mapa    escen   foco
+       mapa    expo    foco
+       tend    tend    tend
+    */
+    .dashboard-grid {
+      margin: 10px;
+      display: grid;
+      grid-template-columns: 4fr 5fr 3fr;
+      grid-template-rows: 130px var(--filtros-h) 150px minmax(0,3fr) minmax(0,1.5fr) minmax(0,2fr);
+      grid-template-areas:
+        "header  header  header"
+        "filtros filtros filtros"
+        "kpi     kpi     kpi"
+        "mapa    escen   foco"
+        "expo    expo    foco"
+        "tend    tend    tend";
+      gap: 10px;
+      padding: 12px 16px 16px;
+      box-sizing: border-box;
+      height: calc(190vh - var(--topbar-h) - var(--tabs-h));
+      /* alto total menos topbar y tabs */
+    }
+
+    #header  { grid-area: header; }
+    #filtros { grid-area: filtros; }
+    #kpis    { grid-area: kpi; }
+    #foco    { grid-area: foco; }
+    #mapa    { grid-area: mapa; }
+    #escen   { grid-area: escen; }
+    #tend    { grid-area: tend; }
+    #expo    { grid-area: expo; }
+
+    #kpis {
+      padding: 0;
+    }
+
+    /* ===== Paneles (tarjetas estilo DDO) ===== */
+    .panel {
+      position: relative;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(12, 35, 64, 0.04);
+      padding: 6px;
+      box-sizing: border-box;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    /* Línea superior navy, como los paneles del DDO */
+    .panel:before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 2px;
+      background: var(--gob-navy);
+      z-index: 1;
+    }
+
+    #header {
+      background: transparent;
+      border: none;
+      padding: 0;
+      box-shadow: none;
+    }
+
+    #header:before {
+      display: none;
+    }
+
+    /* ============================================================
+       BARRA DE FILTROS — CONTENCIÓN TOTAL DEL SDK DE SAS
+       El SDK inyecta wrappers (ReportContainer, StatusLayout, iframe
+       con min-height:100px inline) que desbordan la banda y tapan
+       los KPIs. Como esos wrappers viven en DOM normal (no shadow),
+       nuestro CSS con !important SÍ les gana a sus estilos inline.
+       Regla: TODO lo que viva dentro de #filtros queda esclavizado
+       a la altura de la banda. El DDO IMM_FILTROS ya sabe adaptarse
+       (modos compact/ultra), así que no se corta: se encoge.
+       ============================================================ */
+    #filtros {
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      padding: 0;
+      overflow: hidden;  /* nada puede derramarse sobre los KPIs */
+      position: relative;
+    }
+
+    #filtros:before {
+      display: none;
+    }
+
+    #filtros sas-report-object,
+    #filtros sas-report-object div,
+    #filtros sas-report-object section,
+    #filtros iframe {
+      height: 100% !important;
+      max-height: var(--filtros-h) !important;
+      min-height: 0 !important;
+      box-sizing: border-box !important;
+    }
+
+    #filtros iframe {
+      min-width: 0 !important;
+      border: none !important;
+    }
+
+    /* ===== Páginas 2, 3 y 4: un solo objeto a pantalla completa ===== */
+    .pagina-completa {
+      padding: 12px 16px 16px;
+      box-sizing: border-box;
+      height: calc(100vh - var(--topbar-h) - var(--tabs-h));
+    }
+
+    .pagina-completa .panel {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Las páginas de DDO único ya traen su propio marco: panel invisible */
+    .pagina-completa .panel.sin-marco {
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      padding: 0;
+    }
+
+    .pagina-completa .panel.sin-marco:before {
+      display: none;
+    }
+
+    /* El objeto SAS llena todo su contenedor */
+    sas-report-object {
+      border: none !important;
+      outline: none !important;
+      box-shadow: none !important;
+      width: 100% !important;
+      height: 100% !important;
+      display: block !important;
+      min-height: 0 !important;
+    }
+
+    .panel sas-report-object,
+    #header sas-report-object {
+      flex: 1;
+    }
+
+    /* Responsivo: en pantallas angostas, todo apilado (pestaña 1) */
+    @media (max-width: 900px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: 68px var(--filtros-h) 92px 300px 300px 300px 260px 300px;
+        grid-template-areas:
+          "header"
+          "filtros"
+          "kpi"
+          "mapa"
+          "escen"
+          "foco"
+          "expo"
+          "tend";
+        height: auto;
+      }
+
+      .tab-wrapper {
+        flex: 0 0 160px;
+      }
+    }
+        #kpis iframe,
+.body iframe {
+  accent-color: auto; /* O transparente / initial / inherit según lo que necesites */
+}
+
+    /* Estilos calc-buscador */
+    /* La pestaña 5 es un HTML autónomo embebido en un iframe (srcdoc),
+       totalmente aislado: su CSS no choca con el del shell ni con los
+       DDOs, y conserva su formato original sin modificaciones. */
+    .frame-buscador {
+      display: block;
+      width: 100%;
+      height: calc(100vh - var(--topbar-h) - var(--tabs-h));
+      border: 0px;
+      background: #ffffff;
+      margin:10px
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <h1>Motor de Fiscalización · Comercio Exterior</h1>
+
+    <!-- AVATAR DE USUARIO — lado derecho del topbar
+         Cambia la clase del .user-circle entre "admin" y "usuario"
+         y ajusta la letra (A / U) y el nombre según corresponda -->
+    <div class="user-avatar" id="userAvatar">
+      <div class="user-circle admin" id="userCircle" title="Administrador1">A</div>
+      <div class="user-label">
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Pestañas de navegación ===== -->
+  <div class="contenedor-horizontal">
+    <div class="tab-wrapper active" id="tabWrapper1" onclick="switchTab(1)">
+      <span class="tab-label">Centro de Control</span>
+    </div>
+    <div class="tab-wrapper" id="tabWrapper2" onclick="switchTab(2)">
+      <span class="tab-label">Regularización Espontánea</span>
+    </div>
+    <div class="tab-wrapper" id="tabWrapper3" onclick="switchTab(3)">
+      <span class="tab-label">No Regularización</span>
+    </div>
+    <div class="tab-wrapper" id="tabWrapper4" onclick="switchTab(4)">
+      <span class="tab-label">Retornos Simulados</span>
+    </div>
+    <div class="tab-wrapper" id="tabWrapper5" onclick="switchTab(5)">
+      <span class="tab-label">Buscador Integral</span>
+    </div>
+  </div>
+
+  <!-- ===== Pestaña 1: dashboard principal ===== -->
+  <div id="pagina1" class="page-content active">
+    <main class="dashboard-grid">
+      <div id="header"></div>
+      <div id="filtros"></div>
+      <div id="kpis" class="panel"></div>
+      <div id="foco" class="panel"></div>
+      <div id="mapa" class="panel"></div>
+      <div id="escen" class="panel"></div>
+      <div id="tend" class="panel"></div>
+      <div id="expo" class="panel"></div>
+    </main>
+  </div>
+
+  <!-- ===== Pestaña 2: un solo objeto (ve202) ===== -->
+  <div id="pagina2" class="page-content">
+    <div class="pagina-completa">
+      <div id="objPagina2" class="panel sin-marco"></div>
+    </div>
+  </div>
+
+  <!-- ===== Pestaña 3: un solo objeto (ve415) ===== -->
+  <div id="pagina3" class="page-content">
+    <div class="pagina-completa">
+      <div id="objPagina3" class="panel sin-marco"></div>
+    </div>
+  </div>
+
+  <!-- ===== Pestaña 4: un solo objeto (ve511) ===== -->
+  <div id="pagina4" class="page-content">
+    <div class="pagina-completa">
+      <div id="objPagina4" class="panel sin-marco"></div>
+    </div>
+  </div>
+
+  <!-- ===== Pestaña 5: HTML - calcluadora/buscador integral) ===== -->
+  <div id="pagina5" class="page-content">
+    <iframe id="frameBuscador" class="frame-buscador" title="Buscador Integral"></iframe>
+  </div>
+
+  <!-- ============================================================
+       PLANTILLA DEL BUSCADOR INTEGRAL (contenido inerte)
+       El HTML original de la Ficha de Caso vive aquí SIN CAMBIOS
+       (estilos, markup y scripts). El navegador NO lo ejecuta dentro
+       del template; en initPage() se vierte como srcdoc del iframe
+       de la pestaña 5, donde corre aislado con su propio formato.
+       ============================================================ -->
+  <template id="tplBuscador">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ficha de Caso · Fiscalización Comercio Exterior</title>
+<style>
+  :root{
+    /* Guinda 4T + tokens institucionales (alineado a IMM_RETSIM_DASH) */
+    --guinda:#611232; --guinda-osc:#4A0E26; --tinta:#1C2530; --tinta2:#4A5568;
+    --papel:#F4F6F9; --panel:#FFFFFF; --linea:#CCD4E0; --grid:#EEF2F6;
+    --oro:#9E7B3B; --verde:#1E4620; --verde-suave:#EAF3EE; --guinda-suave:#F6EBF0;
+    --ambar:#A36A00; --ambar-suave:#FCF6EC;
+    --gob-wine:#7A1834; --gob-red:#9F2241;
+/* CAMBIOS TIPOGRÁFICOS */
+        --ff-disp: "Calibri", Arial, sans-serif; /* Títulos Solemnes */
+        --ff-body: Arial, "Helvetica Neue", sans-serif; /* Cuerpo Técnico / Administrativo */
+        --mono: "Courier New", Courier, monospace;
+    --gob-navy: #0C2340;
+        --gob-deep: #051122;
+        --gob-gold: #9E7B3B;
+        --gob-emerald: #1E4620;
+        --gob-red: #8C232C;
+        --gob-wine: #5B2541;
+        --gob-amber: #A36A00;
+        --text: #1C2530;
+        --muted: #4A5568;
+        --faint: #626E7D;
+        --border: #CCD4E0;
+
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--papel);color:var(--tinta);font-family:var(--ff-body);font-size:19px;line-height:1.5}
+  .num{font-variant-numeric:tabular-nums}
+  input:focus,button:focus,select:focus{outline:2px solid var(--guinda);outline-offset:1px}
+
+  /* Encabezado institucional (mismo marco que IMM_RETSIM_DASH) */
+    .hbar {
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin: 10px 16px;
+        padding: 11px 16px;
+        border-radius: 4px;
+        color: #EAF1F8;
+        background: var(--guinda);
+        border: 1px solid var(--oro);
+        box-shadow: 0 2px 4px rgba(12, 35, 64, 0.08)
+    }
+
+    .hbar:before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--guinda) 0%, var(--guinda) 40%, var(--oro) 70%, var(--guinda) 100%);
+    }
+
+    .hbar:after {
+        display: none;
+    }
+  .mark{position:relative;z-index:1;flex:0 0 auto;width:42px;height:42px;border-radius:2px;display:grid;place-items:center;background:var(--guinda-osc);border:1px solid var(--oro)}
+  .mark svg{width:64%;height:64%}
+  .mark .live{position:absolute;top:-2px;right:-2px;width:9px;height:9px;border-radius:50%;background:var(--ambar);box-shadow:0 0 0 2px var(--guinda-osc),0 0 9px var(--ambar);animation:hlive 1.9s ease-in-out infinite}
+  @keyframes hlive{0%,100%{opacity:.45;transform:scale(.8)}50%{opacity:1;transform:scale(1.12)}}
+  .htxt{position:relative;z-index:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+     .hkick {
+        font-family: var(--ff-body);
+        font-size: 21px;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: var(--gob-gold);
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis
+    }
+
+    .htitle {
+        font-family: var(--ff-disp);
+        font-size: var(--hTitleFs, 35px);
+        font-weight: 700;
+        letter-spacing: -.015em;
+        line-height: 1;
+        color: #fff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis
+    }
+
+    .hsub {
+        font-size: 18px;
+        color: #CCD4E0;
+        line-height: 1.05;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis
+    }
+    .dash{max-width:1000px;margin:20px auto;padding:0 20px;display:grid;;align-items:center}
+  .ficha{position:relative;overflow:hidden;background:var(--panel);border:1px solid var(--linea);border-radius:4px;padding:16px;box-shadow:0 1px 3px rgba(12,35,64,.04)}
+  .ficha:before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--guinda)}
+  .ficha h2{font-family:var(--ff-disp);font-size:22px;font-weight:700;color:var(--guinda);letter-spacing:-.01em;margin-bottom:4px}
+  .ficha .fkick{font-family:var(--ff-disp);font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--oro);font-weight:700;margin-bottom:2px}
+  .ficha label{display:block;font-size:16px;letter-spacing:.06em;text-transform:uppercase;color:var(--tinta2);margin:12px 0 5px}
+  .ficha input{width:100%;padding:9px 11px;border:1px solid var(--linea);border-radius:2px;font-size:19px;background:#FCFCFB;font-family:var(--ff-body);color:var(--tinta)}
+  .ficha .go{width:100%;margin-top:14px;padding:11px;border:none;border-radius:4px;background:var(--guinda);color:#fff;font-size:19.5px;font-weight:600;cursor:pointer;font-family:var(--ff-body)}
+  .ficha .go:hover{background:var(--guinda-osc)}
+  .stale{display:none;background:var(--ambar-suave);border:1px solid #E7D9B8;color:#7A5A14;border-radius:4px;padding:8px 10px;font-size:17px;margin-top:10px}
+  .mside.dirty .stale{display:block}
+  .overlay{position:fixed;inset:0;background:rgba(30,20,26,.55);display:none;align-items:flex-start;justify-content:center;padding:30px 16px;overflow:auto;z-index:50}
+  .overlay.open{display:flex}
+  .modal{background:var(--papel);border-radius:4px;max-width:1450px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.35);overflow:hidden}
+  .modal .mhead{background:var(--guinda);color:#fff;padding:14px 22px;display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--oro)}
+  .modal .mhead h2{font-family:var(--ff-disp);font-size:22px;font-weight:600}
+  .modal .close{background:none;border:1.5px solid rgba(255,255,255,.6);color:#fff;border-radius:4px;padding:5px 12px;cursor:pointer;font-size:18px}
+  .mbody{display:grid;grid-template-columns:400px 1fr;gap:16px;padding:18px}
+  @media(max-width:880px){.mbody{grid-template-columns:1fr}}
+  .mmain{order:2}
+  .mside{order:1}
+  .mside .ficha{position:sticky;top:12px}
+  .inc{max-width:560px}
+  .card{position:relative;overflow:hidden;background:var(--panel);border:1px solid var(--linea);border-radius:4px;padding:16px 20px;margin-bottom:14px;box-shadow:0 1px 3px rgba(12,35,64,.04)}
+  .card:before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--guinda)}
+  .card h3{font-family:var(--ff-disp);font-size:21px;font-weight:700;color:var(--guinda);letter-spacing:-.01em;margin-bottom:8px}
+  .caso{display:flex;justify-content:center;gap:22px;flex-wrap:wrap;align-items:center}
+  .monto{text-align:center}
+  .monto .lblM{font-size:15.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--tinta2)}
+  .monto .big{font-family:var(--ff-disp);font-size:34px;font-weight:700;color:var(--guinda)}
+  .monto .vig{font-size:16.5px;color:var(--tinta2)}
+  .monto .vig b{color:var(--oro)}
+  svg{width:100%;height:auto;display:block}
+  svg text{font-family:var(--ff-body)}
+  table{width:100%;border-collapse:collapse;font-size:18px;margin-bottom: 30px;}
+  th{font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--tinta2);text-align:left;padding:5px 7px;border-bottom:2px solid var(--linea)}
+  td{padding:6.5px 7px;border-bottom:1px solid var(--linea)}
+  td.r,th.r{text-align:right}
+  tr.tot td{font-weight:700;border-top:2px solid var(--tinta);border-bottom:none}
+  .fund{display:inline-flex;align-items:center;justify-content:center;width:12px;height:12px;border-radius:10%;border:1px solid var(--guinda);background:transparent;color:var(--guinda);font-size:13px;font-weight:700;cursor:help;vertical-align:1px;user-select:none}
+  .tipbox{position:fixed;display:none;z-index:9999;max-width:280px;padding:14px 16px;background:var(--guinda);color:#fff;border:3px solid var(--guinda-osc);border-radius:4px;font-size:16px;line-height:1.45;box-shadow:0 10px 30px rgba(0,0,0,.25);pointer-events:none}
+  .tipbox b{display:block;font-size:17px;font-weight:600;margin-bottom:0;color:#fff}
+  .tipbox hr{border:none;border-top:1px solid rgba(255,255,255,.25);margin:8px 0}
+  .peds .resumen{font-size:17px;color:var(--tinta2);margin-bottom:0px}
+  .peds .resumen b{color:var(--tinta)}
+  .st{display:inline-block;font-size:15px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border:1px solid}
+  .st.venc{color:var(--guinda);border-color:var(--guinda);background:var(--guinda-suave)}
+  .st.ret{color:var(--verde);border-color:var(--verde);background:var(--verde-suave)}
+  .st.porv{color:var(--ambar);border-color:#D8C58A;background:var(--ambar-suave)}
+  .peds input[type=checkbox]{accent-color:var(--guinda);width:15px;height:15px;cursor:pointer}
+  .peds td.off,.peds tr.off td{color:var(--tinta2)}
+  .peds tr.off td{text-decoration:none;opacity:.55}
+  .acciones{display:flex;gap:10px;flex-wrap:wrap}
+  .btn{border:1px solid var(--guinda);background:var(--guinda);color:#fff;padding:9px 16px;font-size:18px;font-weight:600;cursor:pointer;font-family:var(--ff-body);border-radius:0}
+  .btn:hover{background:var(--guinda-osc)}
+  .btn.sec{background:transparent;color:var(--guinda)}
+  .btn.sec:hover{background:var(--guinda-suave)}
+  .legal{font-size:15.5px;color:var(--tinta2);margin-top:12px;border-top:1px dashed var(--linea);padding-top:10px}
+  .fuera{border:1px solid var(--guinda);border-left:4px solid var(--guinda);background:var(--guinda-suave);padding:14px 18px;font-size:17.5px;color:var(--tinta);max-width:560px;text-align:left}
+  .fuera b{display:block;font-size:16px;letter-spacing:.1em;text-transform:uppercase;color:var(--guinda);margin-bottom:4px}
+  .stepper{display:flex;align-items:center;gap:0;margin-bottom:14px;max-width:640px}
+  .step{display:flex;align-items:center;gap:10px;flex:1}
+  .step .bola{width:28px;height:28px;border-radius:50%;border:2px solid var(--linea);background:#fff;color:var(--tinta2);display:flex;align-items:center;justify-content:center;font-family:var(--ff-disp);font-weight:700;font-size:18px;flex:none}
+  .step .txt{font-size:17px;line-height:1.3}
+  .step .txt b{display:block;font-size:17.5px}
+  .step .txt small{color:var(--tinta2);font-size:15.5px}
+  .step.activo .bola{border-color:var(--guinda);background:var(--guinda);color:#fff}
+  .step.activo .txt b{color:var(--guinda)}
+  .step.hecho .bola{border-color:var(--verde);background:var(--verde);color:#fff}
+  .step.hecho .txt b{color:var(--verde)}
+  .step.fuera .bola{border-color:var(--guinda);background:var(--guinda-suave);color:var(--guinda)}
+  .step.fuera .txt b{color:var(--guinda)}
+  .step.bloq .bola{opacity:.5}
+  .step.bloq .txt{opacity:.5}
+  .stepLine{flex:0 0 46px;height:2px;background:var(--linea);margin:0 4px}
+  .stepLine.hecha{background:var(--verde)}
+  .paso1card{border:1px solid var(--linea);border-left:4px solid var(--guinda);background:#fff;padding:16px 18px;margin-bottom:14px}
+  .paso1card p{font-size:17.5px;margin-bottom:10px;max-width:640px}
+  .esperando{display:flex;align-items:center;gap:10px;font-size:17.5px;color:var(--tinta2)}
+  .esperando .dot{width:9px;height:9px;border-radius:50%;background:var(--oro);animation:pulso 1s infinite ease-in-out}
+  @keyframes pulso{0%,100%{opacity:.3}50%{opacity:1}}
+  .respOk{border:1px solid var(--verde);border-left:4px solid var(--verde);background:var(--verde-suave);padding:10px 14px;font-size:17.5px;color:var(--tinta)}
+  .respOk b{color:var(--verde)}
+  .demoLink{background:none;border:none;color:var(--tinta2);font-size:16px;text-decoration:underline;cursor:pointer;font-family:var(--ff-body);padding:0;margin-top:10px}
+  .demoLink:hover{color:var(--guinda)}
+  .lockedNote{font-size:17px;color:var(--tinta2);padding:10px 0}
+  .datos-caso{margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb}
+  .detalle-lista{list-style:none;margin:0;padding:0}
+  .detalle-lista li{padding:8px 0;border-bottom:1px solid #f1f3f5;font-size:18px;line-height:1.4}
+  .detalle-lista li:last-child{border-bottom:none}
+  .detalle-lista strong{display:inline-block;min-width:165px;color:#374151}
+  .acl-body{padding:20px 24px}
+  .acl-body p.intro{font-size:17.5px;color:var(--tinta2);margin-bottom:14px;max-width:640px}
+  .acl-lista{border:1px solid var(--linea);margin-bottom:16px}
+  .acl-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-bottom:1px solid var(--linea)}
+  .acl-item:last-child{border-bottom:none}
+  .acl-item input[type=checkbox]{margin-top:2px;accent-color:var(--guinda);width:15px;height:15px;cursor:pointer}
+  .acl-item .info b{font-family:monospace;font-size:17.5px}
+  .acl-item .info small{display:block;color:var(--tinta2);font-size:16px;margin-top:2px}
+  .acl-campo{margin-bottom:12px}
+  .acl-campo label{display:block;font-size:15.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--tinta2);margin-bottom:5px;font-weight:600}
+  .acl-campo select, .acl-campo input, .acl-campo textarea{width:100%;border:1px solid var(--linea);border-radius:2px;padding:8px 10px;font-size:18px;font-family:var(--ff-body);background:#FCFCFB;color:var(--tinta)}
+  .acl-campo textarea{resize:vertical;min-height:60px}
+  .acl-row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .acl-footer{display:flex;justify-content:flex-end;gap:10px;padding-top:14px;border-top:1px solid var(--linea);margin-top:4px}
+  .acl-aviso{font-size:16px;color:var(--tinta2);margin-top:10px}
+  .evidencia-modal-content{background-color:#fff;border-radius:4px;width:100%;box-shadow:0 4px 20px rgba(0,0,0,0.15);display:flex;flex-direction:column;max-height:85vh;border-left:4px solid #6C1D3D}
+  .evidencia-header{padding:16px 24px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center}
+  .evidencia-header h2{margin:0;font-size:21px;color:#6C1D3D;font-family:var(--ff-disp);font-weight:700;text-transform:uppercase;letter-spacing:0.5px}
+  .evidencia-header .evidencia-sub{margin:4px 0 0 0;font-size:16.5px;color:#666}
+  .evidencia-body{padding:20px 24px;overflow-y:auto;font-family:var(--ff-body);font-size:17.5px;color:#333}
+  .evidencia-alerta{background:#fef3c7;border:1px solid #f59e0b;color:#92400e;padding:10px 14px;border-radius:4px;margin-bottom:16px;line-height:1.4}
+  .evidencia-tabla{width:100%;border-collapse:collapse;margin-bottom:16px}
+  .evidencia-tabla th, .evidencia-tabla td{border:1px solid #d1d5db;padding:8px 10px;text-align:left;vertical-align:top;font-size:17px}
+  .evidencia-tabla th{background:#f9fafb;font-size:14.5px;text-transform:uppercase;font-weight:700;color:#4b5563;letter-spacing:0.5px;border-bottom:2px solid #d1d5db}
+  .evidencia-tabla tr:nth-child(even){background-color:#f8fafc}
+  .evidencia-tabla .mono{font-family:monospace;font-size:16.5px;white-space:nowrap}
+  .descargo-link{font-size:16px;background:#f1f5f9;padding:2px 6px;border-radius:3px;margin-bottom:3px;border-left:2px solid #27ae60}
+  .tag-status{padding:2px 6px;border-radius:3px;font-size:15px;font-weight:bold;text-transform:uppercase;display:inline-block}
+  .tag-vencido{background:#fde8e8;color:#9b1c1c;border:1px solid #f8b4b4}
+  .tag-parcial{background:#fff3cd;color:#856404;border:1px solid #ffeeba}
+  .tag-retornado{background:#d1f2e0;color:#1e6b45;border:1px solid #86d9b0}
+  .evidencia-fuente{font-size:16px;color:#6b7280;font-style:italic;margin-top:10px}
+  .evidencia-footer{padding:14px 24px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;gap:12px;background:#f9fafb}
+
+</style>
+<header class="hbar">
+  <div class="mark"><span class="live"></span><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
+  <div class="htxt"><div class="hkick">Centro de Control IMMEX</div><div class="htitle">Motor de Búsqueda</div><div class="hsub">Consulta integral del contribuyente · RFC o folio</div></div>
+</header>
+<div class="dash">
+  <div id="fichaDock">
+    <div class="ficha" id="ficha">
+      <div class="fkick">Motor de Búsqueda</div>
+      <h2>Consulta Integral del Contribuyente</h2>
+      <label for="rfc">RFC o folio</label>
+      <input type="text" id="rfc" value="MFR980521T43" autocomplete="off" spellcheck="false">
+      <button class="go" onclick="buscar()">Buscar caso</button>
+      <div class="stale">Cambiaste el RFC/folio. Presiona <b>Buscar caso</b> para actualizar.</div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Ficha de caso">
+  <div class="modal">
+    <div class="mhead"><h2>Consulta Integral del Contribuyente</h2><button class="close" onclick="cerrar()">Cerrar ✕</button></div>
+    <div class="mbody"><div class="mmain" id="resultados"></div><div class="mside" id="fichaSlot"></div></div>
+  </div>
+</div>
+
+<div class="overlay" id="ovEvidencia" role="dialog" aria-modal="true" aria-label="Evidencia del cruce">
+  <div class="modal inc" style="max-width: 1250px; background: #fff;">
+    <div class="evidencia-modal-content">
+      <div class="evidencia-header">
+        <div><h2>Evidencia del Cruce Sistémico e Historial de Descargos</h2><p class="evidencia-sub">Auditoría lógica de importaciones temporales (IN) vs Retornos/Cambios de Régimen</p></div>
+        <button class="close" onclick="cerrarEvidencia()" style="border-color: var(--guinda); color: var(--guinda); background: transparent; padding: 4px 10px;">Cerrar ✕</button>
+      </div>
+      <div class="evidencia-body">
+        <div class="evidencia-alerta" id="evidenciaAlerta"></div>
+        <table class="evidencia-tabla">
+          <thead><tr><th>Pedimento Origen (IN)</th><th>Fracción</th><th>Mercancía / Descripción</th><th>Cant. Importada</th><th>Cant. Descargada</th><th>Saldo Pendiente</th><th>Pedimentos de Descargo Asociados</th><th>Estatus Lógico</th></tr></thead>
+          <tbody id="evidenciaBody"></tbody>
+        </table>
+        <div class="evidencia-fuente" id="evidenciaFuente"></div>
+      </div>
+      <div class="evidencia-footer"><button class="btn sec" onclick="cerrarEvidencia()">Cerrar Vista</button><button class="btn" onclick="generarHojaEvidencia()">Imprimir Hoja de Trabajo</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="ovAclaracion" role="dialog" aria-modal="true" aria-label="Registrar aclaración">
+  <div class="modal inc" style="max-width: 820px; background: #fff;">
+    <div class="mhead"><h2>Registrar aclaración del contribuyente</h2><button class="close" onclick="cerrarAclaracion()">Cerrar ✕</button></div>
+    <div class="acl-body">
+      <p class="intro">Documenta aquí la aclaración presentada por el contribuyente. Los pedimentos marcados se excluirán del cálculo y quedarán etiquetados con la evidencia registrada. Este registro es interno y no genera un documento imprimible.</p>
+      <div class="acl-lista" id="aclLista"></div>
+      <div class="acl-campo"><label>Tipo de documento presentado</label>
+        <select id="aclTipo"><option value="Pedimento de retorno">Pedimento de retorno</option><option value="Constancia de transferencia virtual">Constancia de transferencia virtual</option><option value="Aviso de cambio de régimen">Aviso de cambio de régimen</option><option value="Otro documento probatorio">Otro documento probatorio</option></select>
+      </div>
+      <div class="acl-row2">
+        <div class="acl-campo"><label>Folio o referencia del documento</label><input type="text" id="aclFolio" placeholder="p. ej. 25 43 3995 4008812"></div>
+        <div class="acl-campo"><label>Fecha de presentación</label><input type="date" id="aclFecha" value="2026-07-13"></div>
+      </div>
+      <div class="acl-campo"><label>Observaciones del funcionario</label><textarea id="aclObs" placeholder="Descripción de lo aclarado, folio de recepción interno, etc."></textarea></div>
+      <div class="acl-footer"><button class="btn sec" onclick="cerrarAclaracion()">Cancelar</button><button class="btn" onclick="confirmarAclaracion()">Registrar aclaración</button></div>
+      <div class="acl-aviso">La aclaración queda registrada en bitácora (usuario, fecha y expediente) y no reemplaza el requerimiento formal si el pedimento no se acredita.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const INPC={"2023-06":128.214,"2023-07":128.832,"2023-08":129.545,"2023-09":130.12,"2023-10":130.609,"2023-11":131.445,"2023-12":132.373,"2024-01":133.555,"2024-02":133.681,"2024-03":134.065,"2024-04":134.336,"2024-05":134.087,"2024-06":134.594,"2024-07":136.003,"2024-08":136.013,"2024-09":136.08,"2024-10":136.828,"2024-11":137.424,"2024-12":137.949,"2025-01":138.343,"2025-02":138.726,"2025-03":139.161,"2025-04":139.62,"2025-05":140.012,"2025-06":140.405,"2025-07":140.78,"2025-08":140.867,"2025-09":141.197,"2025-10":141.708,"2025-11":142.645,"2025-12":143.042,"2026-01":143.588,"2026-02":144.307,"2026-03":145.544,"2026-04":145.831,"2026-05":145.527,"2026-06":145.131};
+const LAST_INPC="2026-06", HOY_KEY="2026-07", QUINC_MID=2595;
+
+const CASOS={
+  'MFR980521T43':{
+    nombre:'Manufacturas Frontera, S.A. de C.V.', immex:'4412-2019', domicilio:'Nuevo Laredo, Tamps.',
+    satRespuesta:'sin_conocimiento',
+    satInfo:{pedimentoId:'p2', nota:'Retorno localizado en VUCEM (información compartida por el SAT, no detectado por el cruce local)'},
+    pedimentosRaw:[
+      {id:'p1',num:'23 43 3821 4002218',entrada:'15 jul 2023',entradaKey:'2023-07',valor:10000000,estatus:'vencido',fraccion:'8504.40.14',mercancia:'Inversores de corriente para ensamble industrial',cantImportada:2500,unidad:'pzas',cantDescargada:0},
+      {id:'p2',num:'24 43 3821 4003891',entrada:'10 ene 2024',entradaKey:'2024-01',valor:4500000,estatus:'vencido',fraccion:'8536.69.99',mercancia:'Conectores eléctricos para arneses automotrices',cantImportada:18000,unidad:'pzas',cantDescargada:0},
+      {id:'p3',num:'24 43 3821 4004120',entrada:'05 mar 2024',entradaKey:'2024-03',valor:6200000,estatus:'retornado',nota:'Retornado 28 ago 2025',fraccion:'3926.90.99',mercancia:'Componentes plásticos moldeados',cantImportada:9000,unidad:'pzas',cantDescargada:9000,descargos:[{tipo:'RT',num:'24 43 3995 4002233',cant:9000}]},
+      {id:'p5',num:'24 43 3821 4005577',entrada:'02 nov 2024',entradaKey:'2024-11',valor:2000000,estatus:'vencido',fraccion:'8708.29.99',mercancia:'Arneses y componentes plásticos automotrices',cantImportada:10000,unidad:'pzas',cantDescargada:7200,descargos:[{tipo:'RT',num:'24 43 3995 4001120',cant:5000},{tipo:'V1',num:'25 43 3995 4000244',cant:2200}]},
+      {id:'p4',num:'25 43 3821 4006012',entrada:'20 feb 2025',entradaKey:'2025-02',valor:3800000,estatus:'porvencer',fraccion:'8544.30.99',mercancia:'Cables y arneses de conducción',cantImportada:6000,unidad:'pzas',cantDescargada:0}
+    ]
+  }
+};
+
+function normalizarPedimentos(lista){
+  return lista.map(p=>{
+    const dia=parseInt(p.entrada.split(' ')[0],10);
+    const vencKey=addM(p.entradaKey,18);
+    const {y,m}=ym(vencKey);
+    const vencTxt=`${dia} ${MES_TXT[m-1]} ${y}`;
+    return {...p, vencKey, vencTxt};
+  });
+}
+function getEventos(){
+  const origenKey=PEDIMENTOS.reduce((min,p)=>p.entradaKey<min?p.entradaKey:min, PEDIMENTOS[0].entradaKey);
+  const origenPed=PEDIMENTOS.find(p=>p.entradaKey===origenKey);
+  return [
+    {key:origenKey, tipo:'entrada', txt:'Entrada a aduana', fecha:origenPed.entrada, num:origenPed.num},
+    {key:HOY_KEY, tipo:'hoy', txt:'HOY', fecha:'13 jul 2026'}
+  ];
+}
+
+let CASO_INFO={nombre:'Manufacturas Frontera, S.A. de C.V.', immex:'4412-2019', domicilio:'Nuevo Laredo, Tamps.'};
+let CASO_SAT_REAL='sin_conocimiento';
+let CASO_SAT_INFO=null;
+let SAT_INFO_APLICADA=null;
+let PEDIMENTOS=[];
+let INCLUIDOS=new Set();
+let SAT_ESPERANDO=false;
+let SAT_RESPUESTA=null;
+
+const $=id=>document.getElementById(id);
+const mx=n=>n.toLocaleString('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0});
+const plain=n=>Math.round(n).toLocaleString('es-MX');
+const MES_TXT=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+function ym(k){const[y,m]=k.split('-').map(Number);return{y,m}}
+function keyOf(y,m){return `${y}-${String(m).padStart(2,'0')}`}
+function addM(k,n){let{y,m}=ym(k);m+=n;y+=Math.floor((m-1)/12);m=((m-1)%12)+1;return keyOf(y,m)}
+function difM(a,b){const A=ym(a),B=ym(b);return(B.y-A.y)*12+(B.m-A.m)}
+function txtKey(k){const{y,m}=ym(k);return `${MES_TXT[m-1]} ${String(y).slice(2)}`}
+const tasaKey=k=>ym(k).y>=2026?2.07:1.47;
+const inpc=k=>INPC[k]||INPC[LAST_INPC];
+
+PEDIMENTOS=normalizarPedimentos(CASOS['MFR980521T43'].pedimentosRaw);
+INCLUIDOS=new Set(PEDIMENTOS.filter(p=>p.estatus==='vencido').map(p=>p.id));
+
+function calcPed(p,alKey){
+  alKey=alKey||HOY_KEY;
+  const mora=Math.max(0,difM(p.vencKey,alKey));
+  const omit=p.valor*0.16;
+  if(p.estatus!=='vencido'||mora===0)return{mora:0,omit:0,act:0,rec:0,mulFija:0,adeudo:0,factor:1,tasa:0};
+  const factor=Math.floor(inpc(addM(alKey,-1))/inpc(addM(p.vencKey,-1))*10000)/10000;
+  let tasa=0;for(let i=1;i<=mora;i++)tasa+=tasaKey(addM(p.vencKey,i));
+  const act=omit*factor-omit, rec=omit*factor*tasa/100;
+  const mulFija=Math.min(mora*2*QUINC_MID,p.valor);
+  return{mora,omit,act,rec,mulFija,adeudo:omit+act+rec+mulFija,factor,tasa};
+}
+function consolidado(){
+  const sel=PEDIMENTOS.filter(p=>INCLUIDOS.has(p.id)&&p.estatus==='vencido');
+  const c={n:sel.length,omit:0,act:0,rec:0,mulFija:0,valor:0};
+  sel.forEach(p=>{const r=calcPed(p);c.omit+=r.omit;c.act+=r.act;c.rec+=r.rec;c.mulFija+=r.mulFija;c.valor+=p.valor});
+  c.base=c.omit+c.act+c.rec;
+  c.multa = c.mulFija;
+  c.total=c.base+c.multa;
+  c.actualizadoAprox=c.omit+c.act;
+  return c;
+}
+
+function cerrar(){
+  $('overlay').classList.remove('open');
+  const dc=document.querySelector('.datos-caso'); if(dc)dc.remove();
+  $('fichaDock').appendChild($('ficha'));
+  document.querySelector('.mside').classList.remove('dirty');
+}
+$('overlay').addEventListener('click',e=>{if(e.target===$('overlay'))cerrar()});
+$('rfc').addEventListener('input',()=>{
+  if($('overlay').classList.contains('open'))document.querySelector('.mside').classList.add('dirty');
+});
+
+function buscar(){
+  const rfcIn=($('rfc').value||'').trim().toUpperCase();
+  const caso=CASOS[rfcIn]||CASOS['MFR980521T43'];
+  CASO_INFO={nombre:caso.nombre, immex:caso.immex, domicilio:caso.domicilio};
+  CASO_SAT_REAL=caso.satRespuesta;
+  CASO_SAT_INFO=caso.satInfo||null;
+  SAT_INFO_APLICADA=null;
+  SAT_ESPERANDO=false; SAT_RESPUESTA=null;
+  PEDIMENTOS=normalizarPedimentos(caso.pedimentosRaw);
+  INCLUIDOS=new Set(PEDIMENTOS.filter(p=>p.estatus==='vencido').map(p=>p.id));
+  renderExpediente();
+  const dc=document.querySelector('.datos-caso'); if(dc)dc.remove();
+  $('fichaSlot').appendChild($('ficha'));
+  $('fichaSlot').appendChild(document.createRange().createContextualFragment(fichaLateral()));
+  document.querySelector('.mside').classList.remove('dirty');
+  $('overlay').classList.add('open');
+}
+function togglePed(id){
+  INCLUIDOS.has(id)?INCLUIDOS.delete(id):INCLUIDOS.add(id);
+  renderExpediente();
+}
+
+function fichaLateral(){
+  const venc=PEDIMENTOS.filter(p=>p.estatus==='vencido').length;
+  const ret=PEDIMENTOS.filter(p=>p.estatus==='retornado').length;
+  const porv=PEDIMENTOS.filter(p=>p.estatus==='porvencer').length;
+  const rfc=($('rfc').value||'').trim().toUpperCase()||'MFR980521T43';
+  return `<div class="datos-caso" style="background:#fff; border:1px solid #e5e7eb; border-radius:6px; padding:16px;">
+    <h3 style="font-family:var(--ff-disp);font-size:20px;margin-bottom:12px;color:#6C1D3D;border-bottom:1px solid #e5e7eb;padding-bottom:6px;">Información del expediente</h3>
+    <ul class="detalle-lista" style="display:grid; grid-template-columns: 1fr 1fr; gap:12px 24px; list-style:none; margin:0; padding:0; font-size:17.5px; line-height:1.4;">
+      <li style="grid-column: span 2;"><strong>Contribuyente:</strong><br>${CASO_INFO.nombre}</li>
+      <li><strong>RFC:</strong><br>${rfc}</li>
+      <li><strong>IMMEX:</strong><br>${CASO_INFO.immex}</li>
+      <li style="grid-column: span 2;"><strong>Domicilio fiscal:</strong><br>${CASO_INFO.domicilio}</li>
+      <li style="grid-column: span 2;"><strong>Pedimentos:</strong><br>${PEDIMENTOS.length} (${venc} vencidos sin retorno · ${ret} retornado · ${porv} por vencer)</li>
+      <li><strong>Valor total en aduana:</strong><br>${mx(PEDIMENTOS.reduce((s,p)=>s+p.valor,0))}</li>
+      <li><strong>Carta Aviso:</strong><br>2 enviadas</li>
+      <li style="grid-column: span 2; border-top:1px dashed #e5e7eb; padding-top:8px; margin-top:4px;"><strong>Etapa procesal:</strong><br><span style="color:#d97706; font-weight:400;">Gestión persuasiva · sin facultades estatales</span></li>
+    </ul>
+  </div>`;
+}
+
+function recibirRespuestaSAT(forzado){
+  SAT_ESPERANDO=true; SAT_RESPUESTA=null;
+  renderExpediente();
+  setTimeout(()=>{
+    SAT_ESPERANDO=false;
+    const resultado = forzado || CASO_SAT_REAL || 'sin_conocimiento';
+    if(resultado==='info_sat' && CASO_SAT_INFO){
+      const ped=PEDIMENTOS.find(x=>x.id===CASO_SAT_INFO.pedimentoId);
+      if(ped){
+        ped.estatus='retornado'; ped.nota=CASO_SAT_INFO.nota;
+        ped.cantDescargada=ped.cantImportada||0;
+        ped.descargos=[{tipo:'RT (VUCEM)', num:'Información compartida por el SAT', cant:ped.cantImportada||0}];
+        INCLUIDOS.delete(ped.id);
+      }
+      SAT_INFO_APLICADA={pedimento:ped?ped.num:'', nota:CASO_SAT_INFO.nota};
+      SAT_RESPUESTA='sin_conocimiento';
+    } else {
+      SAT_RESPUESTA = resultado==='con_conocimiento' ? 'con_conocimiento' : 'sin_conocimiento';
+    }
+    renderExpediente();
+  }, 900);
+}
+
+function abrirAclaracion(){
+  const pendientes = PEDIMENTOS.filter(p=>p.estatus==='vencido');
+  $('aclLista').innerHTML = pendientes.map(p=>`
+    <div class="acl-item">
+      <input type="checkbox" id="chkAcl_${p.id}" value="${p.id}">
+      <div class="info"><label for="chkAcl_${p.id}"><b>${p.num}</b></label><small>${p.mercancia||''} · valor en aduana ${mx(p.valor)} · venció ${p.vencTxt}</small></div>
+    </div>`).join('') || '<div class="acl-item">No hay pedimentos vencidos pendientes de aclaración.</div>';
+  $('aclFolio').value=''; $('aclObs').value='';
+  $('ovAclaracion').classList.add('open');
+}
+function cerrarAclaracion(){ $('ovAclaracion').classList.remove('open'); }
+function confirmarAclaracion(){
+  const marcados = Array.from(document.querySelectorAll('#aclLista input[type=checkbox]:checked')).map(c=>c.value);
+  if(marcados.length===0){ alert('Selecciona al menos un pedimento para registrar la aclaración.'); return; }
+  const tipo=$('aclTipo').value, folio=($('aclFolio').value||'').trim(), fecha=$('aclFecha').value, obs=($('aclObs').value||'').trim();
+  const nota = `Aclarado por el contribuyente: ${tipo}${folio?' '+folio:''}, presentado ${fecha}.${obs?' Obs: '+obs:''}`;
+  marcados.forEach(id=>{
+    const ped=PEDIMENTOS.find(x=>x.id===id);
+    if(ped){ ped.estatus='retornado'; ped.nota=nota; ped.cantDescargada=ped.cantImportada||0;
+      ped.descargos=[{tipo:tipo.slice(0,18), num:folio||'Aclaración registrada', cant:ped.cantImportada||0}];
+      INCLUIDOS.delete(id);
+    }
+  });
+  cerrarAclaracion();
+  renderExpediente();
+}
+
+function abrirEvidencia(){
+  const plainN=n=>n.toLocaleString('es-MX');
+  const filas = PEDIMENTOS.map(p=>{
+    const desc = p.cantDescargada||0;
+    const saldo = Math.max(0,(p.cantImportada||0)-desc);
+    let tagClase, tagTxt;
+    if(p.estatus==='retornado'){ tagClase='tag-retornado'; tagTxt='Retornado'; }
+    else if(p.estatus==='porvencer'){ tagClase='tag-parcial'; tagTxt='Por vencer'; }
+    else if(desc>0){ tagClase='tag-parcial'; tagTxt='Saldo Vencido'; }
+    else { tagClase='tag-vencido'; tagTxt='Vencido'; }
+    const descargosHtml = (p.descargos&&p.descargos.length)
+      ? p.descargos.map(d=>`<div class="descargo-link"><b>${d.tipo}:</b> ${d.num} (${plainN(d.cant)} ${p.unidad||'pzas'})</div>`).join('')
+      : (p.estatus==='porvencer' ? '<i style="color:#7f8c8d">No aplica aún (plazo vigente)</i>' : '<i style="color:#7f8c8d">Ninguno localizado en sistema</i>');
+    return `<tr>
+      <td class="mono">${p.num}</td>
+      <td class="mono">${p.fraccion||'—'}</td>
+      <td>${p.mercancia||'—'}</td>
+      <td style="text-align:right">${plainN(p.cantImportada||0)} ${p.unidad||'pzas'}</td>
+      <td style="text-align:right; color:${desc>0?'#27ae60':'#95a5a6'}">${plainN(desc)} ${p.unidad||'pzas'}</td>
+      <td style="text-align:right; font-weight:bold; color:${saldo>0?'#c0392b':'#27ae60'}">${plainN(saldo)} ${p.unidad||'pzas'}</td>
+      <td>${descargosHtml}</td>
+      <td><span class="tag-status ${tagClase}">${tagTxt}</span></td>
+    </tr>`;
+  }).join('');
+  $('evidenciaBody').innerHTML = filas;
+  const nVenc = PEDIMENTOS.filter(p=>p.estatus==='vencido').length;
+  $('evidenciaAlerta').innerHTML = `<b>Resumen del algoritmo de fiscalización:</b> Expediente de <b>${CASO_INFO.nombre}</b> (RFC ${(($('rfc').value||'').trim().toUpperCase())||'MFR980521T43'}). Se detectaron ${nVenc} pedimento${nVenc===1?'':'s'} cuyo plazo de permanencia legal (18 meses, Art. 108 LA) expiró sin registrar un pedimento de descargo válido en la base de datos Data Stage.`;
+  $('evidenciaFuente').innerHTML = `<b>Fuente de datos para el cruce:</b> Ventanilla Única (VUCEM), Glosa de Pedimentos Data Stage del SAT y archivo de descargos del Anexo 24/30 del contribuyente actualizado a junio de 2026.`;
+  $('ovEvidencia').classList.add('open');
+}
+function cerrarEvidencia(){ $('ovEvidencia').classList.remove('open'); }
+
+function generarHojaEvidencia(){
+  const rfc=($('rfc').value||'').trim().toUpperCase()||'MFR980521T43';
+  const plainN=n=>n.toLocaleString('es-MX');
+  const nVenc = PEDIMENTOS.filter(p=>p.estatus==='vencido').length;
+  
+  const filas = PEDIMENTOS.map(p=>{
+    const desc = p.cantDescargada||0;
+    const saldo = Math.max(0,(p.cantImportada||0)-desc);
+    let tagClase, tagTxt;
+    if(p.estatus==='retornado'){ tagClase='tag-retornado'; tagTxt='Retornado'; }
+    else if(p.estatus==='porvencer'){ tagClase='tag-parcial'; tagTxt='Por vencer'; }
+    else if(desc>0){ tagClase='tag-parcial'; tagTxt='Saldo Vencido'; }
+    else { tagClase='tag-vencido'; tagTxt='Vencido'; }
+    const descargosHtml = (p.descargos&&p.descargos.length)
+      ? p.descargos.map(d=>`<div><b>${d.tipo}:</b> ${d.num} (${plainN(d.cant)} ${p.unidad||'pzas'})</div>`).join('')
+      : (p.estatus==='porvencer' ? '<i style="color:#7f8c8d">No aplica aún (plazo vigente)</i>' : '<i style="color:#7f8c8d">Ninguno localizado en sistema</i>');
+    return `<tr>
+      <td style="font-family:monospace;">${p.num}</td>
+      <td style="font-family:monospace;">${p.fraccion||'—'}</td>
+      <td>${p.mercancia||'—'}</td>
+      <td style="text-align:right">${plainN(p.cantImportada||0)} ${p.unidad||'pzas'}</td>
+      <td style="text-align:right">${plainN(desc)} ${p.unidad||'pzas'}</td>
+      <td style="text-align:right; font-weight:bold;">${plainN(saldo)} ${p.unidad||'pzas'}</td>
+      <td>${descargosHtml}</td>
+      <td><b>${tagTxt}</b></td>
+    </tr>`;
+  }).join('');
+
+  const w=abrirVentanaDocumento(); if(!w) return;
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Evidencia de Cruce Sistémico · ${rfc}</title>
+  <style>
+    @page { size: letter landscape; margin: 15mm; }
+    html { background-color: #eef2f5; padding: 30px 10px; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a1a; line-height: 1.5; margin: 0 auto;
+      background: #ffffff; max-width: 1000px; padding: 40px 50px; border-radius: 4px; border: 1px solid #d1d5db;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+    .memb { display: flex; justify-content: space-between; border-bottom: 2px solid #6C1D3D; padding-bottom: 12px; margin-bottom: 20px; }
+    .memb b { font-size: 15px; color: #4C1129; }
+    .memb .dep { font-size: 13px; font-weight: 700; text-transform: uppercase; color: #555; }
+    .memb .folio { text-align: right; font-size: 13px; color: #444; font-family: monospace; }
+    h1 { font-size: 16px; font-weight: 700; text-align: center; margin: 15px 0; text-transform: uppercase; color: #6C1D3D; }
+    .alerta { background: #fef3c7; border: 1px solid #f59e0b; color: #92400e; padding: 10px 14px; border-radius: 4px; margin-bottom: 15px; font-size: 12.5px; }
+    table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 12px; }
+    th, td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: left; }
+    th { background: #f8fafc; font-weight: 700; color: #334155; text-transform: uppercase; font-size: 11px; }
+    .fuente { font-size: 11px; color: #64748b; font-style: italic; margin-top: 15px; }
+    .barra-envio { margin-top: 30px; padding-top: 15px; border-top: 2px solid #e2e8f0; text-align: center; }
+    .barra-envio button { background: #6C1D3D; color: #fff; border: none; padding: 10px 24px; font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer; }
+    @media print {
+      html { background: none; padding: 0; }
+      body { background: none; box-shadow: none !important; border: none !important; max-width: 100% !important; padding: 0 !important; margin: 0 !important; font-size: 10pt; }
+      .barra-envio { display: none !important; }
+    }
+  </style></head><body>
+  <div>
+    <div class="memb">
+      <div><b>Gobierno del Estado de Tamaulipas</b><div class="dep">Secretaría de Finanzas · Fiscalización de Comercio Exterior</div></div>
+      <div class="folio">Folio TAM-2026-001174<br>Cd. Victoria, Tamaulipas, a 13 de julio de 2026</div>
+    </div>
+    <h1>Evidencia del Cruce Sistémico e Historial de Descargos</h1>
+    <div class="alerta">
+      <b>Resumen del algoritmo de fiscalización:</b> Expediente de <b>${CASO_INFO.nombre}</b> (RFC ${rfc}). Se detectaron ${nVenc} pedimento${nVenc===1?'':'s'} cuyo plazo de permanencia legal (18 meses, Art. 108 LA) expiró sin registrar un pedimento de descargo válido en la base de datos Data Stage.
+    </div>
+    <table>
+      <thead><tr><th>Pedimento Origen (IN)</th><th>Fracción</th><th>Mercancía / Descripción</th><th>Cant. Importada</th><th>Cant. Descargada</th><th>Saldo Pendiente</th><th>Pedimentos de Descargo Asociados</th><th>Estatus Lógico</th></tr></thead>
+      <tbody>${filas}</tbody>
+    </table>
+    <div class="fuente"><b>Fuente de datos para el cruce:</b> Ventanilla Única (VUCEM), Glosa de Pedimentos Data Stage del SAT y archivo de descargos del Anexo 24/30 del contribuyente actualizado a junio de 2026.</div>
+    <div class="barra-envio">
+      <button onclick="window.print();">Imprimir Hoja de Trabajo</button>
+    </div>
+  </div>
+  </body></html>`);
+  w.document.close();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  $('ovEvidencia').addEventListener('click', e => { if(e.target === $('ovEvidencia')) cerrarEvidencia(); });
+  $('ovAclaracion').addEventListener('click', e => { if(e.target === $('ovAclaracion')) cerrarAclaracion(); });
+});
+
+function renderStepper(){
+  const fuera = SAT_RESPUESTA==='con_conocimiento';
+  const paso2Activo = SAT_RESPUESTA==='sin_conocimiento';
+  const s1clase = fuera ? 'fuera' : (paso2Activo ? 'hecho' : 'activo');
+  const s1txt   = fuera ? 'Fuera de alcance' : (paso2Activo ? 'Confirmado' : (SAT_ESPERANDO?'Esperando respuesta…':'En verificación'));
+  const s2clase = fuera ? 'bloq' : (paso2Activo ? 'activo' : 'bloq');
+  const lineaClase = (fuera||paso2Activo) ? 'hecha' : '';
+  return `<div class="stepper">
+    <div class="step ${s1clase}"><div class="bola">${(fuera||paso2Activo)?'✓':'1'}</div><div class="txt"><b>Paso 1 · Verificación SAT</b><small>${s1txt}</small></div></div>
+    <div class="stepLine ${lineaClase}"></div>
+    <div class="step ${s2clase}"><div class="bola">2</div><div class="txt"><b>Paso 2 · Acción</b><small>${fuera?'No disponible':(paso2Activo?'Disponible':'Bloqueado')}</small></div></div>
+  </div>`;
+}
+
+function renderExpediente(){
+  const C=consolidado();
+  const fuera = SAT_RESPUESTA==='con_conocimiento';
+  const paso2Activo = SAT_RESPUESTA==='sin_conocimiento';
+
+  let paso1Html;
+  if(fuera){
+    paso1Html = `<div class="fuera"><b>El SAT confirmó tener conocimiento</b>
+      Existen facultades de comprobación notificadas sobre estas operaciones. El caso sale del alcance de gestión persuasiva; la única acción disponible es consultar la evidencia del cruce.</div>`;
+  } else if(SAT_ESPERANDO){
+    paso1Html = `<div class="esperando"><span class="dot"></span> Oficio enviado al SAT. Esperando confirmación de concurrencia de facultades…</div>`;
+  } else if(paso2Activo && SAT_INFO_APLICADA){
+    paso1Html = `<div class="respOk"><b>✓ Respuesta recibida:</b> el SAT no tiene facultades de comprobación notificadas, pero compartió información del expediente: <b>${SAT_INFO_APLICADA.nota}</b> (pedimento ${SAT_INFO_APLICADA.pedimento}). El pedimento fue excluido automáticamente del cálculo. Puede continuar al Paso 2.</div>`;
+  } else if(paso2Activo){
+    paso1Html = `<div class="respOk"><b>✓ Respuesta recibida:</b> el SAT confirmó no tener conocimiento de facultades de comprobación sobre estas operaciones. Folio dado de alta en el sistema de control compartido. Puede continuar al Paso 2.</div>`;
+  } else {
+    paso1Html = `<div class="paso1card">
+      <p>Antes de continuar, debe confirmarse con el SAT si existen facultades de comprobación notificadas sobre estas operaciones (Art. 73 CFF).</p>
+      <button class="btn" onclick="generarDocumentoSAT()">Generar oficio de consulta al SAT</button>
+      <br><button class="demoLink" onclick="recibirRespuestaSAT('sin_conocimiento')">El SAT informa que no tiene conocimiento.</button>
+      <br><button class="demoLink" onclick="recibirRespuestaSAT('con_conocimiento')">El SAT informa que sí tiene conocimiento.</button>
+    </div>`;
+  }
+
+  let paso2Html = '';
+  if(paso2Activo){
+    const filasPed=PEDIMENTOS.map(p=>{
+      const r=calcPed(p);
+      const on=INCLUIDOS.has(p.id);
+      const chk=p.estatus==='vencido'
+        ?`<input type="checkbox" ${on?'checked':''} onchange="togglePed('${p.id}')" aria-label="Incluir pedimento">`:'';
+      const st=p.estatus==='vencido'?`<span class="st venc">Vencido sin retorno</span>`
+            :p.estatus==='retornado'?`<span class="st ret" data-tip="<b>${p.nota}</b>Pedimento de retorno localizado por el cruce. No genera adeudo.">Retornado</span>`
+            :`<span class="st porv" data-tip="<b>Aún en plazo</b>Vence el ${p.vencTxt}. Valor preventivo: puede notificarse recordatorio antes del vencimiento.">Por vencer</span>`;
+      const adeudoTxt=p.estatus==='vencido'?mx(r.adeudo):'—';
+      return `<tr class="${p.estatus==='vencido'&&!on?'off':''}">
+        <td>${chk}</td><td class="num">${p.num}</td><td>${p.entrada}</td>
+        <td class="r num">${mx(p.valor)}</td><td>${p.vencTxt}</td><td>${st}</td>
+        <td class="r num">${adeudoTxt}</td></tr>`;
+    }).join('');
+
+    paso2Html = `
+    <div class="card">
+      <div class="caso">
+        <div class="monto">
+          <div class="lblM">Adeudo si se regulariza hoy (espontáneo) · ${C.n} pedimento${C.n===1?'':'s'}</div>
+          <div class="big num">${mx(C.total)}</div>
+          <div class="vig num">Cifra vigente hasta el <b>31 de julio de 2026</b> · en agosto aumenta ~${mx(C.actualizadoAprox*2.07/100)}</div>
+        </div>
+      </div>
+    </div>
+    <div class="card peds">
+      <h3>Pedimentos del contribuyente <span class="fund" data-tip="<b>Cruce pedimentos vs. retornos</b>Cada importación temporal (clave IN) se cruza contra pedimentos de retorno (RT). Sin retorno localizado al vencer el plazo del Art. 108 LA, la operación genera adeudo.">i</span></h3>
+      <div class="resumen"><b>${PEDIMENTOS.length} pedimentos</b>: ${PEDIMENTOS.filter(p=>p.estatus==='vencido').length} vencidos sin retorno · ${PEDIMENTOS.filter(p=>p.estatus==='retornado').length} retornado · ${PEDIMENTOS.filter(p=>p.estatus==='porvencer').length} por vencer. Desmarca un pedimento para excluirlo del cálculo (p. ej., tras una aclaración).</div>
+      <table>
+        <tr><th></th><th>Pedimento</th><th>Entrada</th><th class="r">Valor en aduana</th><th>Vence retorno</th><th>Estatus</th><th class="r">Adeudo</th></tr>
+        ${filasPed}
+        <tr class="tot"><td colspan="6">Adeudo consolidado · ${C.n} pedimentos incluidos</td><td class="r num">${mx(C.total)}</td></tr>
+      </table>
+    </div>
+    <div class="card"><h3>Evolución del adeudo</h3><svg id="tl" viewBox="0 0 1000 345" role="img" aria-label="Línea de tiempo del adeudo consolidado"></svg></div>
+    <div class="card">
+      <h3>Desglose consolidado</h3>
+      <table>
+        <tr><th>Concepto</th><th class="r">Monto</th></tr>
+        <tr><td>Impuestos omitidos (IVA 16%) <span class="fund" data-tip="<b>Arts. 106 y 108 Ley Aduanera</b>Importación temporal no retornada: el IVA exento condicionado al retorno se vuelve exigible. IGI 0% por T-MEC acreditado en los pedimentos.">i</span></td><td class="r num">${mx(C.omit)}</td></tr>
+        <tr><td>Actualización <span class="fund" data-tip="<b>Art. 17-A CFF</b>Factor INPC por pedimento (mes anterior al vencimiento → jun-2026, último publicado), truncado a 4 decimales. Fuente: INEGI.">i</span></td><td class="r num">${mx(C.act)}</td></tr>
+        <tr><td>Recargos por mora <span class="fund" data-tip="<b>Art. 21 CFF + Art. 11 LIF</b>Sobre el monto actualizado de cada pedimento, con la tasa vigente de cada mes de su mora: 1.47% hasta 2025, 2.07% desde 2026. Tope: 5 años.">i</span></td><td class="r num">${mx(C.rec)}</td></tr>
+        <tr><td>Multa fija por atraso <span class="fund" data-tip="<b>Art. 183-II Ley Aduanera</b>Multa fija por quincena de atraso en retorno espontáneo (punto medio del rango; monto vigente en Anexo 19 RGCE). Sin multa proporcional por espontaneidad (Art. 73 CFF).">i</span></td><td class="r num">${mx(C.multa)}</td></tr>
+        <tr class="tot"><td>Total</td><td class="r num">${mx(C.total)}</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="acciones">
+        <button class="btn" onclick="generarRequerimiento()">Aviso para Contribuyente (PDF)</button>
+        <button class="btn sec" onclick="abrirAclaracion()">Registrar aclaración</button>
+        <button class="btn sec" onclick="abrirEvidencia()">Ver evidencia del cruce</button>
+      </div>
+      <div class="legal">Cifra preliminar de carácter informativo para efectos de autocorrección; no constituye resolución ni determinación de crédito fiscal. Parámetros al día: INPC INEGI a jun-2026 · tasas LIF 2026 · montos Anexo 19 RGCE. Respuesta del SAT y consulta registradas en bitácora (usuario, fecha, fuente).</div>
+    </div>`;
+  } else if(fuera){
+    paso2Html = `<div class="card"><div class="acciones"><button class="btn sec" onclick="abrirEvidencia()">Ver evidencia del cruce</button></div>
+      <div class="lockedNote">Caso fuera del alcance de gestión persuasiva. No aplican propuesta de regularización ni aclaraciones (Art. 73 CFF).</div></div>`;
+  } else {
+    paso2Html = `<div class="card"><div class="acciones" style="margin-top:6px"><button class="btn sec" onclick="abrirEvidencia()">Ver evidencia del cruce</button></div></div>`;
+  }
+
+  $('resultados').innerHTML = renderStepper() + paso1Html + paso2Html;
+  if(paso2Activo) dibujarTL();
+}
+
+function dibujarTL(){
+  const EVENTOS=getEventos();
+  const ORIGEN=EVENTOS[0].key, TOTAL=difM(ORIGEN,HOY_KEY);
+  const W=1000,H=345,ML=84,MR=26,MT=56,MB=58;
+  const keyDe=k=>addM(ORIGEN,k);
+  const serie=[];
+  for(let k=0;k<=TOTAL;k++){
+    const alKey=keyDe(k);
+    let s=0;
+    PEDIMENTOS.filter(p=>INCLUIDOS.has(p.id)&&p.estatus==='vencido').forEach(p=>{s+=calcPed(p,alKey).adeudo});
+    serie.push(s);
+  }
+  const maxV=(v=>{const p=Math.pow(10,Math.floor(Math.log10(v)));for(const m of[1,1.5,2,2.5,3,4,5,7.5,10])if(m*p>=v)return m*p;return 10*p})(Math.max(...serie,1));
+  const X=k=>ML+(W-ML-MR)*k/TOTAL, Y=v=>MT+(H-MT-MB)*(1-v/maxV);
+  let g='';
+  for(let i=1;i<=4;i++){const v=maxV*i/4,y=Y(v);
+    g+=`<line x1="${ML}" y1="${y}" x2="${W-MR}" y2="${y}" stroke="var(--grid)"/>`;
+    g+=`<text x="${ML-8}" y="${y+3.5}" text-anchor="end" font-size="15.5" fill="var(--tinta2)" class="num">${plain(v)}</text>`;}
+  g+=`<line x1="${ML}" y1="${Y(0)}" x2="${W-MR}" y2="${Y(0)}" stroke="var(--linea)"/>`;
+  for(let k=0;k<=TOTAL;k+=3){
+    g+=`<line x1="${X(k)}" y1="${Y(0)}" x2="${X(k)}" y2="${Y(0)+4}" stroke="var(--linea)"/>`;
+    g+=`<text x="${X(k)}" y="${Y(0)+16}" text-anchor="middle" font-size="15.5" fill="var(--tinta2)">${txtKey(keyDe(k))}</text>`;}
+  const path=serie.map((v,k)=>`${k?'L':'M'}${X(k).toFixed(1)},${Y(v).toFixed(1)}`).join('');
+  g+=`<path d="${path}" fill="none" stroke="var(--tinta)" stroke-width="2"/>`;
+  EVENTOS.forEach(e=>{
+    const k=difM(ORIGEN,e.key); if(k<0||k>TOTAL)return;
+    const x=X(k), v=serie[k];
+    const col=e.tipo==='hoy'?'var(--verde)':'var(--tinta2)';
+    if(e.tipo==='hoy') g+=`<line x1="${x}" y1="${MT}" x2="${x}" y2="${Y(0)}" stroke="${col}" stroke-width="1.5"/>`;
+    g+=`<circle cx="${x}" cy="${Y(v)}" r="5" fill="${col}" data-tip="<b>${e.txt}</b>${e.fecha}<hr>Adeudo consolidado: ${mx(v)}${e.tipo==='hoy'?': total actual':''}"/>`;
+    if(e.tipo==='entrada'){
+      g+=`<text x="${x}" y="${MT-14}" text-anchor="middle" font-size="23" cursor="pointer" data-tip="<b>📦 Primera entrada a aduana</b>${e.fecha}<hr>Pedimento: ${e.num}"></text>`;
+    }else{
+      g+=`<text x="${x+(e.tipo==='hoy'?+10:0)}" y="${MT-16}" text-anchor="${k>TOTAL-3?'end':'middle'}" font-size="15" font-weight="700" letter-spacing=".8" fill="${col}">${e.txt.toUpperCase()}</text>`;
+    }
+  });
+  const yF=Y(0)+24, hF=11;
+  const densidad={};
+  PEDIMENTOS.filter(p=>p.estatus!=='retornado').forEach(p=>{densidad[p.vencKey]=(densidad[p.vencKey]||[]).concat(p.num)});
+  const maxD=Math.max(...Object.values(densidad).map(a=>a.length),1);
+  g+=`<text x="${ML+40}" y="${yF+hF-2}" text-anchor="end" font-size="14" letter-spacing=".08em" fill="var(--tinta2)">VENCIMIENTOS</text>`;
+  for(let k=0;k<=TOTAL;k++){
+    const key=keyDe(k), lista=densidad[key];
+    const w=(W-ML-MR)/TOTAL;
+    if(lista){
+      g+=`<rect x="${X(k)-w/2}" y="${yF}" width="${w}" height="${hF}" fill="var(--guinda)" opacity="${0.25+0.6*lista.length/maxD}" data-tip="<b>${txtKey(key)}: venció${lista.length===1?'':'ron'} ${lista.length} pedimento${lista.length===1?'':'s'}</b>${lista.join('<hr>')}"/>`;
+    }else{
+      g+=`<rect x="${X(k)-w/2}" y="${yF}" width="${w}" height="${hF}" fill="var(--grid)" opacity=".5"/>`;
+    }
+  }
+  $('tl').innerHTML=g;
+}
+
+// ===== Apertura segura de ventana para documentos =====
+function abrirVentanaDocumento(){
+  const w = window.open('', '_blank');
+  if(!w || w === window){
+    alert('No se pudo abrir una ventana nueva para el documento (el navegador o el entorno de vista previa bloqueó el popup). Guarda este archivo y ábrelo directamente en tu navegador para generar el documento; ahí sí se permiten ventanas emergentes.');
+    return null;
+  }
+  return w;
+}
+
+function generarRequerimiento(){
+  const C=consolidado();
+  const rfc=($('rfc').value||'').trim().toUpperCase()||'MFR980521T43';
+  const vencidos=PEDIMENTOS.filter(p=>INCLUIDOS.has(p.id)&&p.estatus==='vencido');
+  const filas=vencidos.map(p=>{const r=calcPed(p);
+    return `<tr><td style="font-family:monospace;white-space:nowrap;letter-spacing:0.5px;font-weight:500;">${p.num}<\/td><td>${p.entrada}<\/td><td style="text-align:right">${mx(p.valor)}<\/td><td>${p.vencTxt}<\/td><td style="text-align:right">${r.mora} meses<\/td><\/tr>`}).join('');
+  const w=abrirVentanaDocumento(); if(!w) return;
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Invitación de aclaración y regularización · ${rfc}<\/title>
+  <style>
+    @page {
+      size: letter;
+      margin: 20mm;
+    }
+
+    html {
+      background-color: #eef2f5;
+      padding: 30px 10px;
+    }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #1a1a1a;
+      line-height: 1.6;
+      margin: 0 auto;
+      
+      background: #ffffff;
+      max-width: 800px;
+      padding: 50px 60px;
+      border-radius: 4px;
+      border: 1px solid #d1d5db;
+      
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    }
+
+    .memb {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 2px solid #6C1D3D;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+    }
+    .memb b { font-size: 15px; color: #4C1129; }
+    .memb .dep { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #555; margin-top: 3px; }
+    .memb .folio { text-align: right; font-size: 13px; color: #444; line-height: 1.45; font-family: monospace; }
+    
+    h1 { font-size: 17px; font-weight: 700; text-align: center; margin: 20px 0; text-transform: uppercase; letter-spacing: .05em; color: #6C1D3D; }
+    h2 { font-size: 14px; font-weight: 700; margin: 20px 0 8px; color: #6C1D3D; text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; }
+    
+    .destinatario-block { margin: 15px 0 20px 0; font-size: 13.5px; line-height: 1.5; color: #2c3e50; }
+    p { margin: 12px 0; text-align: justify; text-indent: 30px; font-size: 13.5px; color: #2c3e50; }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      font-size: 13px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    th, td { border: 1px solid #cbd5e1; padding: 7px 9px; text-align: left; }
+    th { background: #f8fafc; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: #334155; }
+    
+    .contacto { border: 1px solid #cbd5e1; border-radius: 4px; padding: 12px 15px; margin: 15px 0; background: #f8fafc; }
+    .contacto .datos { font-size: 13px; line-height: 1.6; }
+    .contacto .datos b { color: #6C1D3D; }
+    
+    .pie { margin-top: 30px; font-size: 11px; color: #64748b; border-top: 1px dashed #cbd5e1; padding-top: 8px; text-align: justify; line-height: 1.5; }
+
+    .barra-envio {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 2px solid #e2e8f0;
+      text-align: center;
+    }
+    .barra-envio button {
+      background: #6C1D3D;
+      color: #fff;
+      border: none;
+      padding: 12px 28px;
+      font-size: 15px;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      box-shadow: 0 4px 6px -1px rgba(108, 29, 61, 0.3);
+    }
+    .barra-envio button:hover {
+      background: #52152e;
+      transform: translateY(-1px);
+    }
+
+    @media print {
+      html { background: none; padding: 0; }
+      body {
+        background: none;
+        box-shadow: none !important;
+        border: none !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-size: 11pt;
+      }
+      .barra-envio { display: none !important; }
+    }
+  <\/style><\/head><body>
+  <div>
+    <div class="memb">
+      <div><b>Gobierno del Estado de Tamaulipas<\/b><div class="dep">Secretaría de Finanzas · Fiscalización de Comercio Exterior<\/div><\/div>
+      <div class="folio">Folio TAM-2026-001174<br>Cd. Victoria, Tamaulipas, a 13 de julio de 2026<\/div>
+    <\/div>
+    <h1>Invitación de aclaración y regularización<\/h1>
+    <div class="destinatario-block">
+      <b>DESTINATARIO:<\/b> ${CASO_INFO.nombre}<br>
+      <b>RFC:<\/b> ${rfc}<br>
+      <b>Programa IMMEX:<\/b> ${CASO_INFO.immex}<br>
+      <b>Domicilio Fiscal:<\/b> ${CASO_INFO.domicilio}
+    <\/div>
+    <p>Derivado del cruce sistemático de pedimentos de importación temporal (clave IN) contra pedimentos de retorno, esta autoridad, en ejercicio de las facultades coordinadas conforme al Convenio de Colaboración Administrativa en Materia Fiscal Federal y su Anexo 8, identificó que las siguientes operaciones al amparo de su programa IMMEX <b>excedieron el plazo de permanencia de 18 meses<\/b> previsto en el <b>artículo 108 de la Ley Aduanera<\/b>, contado a partir de la fecha de entrada de cada pedimento, sin que se haya localizado pedimento de retorno que la ampare:<\/p>
+    <table><thead><tr><th>Pedimento<\/th><th>Fecha de entrada<\/th><th>Valor en aduana<\/th><th>Venció plazo de retorno (18 meses)<\/th><th>Mora al 13-jul-2026<\/th><\/tr><\/thead><tbody>${filas}<\/tbody><\/table>
+    <p><b>Fundamento del adeudo.<\/b> Al no acreditarse el retorno, las mercancías se consideran importadas definitivamente y las contribuciones cuyo pago se encontraba condicionado al retorno se vuelven exigibles (artículos 106, último párrafo, y 108 de la Ley Aduanera; artículo 1o., fracción IV, de la Ley del IVA). Los importes se integran así: <b>impuesto al valor agregado<\/b> del 16% sobre el valor en aduana; <b>actualización<\/b> conforme al artículo 17-A del Código Fiscal de la Federación, con base en el INPC del INEGI; <b>recargos por mora<\/b> conforme al artículo 21 del mismo Código y al artículo 11 de la Ley de Ingresos de la Federación, a la tasa vigente en cada mes de mora; y <b>multa<\/b> conforme al artículo 183, fracción II, de la Ley Aduanera y montos del Anexo 19 de las Reglas Generales de Comercio Exterior.<\/p>
+    <h2>Si cuenta con documentación: aclare su situación<\/h2>
+    <p>Si alguna de las operaciones señaladas cuenta con pedimento de retorno, constancia de transferencia, cambio de régimen u otra documentación que la ampare, le invitamos a presentarla dentro de los <b>10 días hábiles<\/b> siguientes a la recepción de la presente. Las operaciones debidamente acreditadas serán excluidas sin consecuencia alguna. Puede hacerlo por cualquiera de estos canales:<\/p>
+    <div class="contacto"><div class="datos">
+      <b>Oficina central:<\/b> Dirección de Fiscalización de Comercio Exterior, Centro Gubernamental de Oficinas, Piso 5, Parque Bicentenario, Cd. Victoria, Tamps.<br>
+      <b>Módulo Nuevo Laredo:<\/b> Oficina Fiscal del Estado, Av. César López de Lara 3820, Col. Centro, Nuevo Laredo, Tamps.<br>
+      <b>Portal de aclaraciones:<\/b> regularizacion.tamaulipas.gob.mx · <b>Correo:<\/b> aclaraciones.comext@tam.gob.mx<br>
+      <b>Teléfono:<\/b> (834) 107 8100 ext. 42350 · Lunes a viernes, 8:00–16:00 h<\/b>
+    <\/div><\/div>
+    <h2>Efectos de no atender la presente<\/h2>
+    <p>De no recibirse aclaración ni pago dentro del plazo señalado, esta autoridad podría continuar con los procedimientos que la legislación prevé, cuyos efectos incluyen la determinación del crédito fiscal con multa del 130% al 150% de las contribuciones omitidas (artículos 183, fracción III, y 178, fracción I, de la Ley Aduanera) y que las mercancías pasen a propiedad del Fisco Federal (artículo 183-A). El propósito de esta invitación es, precisamente, ofrecerle la oportunidad de evitar esas consecuencias.<\/p>
+    <p class="pie">La presente constituye una invitación de carácter informativo y no determina crédito fiscal alguno, no constituye resolución ni ejercicio de facultades de comprobación, ni interrumpe los beneficios de la autocorrección espontánea. Parámetros de cálculo: INPC INEGI a junio de 2026; tasas de recargos conforme a la LIF 2026; montos de multa conforme al Anexo 19 de las RGCE. Documento firmado digitalmente mediante algoritmo hash seguro institucional · registrado en bitácora oficial.<\/p>
+    
+    <div class="barra-envio">
+      <button onclick="window.print();">Imprimir Documento<\/button>
+    <\/div>
+  <\/div>
+  <\/body><\/html>`);
+  w.document.close();
+}
+
+function generarDocumentoSAT(){
+  const C=consolidado();
+  const rfc=($('rfc').value||'').trim().toUpperCase()||'MFR980521T43';
+  const vencidos=PEDIMENTOS.filter(p=>INCLUIDOS.has(p.id)&&p.estatus==='vencido');
+  const filas=vencidos.map(p=>{
+    return `<tr><td style="font-family:monospace;">${p.num}<\/td><td>${p.entrada}<\/td><td>${p.vencTxt}<\/td><td style="text-align:right">${mx(p.valor)}<\/td><\/tr>`
+  }).join('');
+  const w=abrirVentanaDocumento(); if(!w) return;
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Consulta de Facultades SAT · ${rfc}<\/title>
+  <style>
+    @page {
+      size: letter;
+      margin: 20mm;
+    }
+
+    html {
+      background-color: #eef2f5;
+      padding: 30px 10px;
+    }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #1a1a1a;
+      line-height: 1.6;
+      margin: 0 auto;
+      
+      background: #ffffff;
+      max-width: 800px;
+      padding: 50px 60px;
+      border-radius: 4px;
+      border: 1px solid #d1d5db;
+      
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-sat {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 2px solid #6C1D3D;
+      padding-bottom: 15px;
+      margin-bottom: 25px;
+    }
+    .header-sat b { font-size: 15px; color: #4C1129; }
+    .meta-oficio { text-align: right; font-size: 13px; line-height: 1.5; }
+    .asunto { margin: 20px 0; text-align: right; font-size: 14px; color: #2d3748; }
+    .destinatario { margin-bottom: 25px; font-weight: bold; text-transform: uppercase; font-size: 13.5px; }
+
+    p { margin: 12px 0; text-align: justify; text-indent: 30px; font-size: 13.5px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 13px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    th, td { border: 1px solid #cbd5e1; padding: 8px 10px; }
+    th { background: #f8fafc; font-weight: bold; color: #334155; text-align: left; }
+
+    .firma-sat { margin-top: 45px; text-align: center; page-break-inside: avoid; }
+    .linea-firma { width: 240px; margin: 40px auto 8px auto; border-top: 1px solid #334155; }
+    .pie-pagina { margin-top: 35px; font-size: 11px; color: #64748b; border-top: 1px dashed #cbd5e1; padding-top: 8px; }
+
+    .barra-envio {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 2px solid #e2e8f0;
+      text-align: center;
+    }
+    .barra-envio button {
+      background: #6C1D3D;
+      color: #fff;
+      border: none;
+      padding: 12px 28px;
+      font-size: 15px;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      box-shadow: 0 4px 6px -1px rgba(108, 29, 61, 0.3);
+    }
+    .barra-envio button:hover {
+      background: #52152e;
+      transform: translateY(-1px);
+    }
+
+    @media print {
+      html { background: none; padding: 0; }
+      body {
+        background: none;
+        box-shadow: none !important;
+        border: none !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        font-size: 11pt;
+      }
+      .barra-envio { display: none !important; }
+    }
+  <\/style></head><body>
+    <div class="header-sat">
+      <div><b>GOBIERNO DEL ESTADO DE TAMAULIPAS<\/b><br>Secretaría de Finanzas &middot; Subsecretaría de Ingresos<br>Dirección de Fiscalización de Comercio Exterior<\/div>
+      <div class="meta-oficio"><b>Oficio No:<\/b> TAM-SF-DFCE-2026-0982<br><b>Expediente Local:<\/b> FOLIO-TAM-2026-001174<br>Cd. Victoria, Tamps., a 13 de julio de 2026<\/div>
+    <\/div>
+    <div class="asunto"><b>ASUNTO:<\/b> Solicitud de confirmación de concurrencia de facultades y registro de folio de control aduanero.<\/div>
+    <div class="destinatario">ADMINISTRACIÓN CENTRAL DE AUDITORÍA DE OPERACIONES DE COMERCIO EXTERIOR<br>SERVICIO DE ADMINISTRACIÓN TRIBUTARIA (SAT)<br>CIUDAD DE MÉXICO &middot; PRESENTE<\/div>
+    <p>Con fundamento en las atribuciones conferidas en el Convenio de Colaboración Administrativa en Materia Fiscal Federal y el Anexo 8 del citado acuerdo celebrado entre el Gobierno Federal y el Estado de Tamaulipas, se remite en calidad de Consulta de Concurrencia el estatus del expediente local de gestión persuasiva con número de folio TAM-2026-001174.<\/p>
+    <p>Esta autoridad estatal identificó que el contribuyente <b>${CASO_INFO.nombre.toUpperCase()}<\/b> con RFC <b>${rfc}<\/b> y programa IMMEX ${CASO_INFO.immex}, mantiene operaciones de importación temporal con plazos de permanencia legal vencidos (Art. 108 de la Ley Aduanera), las cuales se desglosan a continuación:<\/p>
+    <table><thead><tr><th>Pedimento Origen<\/th><th>Fecha Entrada<\/th><th>Fecha Vencimiento Legal<\/th><th style="text-align:right">Valor Aduana (MXN)<\/th><\/tr><\/thead>
+    <tbody>${filas}<tr style="background:#f9fafb;font-weight:bold;"><td colspan="3" style="text-align:right;">Valor Total Excedido:<\/td><td style="text-align:right;">${mx(C.valor)}<\/td><\/tr><\/tbody><\/table>
+    <p>Con el propósito de salvaguardar el principio de seguridad jurídica y evitar duplicidades procesales innecesarias, se solicita a esa autoridad federal tenga a bien confirmar si actualmente se encuentra llevando a cabo acciones formales de fiscalización (orden de visita domiciliaria, revisión de gabinete o procedimiento administrativo de omisiones) sobre este mismo periodo y operaciones.<\/p>
+    <p>En caso de SÍ estar ejerciendo facultades sobre el contribuyente referenciado, solicitamos la debida retroalimentación para proceder al cierre inmediato de nuestra gestión persuasiva local. De lo contrario, en caso de NO registrar acciones vigentes, solicitamos formalmente tomar conocimiento de las irregularidades descritas y proceder al alta de nuestro folio de control TAM-2026-001174 en los sistemas informáticos compartidos, con la finalidad de asegurar la prelación de la fiscalización coordinada de este estado.<\/p>
+    <p>Asimismo, se solicita a esa autoridad federal tenga a bien compartir cualquier información, documentación o antecedente de investigación que tenga registrado respecto del contribuyente y las operaciones señaladas, incluyendo, de existir, pedimentos de retorno, cambios de régimen, transferencias virtuales u otra constancia que pudiera no haber sido localizada por el cruce sistémico de esta autoridad estatal, a efecto de depurar el expediente antes de continuar con la gestión persuasiva correspondiente.<\/p>
+    <div class="firma-sat">Atentamente,<br><div class="linea-firma"><\/div><b>Lic. Alejandro Silva Mendoza<\/b><br>Director de Fiscalización de Comercio Exterior<br>Subsecretaría de Ingresos de Tamaulipas<\/div>
+    <div class="pie-pagina">C.c.p. Subsecretaría de Ingresos del Estado de Tamaulipas &middot; Expediente Técnico de Coordinación con el Fisco Federal al amparo del Anexo 8 del CCAMFF.<\/div>
+    <div class="barra-envio" style="margin-top:30px;padding-top:16px;border-top:2px solid #D6DBD9;text-align:center">
+      <p style="text-align:center;text-indent:0;font-size:16px;color:#555;margin-bottom:10px">Este oficio aún no ha sido enviado. Revíselo y confirme el envío al SAT.<\/p>
+      <button onclick="window.opener && window.opener.recibirRespuestaSAT && window.opener.recibirRespuestaSAT(); window.print();" style="background:#6C1D3D;color:#fff;border:none;padding:10px 22px;font-size:18px;font-weight:bold;cursor:pointer;font-family:Arial,sans-serif;letter-spacing:.03em">Enviar al SAT<\/button>
+    <\/div>
+    <style media="print">.barra-envio{display:none !important}<\/style>
+  <\/body><\/html>`);
+  w.document.close();
+}
+
+const tip=document.createElement('div');tip.className='tipbox';document.body.appendChild(tip);
+let tipSrc=null;
+function showTip(el){
+  tip.innerHTML=el.dataset.tip; tip.style.display='block'; tipSrc=el;
+  const r=el.getBoundingClientRect();
+  let x=r.left+r.width/2, y=r.bottom+8;
+  tip.style.left='0px'; tip.style.top='0px';
+  const w=tip.offsetWidth, h=tip.offsetHeight;
+  x-=w/2; if(x<10)x=10; if(x+w>window.innerWidth-10)x=window.innerWidth-w-10;
+  if(y+h>window.innerHeight-10)y=r.top-h-8;
+  tip.style.left=x+'px'; tip.style.top=y+'px';
+}
+function hideTip(){tip.style.display='none';tipSrc=null}
+document.addEventListener('mouseover',e=>{const f=e.target.closest('[data-tip]');if(f)showTip(f)});
+document.addEventListener('mouseout',e=>{if(e.target.closest('[data-tip]'))hideTip()});
+document.addEventListener('click',e=>{
+  const f=e.target.closest('[data-tip]');
+  if(f){e.stopPropagation(); tipSrc===f&&tip.style.display==='block'?hideTip():showTip(f)}
+  else hideTip();
+});
+window.addEventListener('scroll',hideTip,true);
+</script>
+  </template>
+
+  <script>
+    async function getCsrfToken() {
+      try {
+        const response = await fetch("/authorization/", {
+          method: "GET",
+          credentials: "include",
+          headers: { "X-CSRF-TOKEN": "Fetch" }
+        });
+        const token = response.headers.get("X-CSRF-TOKEN") || response.headers.get("x-csrf-token");
+        return token;
+      } catch (e) {
+        console.error("Error al obtener token:", e);
+        return null;
+      }
+    }
+
+    function createReportObject(objectName, container) {
+      if (!container) return;
+      const report = document.createElement("sas-report-object");
+      report.setAttribute("url", window.location.origin);
+      report.setAttribute("reportUri", "/reports/reports/e9ff2248-ea2f-45d9-ab34-86135efec814");
+      report.setAttribute("objectName", objectName);
+      report.setAttribute("authenticationType", "credentials");
+      container.appendChild(report);
+    }
+
+    // Carga el HTML del Buscador Integral (pestaña 5) dentro de su iframe
+    function cargarBuscador() {
+      const frame = document.getElementById("frameBuscador");
+      const tpl = document.getElementById("tplBuscador");
+      if (!frame || !tpl || frame.dataset.cargado) return;
+      frame.srcdoc = "<!DOCTYPE html><html lang=\"es\"><head>" +
+        "</head><body>" + tpl.innerHTML + "</body></html>";
+      frame.dataset.cargado = "1";
+    }
+
+    async function initPage() {
+      if (window.SASDynamic) {
+        SASDynamic.init();
+      }
+
+      cargarBuscador();
+
+      const csrfToken = await getCsrfToken();
+      if (!csrfToken) {
+        console.error("No se pudo obtener el token.");
+        return;
+      }
+
+      // -- Pestaña 1: dashboard principal --
+      createReportObject("ve8",   document.getElementById("header"));  // IMM_HEADER
+      createReportObject("ve931", document.getElementById("filtros")); // IMM_FILTROS
+      createReportObject("ve165", document.getElementById("kpis"));    // IMM_KPI
+      createReportObject("ve348", document.getElementById("mapa"));    // Mapa
+      createReportObject("ve323", document.getElementById("escen"));   // IMM_ESCEN
+      createReportObject("ve613", document.getElementById("foco"));    // IMM_FOCO
+      createReportObject("ve296", document.getElementById("expo"));    // IMM_EXPO
+      createReportObject("ve657", document.getElementById("tend"));    // IMM_TEND
+
+      // -- Pestaña 2 --
+      createReportObject("ve202", document.getElementById("objPagina2"));
+
+      // -- Pestaña 3 --
+      createReportObject("ve415", document.getElementById("objPagina3"));
+
+      // -- Pestaña 4 --
+      createReportObject("ve511", document.getElementById("objPagina4"));
+    }
+
+    function switchTab(num) {
+      for (let i = 1; i <= 5; i++) {
+        document.getElementById("pagina" + i).classList.toggle("active", num === i);
+        document.getElementById("tabWrapper" + i).classList.toggle("active", num === i);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", initPage);
+  </script>
+</body>
+
+</html>

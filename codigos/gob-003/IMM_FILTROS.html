@@ -1,0 +1,174 @@
+<!--
+OBJETO: IMM_FILTROS_P1
+FUENTE ESPERADA: PUBLIC.IMM_CENTRO
+
+Filtro visual para la pagina 1 del Centro de Control IMMEX.
+Construye filtros client-side y emite el estado seleccionado por postMessage:
+  { type:"IMM_PAGE1_FILTERS", filters:{...}, filteredIds:[...] }
+
+VARIABLES EN ORDEN:
+1 id_caso  2 fecha_caso  3 escenario  4 escenario_desc  5 subescenario
+6 subesc_desc  7 aduana  8 tipo_aduana  9 sector  10 municipio
+11 prioridad  12 severidad  13 nivel_certeza
+
+CAMBIO (fix de recorte en el shell):
+La barra ya NO se estira al 100% del iframe. Ahora es de alto natural
+y se ancla ARRIBA (#app align-items:flex-start), de modo que aunque el
+SDK de SAS imponga un iframe de 100-150px y el shell solo muestre una
+banda de ~64px, la barra completa siempre queda dentro de la zona visible.
+
+CAMBIO (filtrado real, igual que Global Filters):
+1) Se quita el reset de "state={}" cada vez que cambia el tamaño de los
+   datos recibidos. Ese reset era el mismo tipo de bug que encontramos en
+   Global Filters: SAS reenvia resultData con cualquier refresco normal del
+   reporte, y si el numero de filas/columnas cambiaba aunque fuera un poco,
+   se borraba silenciosamente lo que el usuario acababa de seleccionar. La
+   invalidacion de un valor que ya no existe en los datos nuevos la sigue
+   haciendo build() campo por campo (mas abajo), que es la forma correcta.
+2) Se agrega el mismo mecanismo de Global Filters (va.messagingUtil.
+   postSelectionMessage) para mandar la seleccion como brush nativo de SAS
+   VA -- adicional al postMessage propio "IMM_PAGE1_FILTERS" que ya se
+   manda para los otros DDO. Asi este filtro sí filtra tanto a los DDO
+   hermanos (via el mensaje propio) como a cualquier objeto nativo de VA
+   conectado por accion de filtro/seleccion enlazada (via el brush nativo).
+-->
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>IMM_FILTROS_P1</title>
+  <style>
+    :root{
+      --gob-navy:#611232;--gob-deep:#4A0E26;--gob-gold:#9E7B3B;--gob-emerald:#1E4620;
+      --text:#1C2530;--muted:#4A5568;--faint:#626E7D;--border:#CCD4E0;--soft:#F4F6F9;
+      --ff-body:"Montserrat",Arial,sans-serif;--mono:"Courier New",Courier,monospace;
+    }
+    *{box-sizing:border-box}
+    html,body,#app{width:100%;height:100%;margin:0;overflow:hidden}
+    body{background:transparent;color:var(--text);font-family:var(--ff-body);-webkit-font-smoothing:antialiased}
+    /* ANCLADO ARRIBA: la barra vive en la parte superior del iframe,
+       sin importar cuanto alto extra le imponga el SDK */
+    #app{height:100%;padding:4px 6px;background:transparent;display:flex;align-items:flex-start}
+    .bar{position:relative;width:100%;height:auto;min-height:50px;display:flex;align-items:flex-end;gap:8px;overflow:hidden;padding:8px 12px 9px;border:1px solid var(--border);border-radius:4px;background:#fff;box-shadow:0 1px 3px rgba(12,35,64,.04)}
+    .bar:before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--gob-navy)}
+    .item{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 0}
+    .item .lab{font-size:var(--labFs,10.5px);letter-spacing:.04em;text-transform:uppercase;color:var(--gob-navy);font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:2px}
+    .wrap{position:relative;min-width:0}
+    .wrap:after{content:"";position:absolute;right:9px;top:50%;width:7px;height:7px;pointer-events:none;border-right:1.7px solid var(--muted);border-bottom:1.7px solid var(--muted);transform:translateY(-70%) rotate(45deg)}
+    select{-webkit-appearance:none;appearance:none;width:100%;min-width:0;cursor:pointer;font:700 var(--selFs,13.5px) var(--ff-body);color:var(--text);background:var(--soft);border:1px solid var(--border);border-radius:2px;padding:6px 24px 6px 9px;text-overflow:ellipsis}
+    select:hover{border-color:var(--faint);background:#fff}
+    select:focus{outline:none;border-color:var(--gob-navy)}
+    .item.on select{border-color:var(--gob-gold);background:var(--gob-emerald);color:#fff}
+    .item.on select option{color:var(--text);background:#fff}
+    .count{flex:0 0 auto;align-self:stretch;display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-end;min-width:72px;padding:0 4px 3px}
+    .count b{font-size:20px;line-height:1;color:var(--gob-navy);font-weight:800;font-variant-numeric:tabular-nums}
+    .count span{font-size:9px;line-height:1;text-transform:uppercase;letter-spacing:.05em;color:var(--faint);font-weight:800;margin-top:2px}
+    .clear{flex:0 0 auto;align-self:flex-end;cursor:pointer;border:1px solid var(--gob-gold);background:transparent;color:var(--gob-navy);border-radius:2px;padding:7px 12px;font:800 10px var(--ff-body);text-transform:uppercase;letter-spacing:.02em;white-space:nowrap}
+    .clear:hover{background:var(--gob-navy);color:#fff}
+    .state{width:100%;min-height:50px;display:grid;place-items:center;text-align:center;color:var(--muted);font-size:13px;border:1px dashed var(--border);border-radius:4px;background:#fff;padding:12px}
+    .compact .bar,.ultra .bar{overflow-x:auto}
+    .compact .item{flex:0 0 160px}
+    .ultra .item{flex:0 0 145px}
+    .ultra .item .lab{display:none}
+    .ultra .count{min-width:58px}
+  </style>
+</head>
+<body><main id="app"><div class="state">Esperando datos para filtros</div></main>
+<script>
+(function(){
+  "use strict";
+  const app=document.getElementById("app");
+  let rows=[],cols=[],all=[],state={},resultName="";
+  const order={id_caso:0,fecha_caso:1,escenario:2,escenario_desc:3,subescenario:4,subesc_desc:5,aduana:6,tipo_aduana:7,sector:8,municipio:9,prioridad:10,severidad:11,nivel_certeza:12};
+  const FDEF=[
+    {key:"fecha_caso",label:"Fecha",get:c=>c.fechaDisp,sort:c=>c.fechaKey,dir:-1},
+    {key:"aduana",label:"Aduana",get:c=>c.aduana},
+    {key:"escenario",label:"Escenario",get:c=>c.escDesc||c.escenario},
+    {key:"subesc_desc",label:"Subescenario",get:c=>c.subDesc},
+    {key:"tipo_aduana",label:"Tipo de aduana",get:c=>c.tipo_aduana},
+    {key:"sector",label:"Sector",get:c=>c.sector},
+    {key:"municipio",label:"Municipio",get:c=>c.municipio},
+    {key:"prioridad",label:"Prioridad",get:c=>c.prioridad},
+    {key:"severidad",label:"Severidad",get:c=>c.severidad},
+    {key:"nivel_certeza",label:"Nivel de certeza",get:c=>c.nivel_certeza}
+  ];
+  function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+  function payload(x){if(typeof x==="string"){try{x=JSON.parse(x)}catch(e){return null}}for(const p of [x,x&&x.data,x&&x.payload,x&&x.detail,x&&x.result,x&&x.results,x&&x.resultData,x&&x.vaData,x&&x.reportData,x&&x.message&&x.message.data,x&&x.message]){if(!p)continue;if(Array.isArray(p.columns)&&Array.isArray(p.data))return p;if(Array.isArray(p.columns)&&Array.isArray(p.rows))return{columns:p.columns,data:p.rows,resultName:p.resultName};if(Array.isArray(p.columnNames)&&Array.isArray(p.data))return{columns:p.columnNames,data:p.data,resultName:p.resultName}}return null}
+  function cell(v){return v&&typeof v==="object"?("value" in v?v.value:("formattedValue" in v?v.formattedValue:("label" in v?v.label:v))):v}
+  function norm(v){return String(v==null?"":v).toLowerCase().normalize("NFD").replace(/\p{Mark}/gu,"").replace(/[^a-z0-9]/g,"")}
+  function cname(c){return norm(c&&(c.name||c.label||c.id||c.columnName||c.displayName||c.variableName)||c)}
+  function idx(name){const n=norm(name);let i=cols.findIndex(c=>cname(c)===n);if(i>=0)return i;i=cols.findIndex(c=>{const cn=cname(c);return cn&&(cn.includes(n)||n.includes(cn))});return i>=0?i:order[name]}
+  function val(r,name){const i=idx(name);return Array.isArray(r)&&i!=null&&i>=0?cell(r[i]):cell(r&&r[name])}
+  function parseDate(v){v=cell(v);if(v==null||v==="")return null;if(v instanceof Date)return isNaN(v)?null:v;if(typeof v==="number"){if(v>3000&&v<80000)return new Date(Date.UTC(1960,0,1)+v*864e5);const d=new Date(v);return isNaN(d)?null:d}const d=new Date(String(v));return isNaN(d)?null:d}
+  function fmtMonth(d){return d?d.toLocaleDateString("es-MX",{month:"short",year:"numeric"}).replace(".",""):""}
+  function parseRows(){
+    const seen=new Set();
+    all=[];
+    rows.forEach((r,rowIndex)=>{
+      const id=String(cell(val(r,"id_caso"))||"").trim();
+      if(id&&seen.has(id))return;
+      if(id)seen.add(id);
+      const d=parseDate(val(r,"fecha_caso"));
+      all.push({id:id||String(all.length+1),row:rowIndex,fecha:d,fechaKey:d?d.getFullYear()*100+d.getMonth():"",fechaDisp:d?fmtMonth(d):String(cell(val(r,"fecha_caso"))||"").trim(),escenario:String(cell(val(r,"escenario"))||"").trim(),escDesc:String(cell(val(r,"escenario_desc"))||"").trim(),subescenario:String(cell(val(r,"subescenario"))||"").trim(),subDesc:String(cell(val(r,"subesc_desc"))||"").trim(),aduana:String(cell(val(r,"aduana"))||"").trim(),tipo_aduana:String(cell(val(r,"tipo_aduana"))||"").trim(),sector:String(cell(val(r,"sector"))||"").trim(),municipio:String(cell(val(r,"municipio"))||"").trim(),prioridad:String(cell(val(r,"prioridad"))||"").trim(),severidad:String(cell(val(r,"severidad"))||"").trim(),nivel_certeza:String(cell(val(r,"nivel_certeza"))||"").trim()});
+    });
+  }
+  function filtered(){return all.filter(c=>FDEF.every(f=>{const v=state[f.key];return !v||f.get(c)===v}))}
+  // Igual que postSelectionMessage de va.messagingUtil en Global Filters:
+  // arreglo vacio = "sin filtro" (limpia el brush nativo de VA), arreglo
+  // con filas = brush solo esas filas. Esto es lo que hace que este DDO
+  // tambien filtre objetos nativos de VA conectados por accion de filtro/
+  // seleccion enlazada, no solo a los otros DDO via el mensaje propio.
+  function postSelectionMessage(name,selectedRows){
+    if(!name||parent===window)return;
+    const url=(window.location!==window.parent.location)?document.referrer:document.location.href;
+    parent.postMessage({resultName:name,selections:selectedRows.map(r=>({row:r}))},url);
+  }
+  function emit(){
+    const d=filtered(),filters={};
+    FDEF.forEach(f=>{if(state[f.key])filters[f.key]=state[f.key]});
+    if(parent!==window)parent.postMessage({type:"IMM_PAGE1_FILTERS",filters,filteredIds:d.map(x=>x.id),count:d.length,total:all.length},"*");
+    const anyActive=FDEF.some(f=>state[f.key]);
+    postSelectionMessage(resultName,anyActive?d.map(x=>x.row):[]);
+  }
+  function build(){
+    if(!all.length){app.innerHTML='<div class="state">Sin datos para filtros</div>';return}
+    const d=filtered();
+    const parts=FDEF.map(f=>{
+      const seen=new Map();
+      all.forEach(c=>{const v=f.get(c);if(v==null||v==="")return;if(!seen.has(v))seen.set(v,f.sort?f.sort(c):v)});
+      let opts=[...seen.entries()];
+      if(f.sort)opts.sort((a,b)=>((a[1]>b[1]?1:a[1]<b[1]?-1:0))*(f.dir||1));else opts.sort((a,b)=>String(a[0]).localeCompare(String(b[0]),"es"));
+      if(state[f.key]&&!seen.has(state[f.key]))state[f.key]="";
+      return `<div class="item${state[f.key]?' on':''}"><span class="lab">${esc(f.label)}</span><span class="wrap"><select data-k="${f.key}"><option value="">Todos</option>${opts.map(o=>`<option value="${esc(o[0])}"${o[0]===state[f.key]?' selected':''}>${esc(o[0])}</option>`).join("")}</select></span></div>`;
+    }).join("");
+    app.innerHTML=`<section class="bar">${parts}<div class="count"><b>${d.length.toLocaleString("es-MX")}</b><span>casos</span></div><button class="clear" type="button">Limpiar</button></section>`;
+    app.querySelectorAll("select").forEach(s=>s.onchange=()=>{state[s.dataset.k]=s.value;build();emit()});
+    app.querySelector(".clear").onclick=()=>{state={};build();emit()};
+    resize();
+  }
+  function render(){parseRows();build();emit()}
+  function resize(){
+    /* Los modos se deciden por el ANCHO disponible y por el alto de la
+       ventana visible del shell (~64px), no por el alto inflado del
+       iframe que impone el SDK. */
+    const b=app.getBoundingClientRect();
+    const ultra=b.width<760;
+    const compact=!ultra&&b.width<1180;
+    app.classList.toggle("ultra",ultra);
+    app.classList.toggle("compact",compact);
+    app.style.setProperty("--selFs",(ultra?12.5:13.5)+"px");
+    app.style.setProperty("--labFs",(ultra?10:10.5)+"px");
+  }
+  window.addEventListener("message",e=>{
+    const p=payload(e.data);
+    if(!p)return;
+    cols=p.columns||[];
+    rows=p.data||[];
+    resultName=p.resultName||resultName;
+    render();
+  },false);
+  new ResizeObserver(resize).observe(app);
+  resize();
+})();
+</script></body></html>

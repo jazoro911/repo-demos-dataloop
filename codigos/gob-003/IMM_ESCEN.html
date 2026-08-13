@@ -1,0 +1,366 @@
+<!--
+OBJETO: IMM_ESCEN
+FUENTE ESPERADA: PUBLIC.IMM_CENTRO
+ORDEN:
+1  id_caso              Categoría  Sin agregación
+2  escenario            Categoría  Sin agregación
+3  escenario_desc       Categoría  Sin agregación
+4  subescenario         Categoría  Sin agregación
+5  subesc_desc          Categoría  Sin agregación
+6  mto_impacto          Medida     SUM
+7  mto_accionable       Medida     SUM
+8  mto_regularizado     Medida     SUM
+9  mto_revision         Medida     SUM
+10 multa_min            Medida     SUM
+11 multa_max            Medida     SUM
+-->
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>IMM_ESCEN — Control Institucional</title>
+  <style>
+    /* ============================================================
+       VARIABLES DE IDENTIDAD INSTITUCIONAL / GOBIERNO
+       ============================================================ */
+    :root {
+      --gob-navy: #0C2340;     /* Azul Institucional / Heráldico */
+      --gob-deep: #051122;     /* Azul Oscuro de Contraste */
+      --gob-gold: #9E7B3B;     /* Oro / Bronce de Estado */
+      --gob-emerald: #1E4620;  /* Verde Bandera / Aprobaciones */
+      --gob-red: #8C232C;      /* Guinda / Alertas Oficiales */
+      --gob-wine: #5B2541;     /* Variación Sobria Administrativa */
+      
+      --text: #1C2530;         /* Texto Principal Alta Legibilidad */
+      --muted: #4A5568;        /* Subtítulos y Metadatos */
+      --faint: #626E7D;        /* Etiquetas Secundarias */
+      --border: #CCD4E0;       /* Línea Divisoria Formal */
+      
+      --ff-disp: "Times New Roman", Times, Georgia, serif; /* Títulos Solemnes */
+      --ff-body: "Montserrat", Arial, sans-serif;         /* Cuerpo Técnico y Cifras */
+      --mono: "Courier New", Courier, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html, body, #app { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    
+    body {
+      background: transparent;
+      color: var(--text);
+      font-family: var(--ff-body);
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    #app { padding: 4px; }
+    
+    /* --- MARCO DE CONTENCIÓN INSTITUCIONAL --- */
+    .panel {
+      position: relative;
+      height: 100%;
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: 4px; /* Bordes institucionales rectos */
+      box-shadow: 0 2px 4px rgba(12, 35, 64, 0.05);
+      padding: 12px 14px 10px;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 10px;
+      overflow: hidden;
+    }
+    
+    /* Listón tricolor superior de Gobierno en el bloque */
+    .panel:before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--gob-navy) 0%, var(--gob-gold) 70%, var(--gob-emerald) 100%);
+    }
+
+    /* Relleno interno ajustado para coincidir simétricamente con .hbar */
+    .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; padding: 4px 4px 0 4px; }
+    
+    .kicker {
+      font-family: var(--ff-body);
+      font-size: 16px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--gob-gold);
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+    
+    .title {
+      font-family: var(--ff-disp);
+      font-size: var(--hTitleFs, 33px);
+      font-weight: 700;
+      color: var(--gob-navy);
+      letter-spacing: -0.012em;
+      line-height: 1.1;
+    }
+    
+    .sub { font-size: 19px; color: var(--muted); margin-top: 2px; }
+    
+    /* --- CONMUTADOR DE CRITERIOS DE CONSULTA --- */
+    .switch {
+      display: flex;
+      background: #E2E8F0;
+      border-radius: 2px; /* Recto */
+      padding: 2px;
+      flex: 0 0 auto;
+      border: 1px solid var(--border);
+      align-self: center;
+    }
+    
+    .switch button {
+      border: 0;
+      background: transparent;
+      border-radius: 2px;
+      padding: 5px 14px;
+      color: var(--muted);
+      font-family: var(--ff-body);
+      font-weight: 700;
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      transition: background-color .15s, color .15s;
+    }
+    
+    .switch button.on {
+      background: var(--gob-navy);
+      color: #FFFFFF;
+      box-shadow: none;
+    }
+
+    #chart { position: relative; min-height: 0; padding-top: 4px; }
+    
+    .state {
+      height: 100%; display: grid; place-items: center; text-align: center;
+      color: var(--faint); font-size: 17px; font-family: var(--ff-disp);
+    }
+    
+    .wrap { height: 100%; display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: center; }
+    
+    /* --- GRÁFICO RESUMEN (DONA) --- */
+    .donutbox { position: relative; display: grid; place-items: center; flex: 0 0 auto; }
+    .donutbox svg { display: block; width: 100%; height: 100%; }
+    
+    .center { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; pointer-events: none; }
+    .center b {
+      display: block;
+      white-space: nowrap;
+      color: var(--gob-navy);
+      font-family: var(--ff-body);
+      font-weight: 700;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    
+    .center span {
+      display: block;
+      white-space: nowrap;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--faint);
+      font-weight: 700;
+      margin-top: 2px;
+    }
+    
+    .slice { cursor: pointer; transition: opacity .12s; }
+    .slice:hover { opacity: .85; }
+    
+    /* Etiquetas internas en el gráfico */
+    .plabel {
+      fill: #FFFFFF;
+      font-family: var(--ff-body);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      paint-order: stroke;
+      stroke: var(--gob-deep);
+      stroke-width: 2px;
+    }
+
+    /* --- DESGLOSE TÉCNICO EN LISTADO --- */
+    .list { min-width: 0; height: 100%; overflow-y: auto; display: flex; flex-direction: column; justify-content: flex-start; gap: 3px; padding-right: 4px; }
+    .list::-webkit-scrollbar { width: 4px; }
+    .list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    
+    /* Fila de Escenario Principal */
+    .erow {
+      display: grid; grid-template-columns: auto 1fr auto auto; gap: 10px; align-items: center;
+      cursor: pointer; border-radius: 2px; padding: 4px 6px; border-bottom: 1px solid #F0F2F5;
+    }
+    .erow:hover { background: #F4F6F9; }
+    .erow .dot { width: 8px; height: 8px; border-radius: 1px; flex: 0 0 auto; }
+    
+    .erow .el { font-family: var(--ff-disp); font-size: 20px; font-weight: 700; color: var(--gob-navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .erow .ev { font-size: 18.5px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; text-align: right; }
+    .erow .ep { font-family: var(--mono); font-size: 17px; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 38px; text-align: right; }
+    
+    /* Fila de Subescenario Interno */
+    .srow { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; cursor: pointer; padding: 3px 6px 3px 20px; }
+    .srow:hover { background: #F4F6F9; }
+    
+    .srow .sl { font-size: 18px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .srow .sv { font-size: 17px; color: var(--faint); font-variant-numeric: tabular-nums; text-align: right; }
+    .srow .sp { font-family: var(--mono); font-size: 16px; color: var(--faint); font-variant-numeric: tabular-nums; min-width: 34px; text-align: right; }
+    
+    .gap { height: 2px; }
+    
+    /* Ajustes adaptativos */
+    .compact .sub { display: none; }
+    .compact .panel { padding: 10px 12px; }
+    .compact .wrap { gap: 12px; }
+    .compact .erow .el { font-size: 18.5px; }
+    .compact .srow .sl { font-size: 16.5px; }
+    
+    .ultra { padding: 2px; }
+    .ultra .panel { padding: 8px 6px 6px; border-radius: 2px; box-shadow: none; }
+    .ultra .kicker, .ultra .sub { display: none; }
+    .ultra .switch button { font-size: 13px; padding: 3px 8px; }
+    .ultra .wrap { grid-template-columns: 1fr; }
+    .ultra .list { display: none; }
+    /* === Embebido en concatTamaulipas: sin marco propio, menos espacio vacío === */
+    #app { padding: 0 !important; }
+    .panel { background: transparent !important; border: none !important; box-shadow: none !important; border-radius: 0 !important; padding: 2px 8px 4px !important; gap: 6px !important; }
+    .panel:before { display: none !important; }
+    .kicker { display: none !important; }
+  </style>
+</head>
+<body>
+<main id="app">
+  <section class="panel">
+    <div class="head">
+      <div>
+        <div class="kicker">Centro de Control IMMEX</div>
+        <div class="title">Composición por Escenario</div>
+        <div class="sub">Proporción consolidada institucional y desglose administrativo de subescenarios</div>
+      </div>
+      <div class="switch">
+        <button data-m="casos" class="on">Casos</button>
+        <button data-m="impacto">Impacto</button>
+      </div>
+    </div>
+    <div id="chart">
+      <div class="state">Cargando registros oficiales...</div>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+  "use strict";
+  const app=document.getElementById("app"), chart=document.getElementById("chart");
+  let rows=[],cols=[],metric="casos";
+  const order={id_caso:0,escenario:1,escenario_desc:2,subescenario:3,subesc_desc:4,mto_impacto:5,mto_accionable:6,mto_regularizado:7,mto_revision:8,multa_min:9,multa_max:10};
+  
+  // Re-mapeo estricto a la paleta oficial de Gobierno establecida
+  const colors={
+    REG_ESP:"var(--gob-emerald)",
+    NO_REG:"var(--gob-red)",
+    RET_SIM:"var(--gob-wine)",
+    CLAS_IEPS:"var(--gob-gold)"
+  };
+
+  function payload(x){if(typeof x==="string"){try{x=JSON.parse(x)}catch(e){return null}}for(const p of [x,x&&x.data,x&&x.payload,x&&x.detail])if(p&&Array.isArray(p.columns)&&Array.isArray(p.data))return p;return null}
+  function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+  function cell(v){return v&&typeof v==="object"?("value" in v?v.value:("formattedValue" in v?v.formattedValue:("label" in v?v.label:v))):v}
+  function norm(v){return String(v==null?"":v).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"")}
+  function cname(c){return norm(c&&(c.name||c.label||c.id||c.columnName||c.displayName||c.variableName)||c)}
+  function idx(name){const n=norm(name);const i=cols.findIndex(c=>cname(c)===n);if(i>=0)return i;const j=cols.findIndex(c=>cname(c).includes(n)||n.includes(cname(c)));return j>=0?j:order[name]}
+  function val(r,name){const i=idx(name);return Array.isArray(r)&&i!=null&&i>=0?cell(r[i]):cell(r&&r[name])}
+  function num(v){v=cell(v);if(v==null||v==="")return 0;if(typeof v==="number")return isFinite(v)?v:0;const n=Number(String(v).replace(/[$,%\s]/g,"").replace(/,/g,""));return isFinite(n)?n:0}
+  
+  function money(n){
+    n=num(n);const a=Math.abs(n);
+    if(a>=1e9)return "$"+(n/1e9).toFixed(1)+" mil M";
+    if(a>=1e6)return "$"+(n/1e6).toFixed(1)+" M";
+    if(a>=1e3)return "$"+(n/1e3).toFixed(0)+" mil";
+    return "$"+Math.round(n);
+  }
+  
+  function onEscenarioSelect(d){if(parent!==window)parent.postMessage({type:"IMM_ESCENARIO_SELECT",escenario:d.escenario,subescenario:d.subescenario,row:d},"*")}
+  
+  function build(){
+    const scen=new Map();
+    rows.forEach(r=>{
+      const e=String(val(r,"escenario")||"SIN_ESC"),ed=String(val(r,"escenario_desc")||e),s=String(val(r,"subescenario")||"SIN_SUB"),sd=String(val(r,"subesc_desc")||s),id=String(val(r,"id_caso")||"");
+      let o=scen.get(e);
+      if(!o){o={escenario:e,desc:ed,casos:new Set(),impacto:0,accion:0,reg:0,rev:0,min:0,max:0,subs:new Map()};scen.set(e,o)}
+      if(id)o.casos.add(id);
+      o.impacto+=num(val(r,"mto_impacto"));o.accion+=num(val(r,"mto_accionable"));o.reg+=num(val(r,"mto_regularizado"));o.rev+=num(val(r,"mto_revision"));o.min+=num(val(r,"multa_min"));o.max+=num(val(r,"multa_max"));
+      let q=o.subs.get(s);
+      if(!q){q={escenario:e,subescenario:s,desc:sd,casos:new Set(),impacto:0,accion:0,reg:0,rev:0,min:0,max:0};o.subs.set(s,q)}
+      if(id)q.casos.add(id);
+      q.impacto+=num(val(r,"mto_impacto"));q.accion+=num(val(r,"mto_accionable"));q.reg+=num(val(r,"mto_regularizado"));q.rev+=num(val(r,"mto_revision"));q.min+=num(val(r,"multa_min"));q.max+=num(val(r,"multa_max"));
+    });
+    const mv=x=>metric==="casos"?x.casos.size:x.impacto;
+    return [...scen.values()].map(o=>{o.subs=[...o.subs.values()].map(q=>{q.value=mv(q);return q}).filter(q=>q.value>0).sort((a,b)=>b.value-a.value);o.value=mv(o);return o}).filter(o=>o.value>0).sort((a,b)=>b.value-a.value);
+  }
+
+  function ring(cx,cy,R,r,a0,a1){
+    if(a1-a0>=2*Math.PI-1e-6){const mid=a0+Math.PI;return ring(cx,cy,R,r,a0,mid)+ring(cx,cy,R,r,mid,a1);}
+    const P=(a,rad)=>`${(cx+rad*Math.sin(a)).toFixed(2)} ${(cy-rad*Math.cos(a)).toFixed(2)}`;
+    const large=(a1-a0)>Math.PI?1:0;
+    return `M${P(a0,R)} A${R} ${R} 0 ${large} 1 ${P(a1,R)} L${P(a1,r)} A${r} ${r} 0 ${large} 0 ${P(a0,r)} Z`;
+  }
+  
+  function fmtVal(v){return metric==="casos"?v.toLocaleString("es-MX"):money(v)}
+  
+  function render(){
+    if(!rows.length){chart.innerHTML='<div class="state">No se detectaron registros válidos para la consulta.</div>';return}
+    const d=build();
+    if(!d.length){chart.innerHTML='<div class="state">Sin escenarios analíticos bajo los parámetros actuales.</div>';return}
+    const total=d.reduce((a,x)=>a+x.value,0)||1;
+    const W=chart.clientWidth,H=chart.clientHeight,ultra=W<300||H<140;
+    const side=Math.max(82,ultra?Math.min(W,H)-4:Math.min(H,Math.round(W*0.52)));
+    const cx=side/2,cy=side/2,R=side*0.48,r=side*0.30;
+    let a=0,arcs="",labels="";
+    
+    d.forEach(o=>{
+      const col=colors[o.escenario]||"var(--faint)", span=o.value/total*2*Math.PI, a1=a+span, mid=(a+a1)/2, pctv=o.value/total*100;
+      const subTip=o.subs.slice(0,5).map(q=>esc(q.desc)+" "+(q.value/o.value*100).toFixed(0)+"%").join(" · ");
+      arcs+=`<path class="slice" data-e="${esc(o.escenario)}" d="${ring(cx,cy,R,r,a,a1)}" fill="${col}" stroke="#fff" stroke-width="1.5"><title>${esc(o.desc)} · ${fmtVal(o.value)} · ${pctv.toFixed(1)}%${subTip?" · Subescenarios: "+subTip:""}</title></path>`;
+      if(span>0.22){
+        const lr=(R+r)/2,lx=cx+lr*Math.sin(mid),ly=cy-lr*Math.cos(mid),fs=Math.max(12,Math.min((R-r)*0.68,side*0.105));
+        labels+=`<text class="plabel" x="${lx.toFixed(1)}" y="${(ly+fs*0.35).toFixed(1)}" text-anchor="middle" style="font-size:${fs.toFixed(1)}px">${pctv.toFixed(0)}%</text>`;
+      }
+      a=a1;
+    });
+    
+    // Tamaño del texto central acotado al diámetro real del hueco de la dona
+    const totStr=fmtVal(total);
+    const hole=2*r; // diámetro del hueco
+    const cfont=Math.max(12,Math.min(side*0.18,(hole*0.92)/(totStr.length*0.58)));
+    const donut=`<div class="donutbox" style="width:${side}px;height:${side}px"><svg viewBox="0 0 ${side} ${side}">${arcs}${labels}</svg>`+
+      `<div class="center"><div><b style="font-size:${cfont.toFixed(1)}px">${totStr}</b><span style="font-size:${Math.max(9,Math.min(side*0.058,cfont*0.6)).toFixed(1)}px">${metric==="casos"?"Casos Totales":"Monto Total"}</span></div></div></div>`;
+    
+    let list='<div class="list">';
+    d.forEach((o,i)=>{
+      const col=colors[o.escenario]||"var(--faint)";
+      if(i)list+='<div class="gap"></div>';
+      list+=`<div class="erow" data-e="${esc(o.escenario)}"><i class="dot" style="background:${col}"></i><span class="el">${esc(o.desc)}</span><span class="ev">${fmtVal(o.value)}</span><span class="ep">${(o.value/total*100).toFixed(1)}%</span></div>`;
+      o.subs.forEach(q=>{
+        list+=`<div class="srow" data-e="${esc(o.escenario)}" data-s="${esc(q.subescenario)}" style="position:relative"><span class="sl" style="border-left:2px solid ${col};padding-left:8px">${esc(q.desc)}</span><span class="sv">${fmtVal(q.value)}</span><span class="sp">${(q.value/o.value*100).toFixed(0)}%</span></div>`;
+      });
+    });
+    list+='</div>';
+    
+    chart.innerHTML=`<div class="wrap">${donut}${list}</div>`;
+    chart.querySelectorAll(".slice,.erow").forEach(el=>el.onclick=()=>onEscenarioSelect({escenario:el.dataset.e}));
+    chart.querySelectorAll(".srow").forEach(el=>el.onclick=()=>onEscenarioSelect({escenario:el.dataset.e,subescenario:el.dataset.s}));
+  }
+  
+  function size(){const b=app.getBoundingClientRect();app.classList.toggle("ultra",b.height<135||b.width<300);app.classList.toggle("compact",!app.classList.contains("ultra")&&(b.height<220||b.width<560));app.style.setProperty("--hTitleFs",(b.width<300?19:b.width<560?23:28)+"px");render()}
+  document.querySelectorAll(".switch button").forEach(b=>b.onclick=()=>{metric=b.dataset.m;document.querySelectorAll(".switch button").forEach(x=>x.classList.toggle("on",x===b));render()});
+  window.addEventListener("message",e=>{const p=payload(e.data);if(!p)return;cols=p.columns||[];rows=p.data||[];render();size()},false);
+  new ResizeObserver(size).observe(app);size();
+})();
+</script>
+</body>
+</html>

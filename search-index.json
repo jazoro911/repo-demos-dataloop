@@ -1,0 +1,63 @@
+[
+  {
+    "codigo": "gob-001",
+    "titulo": "Análisis de Potencial de Recaudación",
+    "categoria": "Gobierno",
+    "url": "codigos/gob-001/gob-001.html",
+    "archivos": [
+      "chart-municipios.html",
+      "chart-waterfall-recaudacion.html",
+      "filtros.html",
+      "kpi-brecha.html",
+      "kpi-contribuyentes.html",
+      "kpi-recaudacion.html",
+      "pagina-inicial-recaudacion.html",
+      "tabla-contribuyentes.html"
+    ]
+  },
+  {
+    "codigo": "gob-002",
+    "titulo": "Brecha de Recaudación",
+    "categoria": "Gobierno",
+    "url": "codigos/gob-002/gob-002.html",
+    "archivos": [
+      "analisis-bar.html",
+      "analisis-botones.html",
+      "analisis-table.html",
+      "brecha-recaudacion.html",
+      "disc-bar-chart.html",
+      "disc-filtros.html",
+      "disc-kpi.html",
+      "disc-tab-contribuyentes.html",
+      "disc-tab-detalle.html",
+      "home-bar-razon.html",
+      "home-map.html",
+      "home-treemap.html",
+      "zon-bar.html",
+      "zon-filtros.html",
+      "zon-kpi.html",
+      "zon-map.html",
+      "zon-tablas.html"
+    ]
+  },
+  {
+    "codigo": "gob-003",
+    "titulo": "Fiscalización Comercio Exterior · Tamaulipas (Admin)",
+    "categoria": "Gobierno",
+    "url": "codigos/gob-003/gob-003.html",
+    "archivos": [
+      "concatTamaulipas_A.html",
+      "concatTamaulipas_U.html",
+      "IMM_ESCEN.html",
+      "IMM_EXPO.html",
+      "IMM_FILTROS.html",
+      "IMM_FOCO.html",
+      "IMM_HEADER.html",
+      "IMM_KPI.html",
+      "IMM_NOREG.html",
+      "IMM_NORET.html",
+      "IMM_RETSIM.html",
+      "IMM_TEND.html"
+    ]
+  }
+]

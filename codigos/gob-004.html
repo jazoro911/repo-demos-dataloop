@@ -3,17 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dataloop - Demo Médica — Fraude en Seguros</title>
+    <title>Dataloop - SKANDIA — Vida & PPR</title>
     <link rel="stylesheet" href="../styles.css">
+    <!-- Aplica el tema guardado (claro/oscuro) antes de pintar la página, para evitar parpadeos -->
+    <script>
+        (function () {
+            var tema = localStorage.getItem('tema-dataloop') || 'claro';
+            document.documentElement.setAttribute('data-theme', tema);
+        })();
+    </script>
 </head>
+
+<script src="../../global-search.js"></script>   <!-- desde codigos/gob-003/ -->
+<script src="../global-search.js"></script>        <!-- desde categorias/ -->
+<script src="global-search.js"></script>           <!-- desde raíz (index.html) -->
+
 <body>
 
-    <nav class="sidebar">
+        <!-- ============================================
+         RIEL LATERAL (siempre visible)
+         ============================================ -->
+    <div class="sidebar-rail">
+        <button class="rail-boton rail-logo" id="btn-toggle-sidebar" onclick="toggleSidebar()" aria-label="Abrir navegación">
+            <img src="../previews/icono_dataloop.svg" alt="Dataloop">
+        </button>
+        <button class="rail-boton rail-tema" id="btn-tema" onclick="toggleTema()" aria-label="Cambiar tema">
+            <span id="icono-tema">🌙</span>
+        </button>
+    </div>
+
+    <!-- Fondo oscuro detrás de la navegación cuando está abierta -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+    <nav class="sidebar" id="sidebar">
+
+        <button class="sidebar-cerrar" onclick="cerrarSidebar()" aria-label="Cerrar navegación">×</button>
+
         <a href="../index.html" class="sidebar-logo">
-            <img src="../icono_dataloop.svg" alt="Dataloop" class="sidebar-logo-img">
+            <img src="../previews/icono_dataloop.svg" alt="Dataloop" class="sidebar-logo-img">
             <span class="logo-texto">Dataloop</span>
         </a>
-        <input type="text" class="sidebar-buscador" placeholder="🔍 Buscar código...">
+        <input type="text" class="sidebar-buscador" placeholder="🔍 Buscar código..." id="buscador-sidebar">
         <a href="../index.html" class="sidebar-link">
             <span class="icono">📊</span> Dashboard
         </a>
@@ -42,7 +72,7 @@
     <div class="zona-principal">
 
     <div class="header">
-        <span class="logo">Repositorio de Códigos</span>
+        <a href="../index.html" class="logo">Repositorio de Códigos</a>
         <span class="descripcion">Repositorio Interno de Código</span>
     </div>
 
@@ -52,42 +82,44 @@
 
         <div class="tarjeta">
 
-            <h1 class="tarjeta-titulo">Demo Médica — Fraude en Seguros</h1>
+            <h1 class="tarjeta-titulo">SKANDIA — Vida & PPR</h1>
 
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                <span class="etiqueta-lenguaje">html</span>
-                <span style="color: #64748b; font-size: 14px;">Proyecto</span>
+                <span class="etiqueta-lenguaje">vi</span>
+                <span style="color: #64748b; font-size: 14px;">Dashboard</span>
             </div>
 
             <p class="tarjeta-descripcion">
-                Exposición ejecutiva de fraude médico con mapa comparativo de tipologías, red de contacto entre actores sospechosos y flujo ejecutivo de concentración hospitalaria.
+                Segmentación de clientes y análisis de venta de pólizas de Vida y PPR (Plan Personal de Retiro) para Skandia, construido en Visual Insights.
             </p>
 
             <div class="etiquetas">
-                <span class="etiqueta">#fraude-médico</span>
-                <span class="etiqueta">#tipologías</span>
-                <span class="etiqueta">#red-contacto</span>
-                <span class="etiqueta">#hospitales</span>
+                <span class="etiqueta">#seguros</span>
+                <span class="etiqueta">#vida</span>
+                <span class="etiqueta">#ppr</span>
+                <span class="etiqueta">#segmentación</span>
             </div>
 
             <div class="info-meta">
-                <span><strong>Autor:</strong> Seguros — Médicos</span>
+                <span><strong>Autor:</strong> Seguros — Vida</span>
                 <span><strong>Fecha:</strong> 2025-05-01</span>
             </div>
 
             <div class="instrucciones">
                 <h2>📋 Instrucciones de Uso</h2>
                 <p>
-                    Presentación ejecutiva que incluye: mapa comparativo de tipologías de fraude médico, visualización de red de contacto entre actores y flujo de concentración hospitalaria.
+                    Dashboard en Visual Insights (VI) que segmenta clientes de Skandia y analiza el comportamiento de venta de pólizas de Vida y PPR. No requiere código adicional; se consume directamente desde la plataforma VI.
                 </p>
             </div>
 
             <div class="bloque-codigo">
                 <div class="barra-archivo">
-                    <span>demo_medica_fraude_seguros.html</span>
+                    <span>skandia_vida_ppr — Visual Insights</span>
                     <span style="cursor: pointer;" onclick="copiarCodigo(this)">📋 Copiar</span>
                 </div>
-                <pre><code><span class="comment"># Código próximamente disponible</span></code></pre>
+                <pre><code><span class="comment"># Este demo se ejecuta en Visual Insights (VI).</span>
+<span class="comment"># No requiere código fuente independiente.</span>
+<span class="comment"># Contenido próximamente disponible.</span></code></pre>
             </div>
 
             <div class="seccion-video">

@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dataloop - Gobierno</title>
     <link rel="stylesheet" href="../styles.css">
+    <!-- Aplica el tema guardado (claro/oscuro) antes de pintar la página, para evitar parpadeos -->
+    <script>
+        (function () {
+            var tema = localStorage.getItem('tema-dataloop') || 'claro';
+            document.documentElement.setAttribute('data-theme', tema);
+        })();
+    </script>
     <style>
         /* ── CARRITO FLOTANTE ── */
         .carrito-flotante {
@@ -273,15 +280,38 @@
         }
     </style>
 </head>
+
+<script src="../../global-search.js"></script>   <!-- desde codigos/gob-003/ -->
+<script src="../global-search.js"></script>        <!-- desde categorias/ -->
+<script src="global-search.js"></script>           <!-- desde raíz (index.html) -->
+
 <body>
 
     <!-- SIDEBAR -->
-    <nav class="sidebar">
+        <!-- ============================================
+         RIEL LATERAL (siempre visible)
+         ============================================ -->
+    <div class="sidebar-rail">
+        <button class="rail-boton rail-logo" id="btn-toggle-sidebar" onclick="toggleSidebar()" aria-label="Abrir navegación">
+            <img src="../previews/icono_dataloop.svg" alt="Dataloop">
+        </button>
+        <button class="rail-boton rail-tema" id="btn-tema" onclick="toggleTema()" aria-label="Cambiar tema">
+            <span id="icono-tema">🌙</span>
+        </button>
+    </div>
+
+    <!-- Fondo oscuro detrás de la navegación cuando está abierta -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+    <nav class="sidebar" id="sidebar">
+
+        <button class="sidebar-cerrar" onclick="cerrarSidebar()" aria-label="Cerrar navegación">×</button>
+
         <a href="../index.html" class="sidebar-logo">
             <img src="../previews/icono_dataloop.svg" alt="Dataloop" class="sidebar-logo-img">
             <span class="logo-texto">Dataloop</span>
         </a>
-        <input type="text" class="sidebar-buscador" placeholder="🔍 Buscar código...">
+        <input type="text" class="sidebar-buscador" placeholder="🔍 Buscar código..." id="buscador-sidebar">
         <a href="../index.html" class="sidebar-link">
             <span class="icono">📊</span> Dashboard
         </a>
@@ -310,8 +340,7 @@
     <div class="zona-principal">
 
     <div class="header">
-        <span class="logo">Repositorio de Códigos</span>
-        <span class="descripcion">Repositorio Interno de Código</span>
+        <a href="../index.html" class="logo">Repositorio de Códigos</a>
     </div>
 
     <div class="contenido">
@@ -321,7 +350,7 @@
             <h1>Gobierno</h1>
         </div>
         <p class="categoria-descripcion">Recaudación fiscal y brecha tributaria — Secretaría de Finanzas</p>
-        <p class="categoria-contador">2 códigos disponibles</p>
+ 
 
         <!-- ⭐ NUEVO: BOTÓN GALERÍA DE OBJETOS ⭐ -->
         <a href="../galeria-objetos.html" class="boton-galeria">
@@ -381,6 +410,35 @@
                 <div class="card-footer">
                     <span>Secretaría de Finanzas</span>
                     <span>2025-05-01</span>
+                </div>
+            </a>
+
+
+            <!-- PROYECTO 3 -->
+            <a href="../codigos/gob-003/gob-003.html"
+               class="proyecto-card"
+               data-preview="../previews/gob-003/Centro-control.png"
+               data-preview-label="Fiscalización Comercio Exterior · Tamaulipas (Admin)"
+               data-estado="demo">
+                <div class="card-top">
+                    <span class="card-titulo">
+                        Fiscalización Comercio Exterior · Tamaulipas
+                        <span class="badge-estado badge-demo">Demo</span>
+                    </span>
+                </div>
+                <div class="card-desc">
+                    Dashboard multi-pestaña para fiscalización de aduanas en Tamaulipas. Vista Admin con 5 pestañas: Centro de Control, Regularización Espontánea, No Regularización, Retornos Simulados y Buscador Integral.
+                </div>
+                <div class="card-tags">
+                    <span class="card-tag">tamaulipas</span>
+                    <span class="card-tag">aduanas</span>
+                    <span class="card-tag">fiscalización</span>
+                    <span class="card-tag">multi-pestaña</span>
+                    <span class="card-lang"><span class="etiqueta-lenguaje">html</span></span>
+                </div>
+                <div class="card-footer">
+                    <span>Secretaría de Finanzas · Admin</span>
+                    <span>2025-06-10</span>
                 </div>
             </a>
 

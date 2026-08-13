@@ -5,16 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dataloop - Analytics</title>
     <link rel="stylesheet" href="../styles.css">
+    <!-- Aplica el tema guardado (claro/oscuro) antes de pintar la página, para evitar parpadeos -->
+    <script>
+        (function () {
+            var tema = localStorage.getItem('tema-dataloop') || 'claro';
+            document.documentElement.setAttribute('data-theme', tema);
+        })();
+    </script>
 </head>
+
+<script src="../../global-search.js"></script>   <!-- desde codigos/gob-003/ -->
+<script src="../global-search.js"></script>        <!-- desde categorias/ -->
+<script src="global-search.js"></script>           <!-- desde raíz (index.html) -->
+
 <body>
 
     <!-- SIDEBAR -->
-    <nav class="sidebar">
+        <!-- ============================================
+         RIEL LATERAL (siempre visible)
+         ============================================ -->
+    <div class="sidebar-rail">
+        <button class="rail-boton rail-logo" id="btn-toggle-sidebar" onclick="toggleSidebar()" aria-label="Abrir navegación">
+            <img src="../previews/icono_dataloop.svg" alt="Dataloop">
+        </button>
+        <button class="rail-boton rail-tema" id="btn-tema" onclick="toggleTema()" aria-label="Cambiar tema">
+            <span id="icono-tema">🌙</span>
+        </button>
+    </div>
+
+    <!-- Fondo oscuro detrás de la navegación cuando está abierta -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+    <nav class="sidebar" id="sidebar">
+
+        <button class="sidebar-cerrar" onclick="cerrarSidebar()" aria-label="Cerrar navegación">×</button>
+
         <a href="../index.html" class="sidebar-logo">
-            <img src="../icono_dataloop.svg" alt="Dataloop" class="sidebar-logo-img">
+            <img src="../previews/icono_dataloop.svg" alt="Dataloop" class="sidebar-logo-img">
             <span class="logo-texto">Dataloop</span>
         </a>
-        <input type="text" class="sidebar-buscador" placeholder="🔍 Buscar código...">
+        <input type="text" class="sidebar-buscador" placeholder="🔍 Buscar código..." id="buscador-sidebar">
         <a href="../index.html" class="sidebar-link">
             <span class="icono">📊</span> Dashboard
         </a>
@@ -43,7 +73,7 @@
     <div class="zona-principal">
 
     <div class="header">
-        <span class="logo">Repositorio de Códigos</span>
+        <a href="../index.html" class="logo">Repositorio de Códigos</a>
         <span class="descripcion">Repositorio Interno de Código</span>
     </div>
 

@@ -1,0 +1,187 @@
+<!--
+OBJETO: IMM_FOCOS
+FUENTE ESPERADA: PUBLIC.IMM_CENTRO
+ORDEN:
+1  id_caso            Categoría  Sin agregación
+2  aduana             Categoría  Sin agregación
+3  escenario          Categoría  Sin agregación
+4  escenario_desc     Categoría  Sin agregación
+5  subesc_desc        Categoría  Sin agregación
+6  severidad          Categoría  Sin agregación
+7  severidad_ord      Medida     MAX
+8  prioridad          Categoría  Sin agregación
+9  prioridad_ord      Medida     MAX
+10 nivel_certeza      Categoría  Sin agregación
+11 flag_ieps          Medida     MAX
+12 flag_efos          Medida     MAX
+13 flag_clas_incor    Medida     MAX
+14 dias_exced         Medida     MAX
+15 mto_impacto        Medida     SUM
+16 mto_accionable     Medida     SUM
+17 mto_regularizado   Medida     SUM
+18 mto_revision       Medida     SUM
+-->
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>IMM_FOCOS</title>
+  <style>
+    :root{--navy:#082F5B;--deep:#061F3D;--teal:#0B8F8C;--gold:#C5962B;--red:#C7353A;--amber:#E19A27;--wine:#713B65;
+      --text:#17233A;--muted:#5A6B82;--faint:#8A99AD;--border:#E3E9F0;
+      --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-family:Inter,"Segoe UI",Arial,sans-serif}
+    *{box-sizing:border-box}html,body,#app{width:100%;height:100%;margin:0;overflow:hidden}
+    body{background:transparent;color:var(--text);-webkit-font-smoothing:antialiased}
+    #app{padding:6px;height:100%;--tf:20px;--kf:17.5px;--ic:18px;--fg:7px;--fp:8px}
+    .wrap{height:100%;display:grid;gap:var(--fg);grid-auto-rows:minmax(0,1fr)}
+    .foco{position:relative;min-height:0;background:linear-gradient(180deg,#fff,#FBFCFE);border:1px solid var(--border);
+      border-radius:12px;box-shadow:0 1px 2px rgba(8,47,91,.05),0 8px 20px -12px rgba(8,47,91,.18);
+      padding:var(--fp) calc(var(--fp) + 2px) var(--fp) calc(var(--fp) + 4px);
+      display:grid;grid-template-columns:auto 1fr;gap:calc(var(--ic) * .38);align-items:center;overflow:hidden}
+    .foco:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent,var(--navy))}
+    .ic{width:var(--ic);height:var(--ic);color:var(--accent,var(--navy));opacity:.9;flex:0 0 auto}
+    .ic svg{width:100%;height:100%;display:block}
+    .body{min-width:0}
+    .kick{font-family:var(--mono);font-size:var(--kf);letter-spacing:.08em;text-transform:uppercase;color:var(--faint);font-weight:700;margin-bottom:calc(var(--kf) * .32);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .txt{font-size:var(--tf);line-height:1.2;color:var(--text);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+    .hl{font-weight:800;color:var(--accent,var(--navy));font-variant-numeric:tabular-nums}
+    .state{height:100%;display:grid;place-items:center;text-align:center;color:var(--muted);font-size:22px;
+      border:1px dashed var(--border);border-radius:12px;background:linear-gradient(180deg,#fff,#FBFCFE);padding:14px}
+    #app.nokick .kick{display:none}
+    #app.noic .ic{display:none}
+    #app.ultra{padding:2px;--fp:6px}.ultra .foco{border-radius:8px;box-shadow:none}
+  </style>
+</head>
+<body><main id="app"><section class="wrap"><div class="state">Esperando datos</div></section></main>
+<script>
+(function(){
+  "use strict";
+  const app=document.getElementById("app"); let rows=[],cols=[],lastSig="",focosN=5;
+  const order={id_caso:0,aduana:1,escenario:2,escenario_desc:3,subesc_desc:4,severidad:5,severidad_ord:6,prioridad:7,prioridad_ord:8,nivel_certeza:9,flag_ieps:10,flag_efos:11,flag_clas_incor:12,dias_exced:13,mto_impacto:14,mto_accionable:15,mto_regularizado:16,mto_revision:17};
+  const ICON={
+    location:'<path d="M12 21s7-6.4 7-11a7 7 0 1 0-14 0c0 4.6 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/>',
+    layers:'<path d="M12 3 21 8 12 13 3 8Z"/><path d="M3 12l9 5 9-5"/><path d="M3 16l9 5 9-5"/>',
+    alert:'<path d="M12 3 22 20H2Z"/><path d="M12 10v5M12 17.6v.2"/>',
+    tax:'<circle cx="12" cy="12" r="9"/><path d="M9 9h6M9 12h6M9 15h4"/>',
+    search:'<circle cx="10.5" cy="10.5" r="6"/><path d="M20 20l-5-5"/>',
+    clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    check:'<circle cx="12" cy="12" r="9"/><path d="M8 12.2l2.7 2.8L16 9"/>',
+    tag:'<path d="M3 12l8-8h8v8l-8 8Z"/><circle cx="15.5" cy="8.5" r="1.4"/>'
+  };
+  function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+  function payload(x){if(typeof x==="string"){try{x=JSON.parse(x)}catch(e){return null}}for(const p of [x,x&&x.data,x&&x.payload,x&&x.detail])if(p&&Array.isArray(p.columns)&&Array.isArray(p.data))return p;return null}
+  function cell(v){return v&&typeof v==="object"?("value" in v?v.value:("formattedValue" in v?v.formattedValue:("label" in v?v.label:v))):v}
+  function norm(v){return String(v==null?"":v).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"")}
+  function cname(c){return norm(c&&(c.name||c.label||c.id||c.columnName||c.displayName||c.variableName)||c)}
+  function idx(name){const n=norm(name);const i=cols.findIndex(c=>cname(c)===n);if(i>=0)return i;const j=cols.findIndex(c=>cname(c).includes(n)||n.includes(cname(c)));return j>=0?j:order[name]}
+  function val(r,name){const i=idx(name);return Array.isArray(r)&&i!=null&&i>=0?cell(r[i]):cell(r&&r[name])}
+  function num(v){v=cell(v);if(v==null||v==="")return 0;if(typeof v==="number")return isFinite(v)?v:0;const n=Number(String(v).replace(/[$,%\s]/g,"").replace(/,/g,""));return isFinite(n)?n:0}
+  function money(n){n=num(n);const a=Math.abs(n);if(a>=1e9)return "$"+(n/1e9).toFixed(1)+" mil M";if(a>=1e6)return "$"+(n/1e6).toFixed(1)+" M";if(a>=1e3)return "$"+(n/1e3).toFixed(0)+" mil";return "$"+Math.round(n)}
+  function flagOn(v){const s=norm(v);return num(v)>=1||s==="si"||s==="true"||s==="s"||s==="y"||s==="yes"}
+  function state(msg){app.innerHTML=`<section class="wrap"><div class="state">${esc(msg)}</div></section>`;focosN=1;size()}
+
+  function cases(){
+    const m=new Map();
+    rows.forEach(r=>{
+      const id=String(val(r,"id_caso")||"").trim(); if(!id)return;
+      let o=m.get(id);
+      if(!o){o={id,aduana:String(val(r,"aduana")||"").trim(),escenario:String(val(r,"escenario")||"").trim(),
+        escDesc:String(val(r,"escenario_desc")||"").trim(),subDesc:String(val(r,"subesc_desc")||"").trim(),
+        sevTxt:String(val(r,"severidad")||"").trim(),sevOrd:0,prioOrd:0,ieps:false,efos:false,clas:false,dias:0,
+        impacto:0,accion:0,reg:0,rev:0};m.set(id,o)}
+      o.sevOrd=Math.max(o.sevOrd,num(val(r,"severidad_ord")));
+      o.prioOrd=Math.max(o.prioOrd,num(val(r,"prioridad_ord")));
+      o.ieps=o.ieps||flagOn(val(r,"flag_ieps"));
+      o.efos=o.efos||flagOn(val(r,"flag_efos"));
+      o.clas=o.clas||flagOn(val(r,"flag_clas_incor"));
+      o.dias=Math.max(o.dias,num(val(r,"dias_exced")));
+      o.impacto=Math.max(o.impacto,num(val(r,"mto_impacto")));
+      o.accion=Math.max(o.accion,num(val(r,"mto_accionable")));
+      o.reg=Math.max(o.reg,num(val(r,"mto_regularizado")));
+      o.rev=Math.max(o.rev,num(val(r,"mto_revision")));
+      if(!o.aduana)o.aduana=String(val(r,"aduana")||"").trim();
+      if(!o.escDesc)o.escDesc=String(val(r,"escenario_desc")||"").trim();
+    });
+    return [...m.values()];
+  }
+  function topGroup(cs,keyName,descName){
+    const g=new Map();
+    cs.forEach(c=>{const k=c[keyName]||"";if(!k)return;let o=g.get(k);if(!o){o={key:k,desc:c[descName]||k,imp:0,n:0};g.set(k,o)}o.imp+=c.impacto;o.n++});
+    return [...g.values()].sort((a,b)=>b.imp-a.imp)[0]||null;
+  }
+  function subset(cs,pred){const f=cs.filter(pred);return {n:f.length,imp:f.reduce((a,c)=>a+c.impacto,0)}}
+
+  function build(){
+    const cs=cases();
+    if(!cs.length)return null;
+    const totalImp=cs.reduce((a,c)=>a+c.impacto,0)||1;
+    const pct=v=>(v/totalImp*100).toFixed(1)+"%";
+    const foco=(accent,icon,kick,html)=>({accent,icon,kick,html});
+    const primary=[];
+    const adu=topGroup(cs,"aduana","aduana");
+    if(adu)primary.push(foco("var(--navy)","location","Aduana foco",
+      `<span class="hl">${esc(adu.key)}</span> concentra el <span class="hl">${pct(adu.imp)}</span> del impacto económico del universo filtrado.`));
+    const escn=topGroup(cs,"escenario","escDesc");
+    if(escn)primary.push(foco("var(--red)","layers","Escenario foco",
+      `<span class="hl">${esc(escn.desc)}</span> representa el escenario de mayor impacto con <span class="hl">${money(escn.imp)}</span>.`));
+    const crit=subset(cs,c=>c.sevOrd>=4||/\bcr/.test(norm(c.sevTxt)));
+    primary.push({cond:crit.n>0,...foco("var(--red)","alert","Casos críticos",
+      `<span class="hl">${crit.n}</span> casos críticos concentran <span class="hl">${money(crit.imp)}</span> y requieren atención prioritaria.`)});
+    const ieps=subset(cs,c=>c.ieps);
+    primary.push({cond:ieps.n>0,...foco("var(--gold)","tax","Posible IEPS",
+      `<span class="hl">${ieps.n}</span> casos presentan posible impacto de IEPS por <span class="hl">${money(ieps.imp)}</span>.`)});
+    const efos=subset(cs,c=>c.efos||c.rev>0);
+    primary.push({cond:efos.n>0,...foco("var(--wine)","search","EFOS / comprobación",
+      `<span class="hl">${efos.n}</span> casos con indicio EFOS o sujetos a comprobación representan <span class="hl">${money(efos.imp)}</span>.`)});
+    const noreg=subset(cs,c=>/noreg/.test(norm(c.escenario))||/total/.test(norm(c.subDesc)));
+    const clas=subset(cs,c=>c.clas);
+    const dias=subset(cs,c=>c.dias>365);
+    const regMonto=cs.reduce((a,c)=>a+c.reg,0), regN=cs.filter(c=>c.reg>0).length;
+    const subs=[
+      {cond:noreg.n>0,...foco("var(--red)","layers","No regularización",
+        `<span class="hl">${noreg.n}</span> casos de no regularización total representan <span class="hl">${money(noreg.imp)}</span>.`)},
+      {cond:clas.n>0,...foco("var(--gold)","tag","Clasificación",
+        `<span class="hl">${clas.n}</span> casos con posible clasificación arancelaria incorrecta por <span class="hl">${money(clas.imp)}</span>.`)},
+      {cond:dias.n>0,...foco("var(--amber)","clock","Antigüedad",
+        `<span class="hl">${dias.n}</span> casos superan los 365 días y acumulan <span class="hl">${money(dias.imp)}</span> de impacto.`)},
+      {cond:regMonto>0,...foco("var(--teal)","check","Regularizado",
+        `<span class="hl">${money(regMonto)}</span> ya regularizados en <span class="hl">${regN}</span> casos del universo filtrado.`)}
+    ];
+    const out=[];
+    primary.forEach(f=>{ if(f.cond===undefined||f.cond) out.push(f); });
+    for(const sfoco of subs){ if(out.length>=5)break; if(sfoco.cond) out.push(sfoco); }
+    return out.slice(0,5);
+  }
+  function render(){
+    if(!rows.length)return state("Sin datos para los filtros seleccionados.");
+    const focos=build();
+    if(!focos||!focos.length)return state("Sin focos ejecutivos para el universo filtrado. Asigna las variables de IMM_CENTRO.");
+    focosN=focos.length;
+    app.innerHTML=`<section class="wrap">`+focos.map(f=>
+      `<article class="foco" style="--accent:${f.accent}">`+
+        `<span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICON[f.icon]||ICON.location}</svg></span>`+
+        `<div class="body"><div class="kick">${esc(f.kick)}</div><div class="txt">${f.html}</div></div>`+
+      `</article>`).join("")+`</section>`;
+    size();
+  }
+  function size(){
+    const b=app.getBoundingClientRect(), H=b.height, W=b.width, n=Math.max(1,focosN);
+    const ultra=H<200||W<190;
+    app.classList.toggle("ultra",ultra);
+    const gap=ultra?4:H<360?5:7, pad=(ultra?2:6)*2;
+    const cardH=Math.max(18,(H-pad-(n-1)*gap)/n);
+    const showKick=cardH>=48&&!ultra&&W>=210, showIc=cardH>=30&&W>=160;
+    app.classList.toggle("nokick",!showKick);
+    app.classList.toggle("noic",!showIc);
+    const chrome=(showKick?26:10);
+    const tf=Math.max(14.5,Math.min((cardH-chrome)/2.75,W<250?18.5:22));
+    app.style.setProperty("--tf",tf.toFixed(1)+"px");
+    app.style.setProperty("--kf",Math.max(12.5,Math.min(cardH*0.12,14.8)).toFixed(1)+"px");
+    app.style.setProperty("--ic",Math.max(15,Math.min(cardH*0.4,30)).toFixed(0)+"px");
+    app.style.setProperty("--fg",gap+"px");
+    app.style.setProperty("--fp",(ultra?6:Math.max(6,Math.min(cardH*0.14,10))).toFixed(0)+"px");
+  }
+  window.addEventListener("message",e=>{const p=payload(e.data);if(!p)return;const sig=JSON.stringify(p.data);if(sig===lastSig)return;lastSig=sig;cols=p.columns||[];rows=p.data||[];render()},false);
+  new ResizeObserver(size).observe(app);size();
+  setTimeout(()=>{if(!rows.length)state("No se recibieron datos. Asigna las variables de PUBLIC.IMM_CENTRO.")},7000);
+})();
+</script></body></html>

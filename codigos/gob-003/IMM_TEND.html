@@ -1,0 +1,231 @@
+<!--
+    OBJETO: IMM_TEND
+    FUENTE ESPERADA: PUBLIC.IMM_CENTRO
+    ORDEN:
+    1 id_caso              Categoría  Sin agregación
+    2 mes_caso             Fecha/Categoría
+    3 periodo              Medida     MIN  (orden temporal)
+    4 escenario            Categoría  Sin agregación
+    5 escenario_desc       Categoría  Sin agregación
+    6 mto_impacto          Medida     SUM
+    7 mto_accionable       Medida     SUM
+    8 mto_regularizado     Medida     SUM
+    9 mto_revision         Medida     SUM
+    -->
+    <!doctype html>
+    <html lang="es-MX">
+    <head>
+      <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>IMM_TEND</title>
+      <style>
+        :root {
+          --navy: #082F5B;
+          --deep: #061F3D;
+          --teal: #0B8F8C;
+          --gold: #C5962B;
+          --wine: #713B65;
+          --guinda: #6C1D3D;
+          --guinda-deep: #4A0E26;
+          --red: #C7353A;
+          --green: #0B8F5A;
+          --text: #17233A;
+          --muted: #5A6B82;
+          --faint: #8A99AD;
+          --border: #E3E9F0;
+          
+          /* CAMBIOS TIPOGRÁFICOS */
+          --ff-disp: "Calibri", Arial, sans-serif; /* Títulos Solemnes */
+          --ff-body: Arial, "Helvetica Neue", sans-serif; /* Cuerpo Técnico / Administrativo */
+          --mono: "Courier New", Courier, monospace;
+        }
+
+        *{box-sizing:border-box}html,body,#app{width:100%;height:100%;margin:0;overflow:hidden}
+        
+        body {
+          background: transparent;
+          color: var(--text);
+          font-family: var(--ff-body);
+          -webkit-font-smoothing: antialiased;
+        }
+
+        #app{padding:4px}
+        .panel{position:relative;height:100%;background:linear-gradient(180deg,#fff,#FBFCFE);border:1px solid var(--border);
+          border-radius:16px;box-shadow:0 1px 2px rgba(8,47,91,.05),0 14px 34px -16px rgba(8,47,91,.22);
+          padding:10px 12px 8px;display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:6px;overflow:hidden}
+        .head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+        
+        /* Títulos Solemnes */
+        .kicker{font-family:var(--ff-disp);font-size:16px;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);font-weight:700;margin-bottom:2px}
+        .title{font-family:var(--ff-disp);font-size:33px;font-weight:700;color:var(--navy);letter-spacing:-.01em;line-height:1.02}
+        .sub{font-size:19px;color:var(--muted);margin-top:2px}
+        
+        .switch{display:flex;background:#EEF2F6;border-radius:999px;padding:2px;flex-wrap:wrap;flex:0 0 auto;gap:1px}
+        .switch button{border:0;background:transparent;border-radius:999px;padding:5px 11px;color:var(--muted);font-family:var(--ff-body);font-size:11px;font-weight:750;cursor:pointer;transition:.15s;white-space:nowrap}
+        .switch button.on{background:#fff;color:var(--navy);box-shadow:0 1px 4px rgba(8,47,91,.16)}
+        
+        /* Resumen */
+        .sum{display:flex;align-items:center;justify-content:center;gap:22px;flex-wrap:wrap}
+        .kpi{display:flex;align-items:center;gap:9px}
+        .kpi .ind{flex:0 0 auto}
+        .kpi .ind.line{width:22px;height:4px;border-radius:3px;background:var(--gold);box-shadow:0 0 0 3px rgba(197,150,43,.16)}
+        .kpi .ind.bar{width:15px;height:17px;border-radius:3px;background:var(--guinda)}
+        .kpi .tx{display:flex;flex-direction:column;line-height:1.02}
+        .kpi b{font-family:var(--mono);font-size:clamp(30px,3.1vw,43px);font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums;letter-spacing:-.015em}
+        .kpi b.teal{color:var(--gold)}
+        .kpi span{font-family:var(--ff-body);font-size:16px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:750;margin-top:2px}
+        .delta{margin-left:4px;display:inline-flex;align-items:center;gap:4px;font-size:16px;font-weight:750;font-variant-numeric:tabular-nums;font-family:var(--mono);
+          padding:3px 8px;border-radius:999px;background:#F5F8FB;border:1px solid var(--border)}
+        .delta.up{color:var(--green)}.delta.down{color:var(--red)}.delta svg{width:9px;height:9px}
+        
+        #chart{position:relative;min-height:0;overflow:hidden}
+        .state{height:100%;display:grid;place-items:center;text-align:center;color:var(--muted);font-size:16px}
+        .grid{stroke:#EDF1F5;stroke-width:1}
+        
+        /* Tipografías dentro del SVG */
+        .axL{fill:var(--navy);opacity:.75;font-size:18px;font-family:var(--mono)}
+        .axR{fill:var(--gold);font-size:18px;font-family:var(--mono)}
+        .axT{font-size:17px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-family:var(--ff-body)}
+        .mes{font-size:18px;fill:var(--muted);font-family:var(--mono)}
+        .bar{fill:var(--guinda)}.bar:hover{fill:var(--guinda-deep)}
+        .barval{fill:var(--guinda-deep);font-size:17.5px;font-weight:750;font-variant-numeric:tabular-nums;font-family:var(--mono)}
+        .pill{fill:var(--gold)}.pillT{fill:#fff;font-size:17.5px;font-weight:700;font-family:var(--mono)}
+        
+        .compact .sub,.ultra .sub,.ultra .kicker,.ultra .sum{display:none}
+        .compact .panel{padding:8px 10px;grid-template-rows:auto auto minmax(0,1fr)}.compact .title{font-size:21px}.compact .kpi b{font-size:29px}
+        .ultra{padding:2px}.ultra .panel{padding:6px;box-shadow:0 6px 16px -10px rgba(8,47,91,.3);border-radius:9px;grid-template-rows:auto minmax(0,1fr)}
+        .ultra .title{font-size:18px}.ultra .switch button{font-size:15.5px;padding:3px 6px}
+        
+        /* === Embebido en concatTamaulipas: sin marco propio, menos espacio vacío === */
+        #app{padding:0!important}
+        .panel{background:transparent!important;border:none!important;box-shadow:none!important;border-radius:0!important;padding:2px 8px 4px!important;gap:6px!important}
+        .panel:before{display:none!important}
+        .kicker{display:none!important}
+      </style>
+    </head>
+    <body><main id="app"><section class="panel">
+      <div class="head">
+        <div><div class="kicker">Centro de Control IMMEX</div><div class="title">Tendencia mensual</div><div class="sub" id="sub">Casos por mes (barras) y monto (línea)</div></div>
+        <div class="switch" id="switch">
+          <button data-m="impacto" class="on">Impacto</button>
+          <button data-m="accion">Accionable</button>
+          <button data-m="reg">Regularizado</button>
+          <button data-m="rev">Comprobación</button>
+        </div>
+      </div>
+      <div class="sum" id="sum"></div>
+      <div id="chart"><div class="state">Esperando datos</div></div>
+    </section></main>
+    <script>
+    (function(){
+      "use strict";
+      const app=document.getElementById("app"), chart=document.getElementById("chart"),
+        subEl=document.getElementById("sub"), sumEl=document.getElementById("sum");
+      let rows=[],cols=[],metric="impacto";
+      const order={id_caso:0,mes_caso:1,periodo:2,escenario:3,escenario_desc:4,mto_impacto:5,mto_accionable:6,mto_regularizado:7,mto_revision:8};
+      const METRIC={impacto:{k:"impacto",label:"Impacto total"},accion:{k:"accion",label:"Monto accionable"},reg:{k:"reg",label:"Monto regularizado"},rev:{k:"rev",label:"Sujeto a comprobación"}};
+      const MES=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+      function payload(x){if(typeof x==="string"){try{x=JSON.parse(x)}catch(e){return null}}for(const p of [x,x&&x.data,x&&x.payload,x&&x.detail])if(p&&Array.isArray(p.columns)&&Array.isArray(p.data))return p;return null}
+      function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+      function cell(v){return v&&typeof v==="object"?("value" in v?v.value:("formattedValue" in v?v.formattedValue:("label" in v?v.label:v))):v}
+      function norm(v){return String(v==null?"":v).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"")}
+      function cname(c){return norm(c&&(c.name||c.label||c.id||c.columnName||c.displayName||c.variableName)||c)}
+      function idx(name){const n=norm(name);const i=cols.findIndex(c=>cname(c)===n);if(i>=0)return i;const j=cols.findIndex(c=>cname(c).includes(n)||n.includes(cname(c)));return j>=0?j:order[name]}
+      function rawCell(r,name){const i=idx(name);return Array.isArray(r)&&i!=null&&i>=0?r[i]:(r&&r[name])}
+      function val(r,name){return cell(rawCell(r,name))}
+      function num(v){v=cell(v);if(v==null||v==="")return 0;if(typeof v==="number")return isFinite(v)?v:0;const n=Number(String(v).replace(/[$,%\s]/g,"").replace(/,/g,""));return isFinite(n)?n:0}
+      function money(n){n=num(n);const a=Math.abs(n);if(a>=1e9)return "$"+(n/1e9).toFixed(1)+" mil M";if(a>=1e6)return "$"+(n/1e6).toFixed(1)+" M";if(a>=1e3)return "$"+(n/1e3).toFixed(0)+" mil";return "$"+Math.round(n)}
+      function periodoKey(r){const p=num(val(r,"periodo")); if(p)return p;const raw=rawCell(r,"mes_caso"); if(raw instanceof Date)return +raw;const t=Date.parse(String(cell(raw))); if(isFinite(t))return t;return num(cell(raw));}
+      function mesKey(r){const raw=cell(rawCell(r,"mes_caso"));if(raw instanceof Date)return raw.toISOString().slice(0,7);const t=Date.parse(String(raw));if(isFinite(t))return new Date(t).toISOString().slice(0,7);return String(raw||"");}
+      function fmtMes(k){const m=/^(\d{4})-(\d{1,2})/.exec(String(k));if(m){const mi=+m[2]-1;if(mi>=0&&mi<12)return MES[mi]+" "+m[1].slice(2)}return String(k)}
+      function build(){
+        const m=new Map();
+        rows.forEach(r=>{
+          const key=mesKey(r)||String(periodoKey(r));
+          let o=m.get(key);if(!o){o={mes:key,periodo:periodoKey(r),casos:new Set(),impacto:0,accion:0,reg:0,rev:0};m.set(key,o)}
+          o.periodo=Math.min(o.periodo||periodoKey(r),periodoKey(r)||o.periodo);
+          const id=String(val(r,"id_caso")||"");if(id)o.casos.add(id);
+          o.impacto+=num(val(r,"mto_impacto"));o.accion+=num(val(r,"mto_accionable"));
+          o.reg+=num(val(r,"mto_regularizado"));o.rev+=num(val(r,"mto_revision"));
+        });
+        return [...m.values()].sort((a,b)=>a.periodo-b.periodo);
+      }
+      function arrow(up){return `<svg viewBox="0 0 10 10" fill="currentColor"><path d="${up?"M5 1 9 7H1Z":"M5 9 1 3h8Z"}"/></svg>`}
+      function summary(d,mk){
+        const totC=d.reduce((a,x)=>a+x.casos.size,0), totV=d.reduce((a,x)=>a+x[mk.k],0);
+        let deltaHTML="";
+        if(d.length>=2){
+          const a=d[d.length-2][mk.k], b=d[d.length-1][mk.k];
+          if(a){const p=(b-a)/Math.abs(a)*100,up=p>=0;deltaHTML=`<span class="delta ${up?"up":"down"}">${arrow(up)}${Math.abs(p).toFixed(1)}% vs mes previo</span>`;}
+        }
+        sumEl.innerHTML=`<div class="kpi"><span class="ind line"></span><div class="tx"><b class="teal">${money(totV)}</b><span>${esc(mk.label)} · línea</span></div></div>`+
+          `<div class="kpi"><span class="ind bar"></span><div class="tx"><b>${totC.toLocaleString("es-MX")}</b><span>Casos · barras</span></div></div>`+deltaHTML;
+      }
+      function niceTop(v){if(v<=0)return 1;const e=Math.pow(10,Math.floor(Math.log10(v))),f=v/e;const n=f<=1?1:f<=2?2:f<=5?5:10;return n*e;}
+      function render(){
+        const mk=METRIC[metric];
+        subEl.textContent=`Barras = casos por mes · Línea = ${mk.label.toLowerCase()}`;
+        if(!rows.length){sumEl.innerHTML="";chart.innerHTML='<div class="state">Sin datos de tendencia</div>';return}
+        const d=build();
+        if(!d.length){sumEl.innerHTML="";chart.innerHTML='<div class="state">Sin meses para mostrar</div>';return}
+        summary(d,mk);
+        const w=chart.clientWidth,h=chart.clientHeight;
+        if(w<80||h<80){chart.innerHTML='<div class="state">Ajustando tendencia...</div>';return}
+        const tiny=w<340||h<112;
+        const padL=tiny?6:42,padR=tiny?8:58,padT=20,padB=tiny?15:27,
+          x0=padL,y0=padT,pw=Math.max(10,w-padL-padR),ph=Math.max(10,h-padT-padB);
+        const topC=niceTop(Math.max(...d.map(x=>x.casos.size),1)),
+          topV=niceTop(Math.max(...d.map(x=>Math.abs(x[mk.k])),1));
+        const step=pw/d.length, bw=Math.min(step*0.64,tiny?16:36), cx=i=>x0+step*i+step/2;
+        const byL=v=>y0+ph-(v/topC)*ph, byR=v=>y0+ph-(Math.abs(v)/topV)*ph;
+        let s=`<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">`+
+          `<defs><linearGradient id="tln" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C5962B" stop-opacity=".18"/><stop offset="100%" stop-color="#C5962B" stop-opacity="0"/></linearGradient></defs>`;
+        // rejilla + ejes con escala (izq=casos, der=monto)
+        for(let g=0;g<=2;g++){
+          const frac=g/2, gy=(y0+ph-frac*ph).toFixed(1);
+          s+=`<line class="grid" x1="${x0}" y1="${gy}" x2="${x0+pw}" y2="${gy}"/>`;
+          if(!tiny){
+            s+=`<text class="axL" x="${x0-4}" y="${(+gy+3).toFixed(1)}" text-anchor="end">${Math.round(topC*frac)}</text>`;
+            s+=`<text class="axR" x="${x0+pw+4}" y="${(+gy+3).toFixed(1)}" text-anchor="start">${money(topV*frac)}</text>`;
+          }
+        }
+        // títulos de eje
+
+        if(!tiny){
+
+        s+=`<text class="axT" x="${x0-6}" y="${(y0+45).toFixed(1)}" text-anchor="start" fill="#082F5B">Casos</text>`;
+
+        s+=`<text class="axT" x="${x0+pw}" y="${(y0+45).toFixed(1)}" text-anchor="end" fill="#C5962B">${esc(mk.label)}</text>`;
+
+        } 
+
+
+        // barras = casos
+        d.forEach((x,i)=>{const bh=(x.casos.size/topC)*ph, bx=cx(i)-bw/2, by=y0+ph-bh;
+          s+=`<rect class="bar" x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(0,bh).toFixed(1)}" rx="2.5" fill="#6C1D3D" style="fill:#6C1D3D" opacity=".9"><title>${esc(fmtMes(x.mes))} · ${x.casos.size} casos · impacto ${money(x.impacto)} · accionable ${money(x.accion)} · regularizado ${money(x.reg)} · revisión ${money(x.rev)}</title></rect>`;
+          if(!tiny&&bw>=15&&bh>15)s+=`<text class="barval" x="${cx(i).toFixed(1)}" y="${(by-4).toFixed(1)}" text-anchor="middle">${x.casos.size}</text>`;
+        });
+        // línea = monto seleccionado (sin suavizar) + área
+        const pts=d.map((x,i)=>[cx(i),byR(x[mk.k])]);
+        if(pts.length>1){
+          const area=pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ")+`L${cx(d.length-1).toFixed(1)},${(y0+ph).toFixed(1)} L${cx(0).toFixed(1)},${(y0+ph).toFixed(1)} Z`;
+          s+=`<path d="${area}" fill="url(#tln)"/>`;
+        }
+        s+=`<path d="${pts.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ")}" fill="none" stroke="#C5962B" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
+        const every=Math.ceil(d.length/(tiny?4:9)||1);
+        d.forEach((x,i)=>{const p=pts[i];s+=`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${tiny?2.5:3.8}" fill="#fff" stroke="#C5962B" stroke-width="2"><title>${esc(fmtMes(x.mes))} · ${esc(mk.label)}: ${money(x[mk.k])}</title></circle>`;
+          if(i%every===0)s+=`<text class="mes" x="${p[0].toFixed(1)}" y="${(h-4).toFixed(1)}" text-anchor="middle">${esc(fmtMes(x.mes))}</text>`;});
+        // valor destacado del último punto
+        if(!tiny&&pts.length){
+          const lp=pts[pts.length-1], lab=money(d[d.length-1][mk.k]), tw=lab.length*8+16, px=Math.min(lp[0]+6,w-tw-2), py=Math.max(y0+6,lp[1]-9);
+     // Altura 30px (subimos py a -16.5 para mantener el centro vertical)
+        // rx pasa a 15 (la mitad de la altura) para conservar la forma de píldora redondeada
+        s += `<rect class="pill" x="${(px - 10).toFixed(1)}" y="${(py - 16.5).toFixed(1)}" width="${(tw + 20).toFixed(1)}" height="30" rx="15"/>`;
+          s+=`<text class="pillT" x="${(px+tw/2).toFixed(1)}" y="${(py+2.5).toFixed(1)}" text-anchor="middle">${lab}</text>`;
+        }
+        s+="</svg>";chart.innerHTML=s;
+      }
+      function size(){const b=app.getBoundingClientRect();app.classList.toggle("ultra",b.height<125||b.width<330);app.classList.toggle("compact",b.height<205||b.width<560);render()}
+      document.querySelectorAll(".switch button").forEach(b=>b.onclick=()=>{metric=b.dataset.m;document.querySelectorAll(".switch button").forEach(x=>x.classList.toggle("on",x===b));render()});
+      window.addEventListener("message",e=>{const p=payload(e.data);if(!p)return;cols=p.columns||[];rows=p.data||[];render();size()},false);
+      new ResizeObserver(size).observe(app);size();
+    })();
+    </script></body></html

@@ -6,6 +6,13 @@
     <title>Dataloop — Repositorio de Demos</title>
     <!-- Aquí se conecta el archivo de estilos -->
     <link rel="stylesheet" href="styles.css">
+    <!-- Aplica el tema guardado (claro/oscuro) antes de pintar la página, para evitar parpadeos -->
+    <script>
+        (function () {
+            var tema = localStorage.getItem('tema-dataloop') || 'claro';
+            document.documentElement.setAttribute('data-theme', tema);
+        })();
+    </script>
     <style>
         /* ── CARRITO FLOTANTE ── */
         .carrito-flotante {
@@ -61,7 +68,7 @@
         }
 
         .modal-content {
-            background: white;
+            background: var(--color-fondo-tarjeta);
             border-radius: 12px;
             padding: 24px;
             max-width: 500px;
@@ -83,7 +90,7 @@
         .modal-header h2 {
             margin: 0;
             font-size: 18px;
-            color: #1C334F;
+            color: var(--color-texto);
         }
 
         .modal-close {
@@ -91,7 +98,7 @@
             border: none;
             font-size: 24px;
             cursor: pointer;
-            color: #6B8AAB;
+            color: var(--color-texto-claro);
         }
 
         .carrito-lista {
@@ -101,7 +108,7 @@
         }
 
         .carrito-item {
-            background: #f8f9fa;
+            background: var(--color-fondo);
             padding: 10px;
             margin-bottom: 6px;
             border-radius: 6px;
@@ -114,12 +121,12 @@
 
         .carrito-item-nombre {
             font-weight: 600;
-            color: #1C334F;
+            color: var(--color-texto);
         }
 
         .carrito-vacio {
             text-align: center;
-            color: #6B8AAB;
+            color: var(--color-texto-claro);
             padding: 16px;
             font-size: 12px;
         }
@@ -132,8 +139,9 @@
         .btn-modal {
             flex: 1;
             padding: 8px 12px;
-            border: 1px solid #C5D5E8;
-            background: white;
+            border: 1px solid var(--color-borde-fuerte);
+            background: #004f74;
+            color: var(--color-texto);
             border-radius: 6px;
             font-weight: 600;
             font-size: 11px;
@@ -163,26 +171,101 @@
             font-weight: 600;
             z-index: 2000;
         }
+
+       /* Avatar circular base */
+    .user-avatar {
+      display: flex;
+      align-items: right;
+      gap: 0px;
+    }
+
+    .user-circle {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      flex-shrink: 0;
+      box-shadow: var(--sombra-sm);
+    }
+
+    /* Admin → fondo azul oscuro */
+    .user-circle.admin {
+      background: var(--color-usuario);
+      color: #fff;
+    }
+
+    /* Usuario estándar → fondo transparente con borde dorado */
+    .user-circle.usuario {
+      background: rgba(245, 158, 11, 0.18);
+      color: var(--color-naranja);
+    }
+
+    .user-label {
+      font-family: var(--ff-body);
+      font-size: 13px;
+      color: rgba(255,255,255,0.75);
+      white-space: nowrap;
+      line-height: 1.2;
+    }
+
+    .user-label strong {
+      display: block;
+      color: #fff;
+      font-size: 13.5px;
+      font-weight: 700;
+    }
     </style>
 </head>
+
+<script src="../../global-search.js"></script>   <!-- desde codigos/gob-003/ -->
+<script src="../global-search.js"></script>        <!-- desde categorias/ -->
+<script src="global-search.js"></script>           <!-- desde raíz (index.html) -->
+
 <body>
 
     <!-- ============================================
-         BARRA LATERAL (SIDEBAR)
+         RIEL LATERAL (siempre visible)
          ============================================
+         Contiene el logo (abre/cierra la navegación) y
+         el botón de modo oscuro. Es lo único fijo; la
+         navegación completa se abre encima del contenido.
+         ============================================ -->
+    <div class="sidebar-rail">
+        <button class="rail-boton rail-logo" id="btn-toggle-sidebar" onclick="toggleSidebar()" aria-label="Abrir navegación">
+            <img src="previews/icono_dataloop.svg" alt="Dataloop">
+        </button>
+        <button class="rail-boton rail-tema" id="btn-tema" onclick="toggleTema()" aria-label="Cambiar tema">
+            <span id="icono-tema">🌙</span>
+        </button>
+    </div>
+
+    <!-- Fondo oscuro detrás de la navegación cuando está abierta -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+    <!-- ============================================
+         BARRA LATERAL (SIDEBAR) — retráctil
+         ============================================
+         Se abre/cierra al hacer click en el logo del riel.
+
          Para agregar una nueva categoría:
          1. Copia un bloque <a class="sidebar-categoria">...</a>
          2. Pégalo debajo de los existentes
          3. Cambia el icono, nombre y href
-         
+
          Para marcar una categoría como "seleccionada",
          agrega la clase "activa" → class="sidebar-categoria activa"
          ============================================ -->
-    <nav class="sidebar">
+    <nav class="sidebar" id="sidebar">
+
+        <button class="sidebar-cerrar" onclick="cerrarSidebar()" aria-label="Cerrar navegación">×</button>
 
         <!-- Logo -->
         <a href="index.html" class="sidebar-logo">
-            <img src="icono_dataloop.svg" alt="Dataloop" class="sidebar-logo-img">
+            <img src="previews/icono_dataloop.svg" alt="Dataloop" class="sidebar-logo-img">
             <span class="logo-texto">Dataloop</span>
         </a>
 
@@ -224,14 +307,16 @@
 
 
     <!-- ============================================
-         ZONA PRINCIPAL (todo a la derecha del sidebar)
+         ZONA PRINCIPAL (todo a la derecha del riel)
          ============================================ -->
     <div class="zona-principal">
 
     <!-- ENCABEZADO superior -->
     <div class="header">
-        <span class="logo">Repositorio de Demos</span>
-        <span class="descripcion">Repositorio Interno de Código</span>
+        <h2 class="logo">Repositorio de Códigos</h2>
+        <div class="user-avatar" id="userAvatar">
+            <div class="user-circle admin" id="userCircle" title="Usuario1">U</div>
+        </div>
     </div>
 
 
@@ -239,13 +324,6 @@
          CONTENIDO PRINCIPAL - DASHBOARD
          ============================================ -->
     <div class="contenido">
-
-        <h1 style="margin-bottom: 8px;">Repositorio de Códigos</h1>
-        <p style="color: #64748b; margin-bottom: 25px;">
-            Colección de soluciones y herramientas organizadas por caso de uso
-        </p>
-
-
         <!-- TARJETAS DE ESTADÍSTICAS -->
         <div class="stats-grid">
             <div class="stat-card">
@@ -272,105 +350,184 @@
         </div>
 
 
-        <!-- CASOS DE USO -->
-        <h2 class="dash-seccion">Casos de Uso</h2>
-        <div class="dash-categorias">
-            <a href="categorias/financial-crimes.html" class="dash-cat-card">
-                <span class="cat-icono">🔒</span>
-                <span class="cat-nombre">Financial Crimes</span>
-                <span class="cat-desc">Detección de fraude, lavado de dinero, análisis de transacciones sospechosas</span>
-                <span class="cat-count">4</span>
-            </a>
-            <a href="categorias/gobierno.html" class="dash-cat-card">
-                <span class="cat-icono">🏛️</span>
-                <span class="cat-nombre">Gobierno</span>
-                <span class="cat-desc">Análisis de datos gubernamentales, transparencia, gestión pública</span>
-                <span class="cat-count">4</span>
-            </a>
-            <a href="categorias/retail.html" class="dash-cat-card">
-                <span class="cat-icono">🛒</span>
-                <span class="cat-nombre">Retail</span>
-                <span class="cat-desc">Análisis de ventas, segmentación de clientes, predicción de demanda</span>
-                <span class="cat-count">4</span>
-            </a>
-            <a href="categorias/analytics.html" class="dash-cat-card">
-                <span class="cat-icono">📈</span>
-                <span class="cat-nombre">Analytics</span>
-                <span class="cat-desc">Modelos estadísticos, visualización de datos, machine learning</span>
-                <span class="cat-count">4</span>
-            </a>
+        <!-- ============================================
+             EXPLORAR POR CATEGORÍA (folders apilados)
+             ============================================
+             Cada categoría es una caja con sus códigos
+             apilados como folders de archivero. Pasa el
+             mouse sobre un folder para que se levante;
+             haz click para abrirlo.
+
+             Para agregar un código a una categoría:
+             1. Copia un bloque <a class="folder-card">...</a>
+             2. Pégalo dentro del <div class="folder-stack"> correcto
+             3. Cambia folder-color-N, la pestaña, título, desc y fecha
+             4. Actualiza el número en <span class="cat-count">
+             ============================================ -->
+        <h2 class="dash-seccion">Explorar por Categoría</h2>
+        <div class="categorias-board">
+
+            <!-- FINANCIAL CRIMES -->
+            <div class="categoria-box">
+                <div class="categoria-box-header">
+                    <span class="cat-icono">🔒</span>
+                    <a href="categorias/financial-crimes.html" class="cat-nombre">Financial Crimes</a>
+                </div>
+                <div class="folder-stack">
+                    <a href="codigos/fc-001.html" class="folder-card folder-tipo-pendiente">
+                        <span class="folder-tab">
+                            <span class="folder-tab-nombre">Detección de Transacciones Anómalas</span>
+                            <span class="folder-tab-cliente">Data Science Team</span>
+                        </span>
+                        <span class="folder-desc">Isolation Forest para identificar transacciones sospechosas en tiempo real</span>
+                        <span class="folder-fecha">2025-04-12</span>
+                    </a>
+                    <a href="codigos/fc-002.html" class="folder-card folder-tipo-pendiente">
+                        <span class="folder-tab">
+                            <span class="folder-tab-nombre">Red de Lavado de Dinero - Graph Analysis</span>
+                            <span class="folder-tab-cliente">Compliance Team</span>
+                        </span>
+                        <span class="folder-desc">Grafos para detectar redes de lavado mediante patrones circulares</span>
+                        <span class="folder-fecha">2025-03-28</span>
+                    </a>
+                    <a href="codigos/fc-003.html" class="folder-card folder-tipo-pendiente">
+                        <span class="folder-tab">
+                            <span class="folder-tab-nombre">Score de Riesgo - Credit Card Fraud</span>
+                            <span class="folder-tab-cliente">ML Engineering</span>
+                        </span>
+                        <span class="folder-desc">Scoring en tiempo real del riesgo de fraude con tarjeta</span>
+                        <span class="folder-fecha">2025-05-01</span>
+                    </a>
+                    <a href="codigos/fc-004.html" class="folder-card folder-tipo-pendiente">
+                        <span class="folder-tab">
+                            <span class="folder-tab-nombre">KYC Automation Pipeline</span>
+                            <span class="folder-tab-cliente">Compliance Engineering</span>
+                        </span>
+                        <span class="folder-desc">Verificación KYC con extracción de documentos y validación cruzada</span>
+                        <span class="folder-fecha">2025-04-20</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- GOBIERNO -->
+            <div class="categoria-box">
+                <div class="categoria-box-header">
+                    <span class="cat-icono">🏛️</span>
+                    <a href="categorias/gobierno.html" class="cat-nombre">Gobierno</a>
+                </div>
+                <div class="folder-stack">
+                    <a href="codigos/gob-001/gob-001.html" class="folder-card folder-tipo-sas-html">
+                        <span class="folder-tab">
+                            <span class="folder-tab-nombre">Análisis de Potencial de Recaudación</span>
+                            <span class="folder-tab-cliente">Secretaría de Finanzas</span>
+                        </span>
+                        <span class="folder-desc">Tablero ejecutivo de impuestos y aduanas por nivel municipal, estatal y federal</span>
+                        <span class="folder-fecha">2025-05-01</span>
+                    </a>
+                    <a href="codigos/gob-002/gob-002.html" class="folder-card folder-tipo-sas-html">
+                        <span class="folder-tab">
+                            <span class="folder-tab-nombre">Brecha de Recaudación</span>
+                            <span class="folder-tab-cliente">Secretaría de Finanzas</span>
+                        </span>
+                        <span class="folder-desc">Modelo de propensión a evasión fiscal con zonificación geográfica</span>
+                        <span class="folder-fecha">2025-05-01</span>
+                    </a>
+                    <a href="codigos/gob-003/gob-003.html" class="folder-card folder-tipo-sas-html">
+                        <span class="folder-tab">
+                            <span class="folder-tab-nombre">Fiscalización Comercio Exterior · Tamaulipas</span>
+                            <span class="folder-tab-cliente">Secretaría de Finanzas</span>
+                        </span>
+                        <span class="folder-desc">Dashboard multi-pestaña de fiscalización aduanera (vista Admin)</span>
+                        <span class="folder-fecha">2025-06-10</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- RETAIL -->
+            <div class="categoria-box">
+                <div class="categoria-box-header">
+                    <span class="cat-icono">🛒</span>
+                    <a href="categorias/retail.html" class="cat-nombre">Retail</a>
+                </div>
+                <div class="folder-stack">
+                    <a href="codigos/ret-003.html" class="folder-card folder-tipo-pendiente">
+                        <span class="folder-tab">
+                            <span class="folder-tab-nombre">Motor de Recomendaciones Colaborativo</span>
+                            <span class="folder-tab-cliente">Personalization Team</span>
+                        </span>
+                        <span class="folder-desc">Filtrado colaborativo con factorización de matrices</span>
+                        <span class="folder-fecha">2025-04-25</span>
+                    </a>
+                    <a href="codigos/ret-004.html" class="folder-card folder-tipo-pendiente">
+                        <span class="folder-tab">
+                            <span class="folder-tab-nombre">Predicción de Demanda de Inventario</span>
+                            <span class="folder-tab-cliente">Supply Chain Team</span>
+                        </span>
+                        <span class="folder-desc">Forecasting con Prophet para optimizar inventario por tienda</span>
+                        <span class="folder-fecha">2025-03-18</span>
+                    </a>
+                    <a href="codigos/ret-005.html" class="folder-card folder-tipo-pendiente">
+                        <span class="folder-tab">
+                            <span class="folder-tab-nombre">Segmentación de Clientes (RFM)</span>
+                            <span class="folder-tab-cliente">CRM Analytics</span>
+                        </span>
+                        <span class="folder-desc">Recency, Frequency y Monetary value con K-Means</span>
+                        <span class="folder-fecha">2025-04-02</span>
+                    </a>
+                    <a href="codigos/ret-006.html" class="folder-card folder-tipo-pendiente">
+                        <span class="folder-tab">
+                            <span class="folder-tab-nombre">Market Basket Analysis</span>
+                            <span class="folder-tab-cliente">Retail Analytics</span>
+                        </span>
+                        <span class="folder-desc">Apriori para descubrir reglas de asociación entre productos</span>
+                        <span class="folder-fecha">2025-05-05</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- ANALYTICS -->
+            <div class="categoria-box">
+                <div class="categoria-box-header">
+                    <span class="cat-icono">📈</span>
+                    <a href="categorias/analytics.html" class="cat-nombre">Analytics</a>
+                </div>
+                <div class="folder-stack">
+                    <a href="codigos/ana-001.html" class="folder-card folder-tipo-pendiente">
+                        <span class="folder-tab">
+                            <span class="folder-tab-nombre">Pipeline de ETL Automatizado</span>
+                            <span class="folder-tab-cliente">Data Engineering</span>
+                        </span>
+                        <span class="folder-desc">Extracción, transformación y carga con Airflow en batch diario</span>
+                        <span class="folder-fecha">2025-04-15</span>
+                    </a>
+                    <a href="codigos/ana-002.html" class="folder-card folder-tipo-pendiente">
+                        <span class="folder-tab">
+                            <span class="folder-tab-nombre">A/B Testing Framework</span>
+                            <span class="folder-tab-cliente">Experimentation Team</span>
+                        </span>
+                        <span class="folder-desc">Diseño, ejecución y análisis de experimentos A/B</span>
+                        <span class="folder-fecha">2025-03-22</span>
+                    </a>
+                    <a href="codigos/ana-003.html" class="folder-card folder-tipo-pendiente">
+                        <span class="folder-tab">
+                            <span class="folder-tab-nombre">Dashboard de Métricas en Tiempo Real</span>
+                            <span class="folder-tab-cliente">Platform Team</span>
+                        </span>
+                        <span class="folder-desc">Streamlit + Kafka para métricas de negocio en vivo</span>
+                        <span class="folder-fecha">2025-05-08</span>
+                    </a>
+                    <a href="codigos/ana-004.html" class="folder-card folder-tipo-pendiente">
+                        <span class="folder-tab">
+                            <span class="folder-tab-nombre">Modelo de Atribución Multi-Touch</span>
+                            <span class="folder-tab-cliente">Marketing Analytics</span>
+                        </span>
+                        <span class="folder-desc">Cadenas de Markov para atribuir crédito en el customer journey</span>
+                        <span class="folder-fecha">2025-04-30</span>
+                    </a>
+                </div>
+            </div>
+
         </div>
-
-
-        <!-- CÓDIGOS RECIENTES -->
-        <h2 class="dash-seccion">Códigos Recientes</h2>
-        <ul class="dash-recientes">
-            <li>
-                <a href="codigos/fc-001.html">
-                    <span class="rec-icono">📓</span>
-                    <div class="rec-info">
-                        <div class="rec-nombre">Detección de Transacciones Anómalas</div>
-                        <div class="rec-desc">Modelo de detección de anomalías usando Isolation Forest para identificar transacciones financieras sospechosas...</div>
-                    </div>
-                    <div class="rec-meta">
-                        <span class="etiqueta-lenguaje">python</span>
-                        <span class="rec-fecha">2025-04-12</span>
-                    </div>
-                </a>
-            </li>
-            <li>
-                <a href="codigos/fc-002.html">
-                    <span class="rec-icono">📜</span>
-                    <div class="rec-info">
-                        <div class="rec-nombre">Red de Lavado de Dinero - Graph Analysis</div>
-                        <div class="rec-desc">Análisis de grafos para detectar redes de lavado de dinero mediante la identificación de patrones...</div>
-                    </div>
-                    <div class="rec-meta">
-                        <span class="etiqueta-lenguaje">python</span>
-                        <span class="rec-fecha">2025-03-28</span>
-                    </div>
-                </a>
-            </li>
-            <li>
-                <a href="codigos/fc-003.html">
-                    <span class="rec-icono">🛡️</span>
-                    <div class="rec-info">
-                        <div class="rec-nombre">Score de Riesgo - Credit Card Fraud</div>
-                        <div class="rec-desc">Sistema de scoring en tiempo real para evaluar el riesgo de fraude en transacciones...</div>
-                    </div>
-                    <div class="rec-meta">
-                        <span class="etiqueta-lenguaje">python</span>
-                        <span class="rec-fecha">2025-05-01</span>
-                    </div>
-                </a>
-            </li>
-            <li>
-                <a href="codigos/ret-003.html">
-                    <span class="rec-icono">🧠</span>
-                    <div class="rec-info">
-                        <div class="rec-nombre">Motor de Recomendaciones Colaborativo</div>
-                        <div class="rec-desc">Sistema de recomendación de productos usando filtrado colaborativo con factorización de matrices...</div>
-                    </div>
-                    <div class="rec-meta">
-                        <span class="etiqueta-lenguaje">python</span>
-                        <span class="rec-fecha">2025-04-25</span>
-                    </div>
-                </a>
-            </li>
-            <li>
-                <a href="codigos/ana-002.html">
-                    <span class="rec-icono">🧪</span>
-                    <div class="rec-info">
-                        <div class="rec-nombre">A/B Testing Framework</div>
-                        <div class="rec-desc">Framework estadístico para diseñar, ejecutar y analizar experimentos A/B con cálculo automático...</div>
-                    </div>
-                    <div class="rec-meta">
-                        <span class="etiqueta-lenguaje">python</span>
-                        <span class="rec-fecha">2025-03-22</span>
-                    </div>
-                </a>
-            </li>
-        </ul>
 
     </div>
 
@@ -472,6 +629,9 @@
         cargarCarrito();
     </script>
 
+    <!-- La navegación retráctil y el modo oscuro ahora los controla
+         global-search.js (cargado arriba) — una sola copia para
+         todo el sitio, en vez de repetir este script en cada página. -->
 
 </body>
 </html>

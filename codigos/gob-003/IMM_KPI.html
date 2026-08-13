@@ -1,0 +1,181 @@
+<!--
+OBJETO: IMM_KPI
+FUENTE ESPERADA: PUBLIC.IMM_CENTRO
+ORDEN:
+1 id_caso
+2 id_empresa
+3 mto_impacto
+4 mto_accionable
+5 mto_regularizado
+6 mto_revision
+7 multa_min
+8 multa_max
+9 recaudacion_esp
+-->
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>IMM_KPI</title>
+  <style>
+    :root{
+      --gob-navy:#0C2340;--gob-deep:#051122;--gob-gold:#9E7B3B;--gob-emerald:#1E4620;--gob-red:#8C232C;--gob-wine:#5B2541;
+      --text:#1C2530;--muted:#4A5568;--faint:#626E7D;--border:#CCD4E0;
+      /* CAMBIOS TIPOGRÁFICOS */
+        --ff-disp: "Calibri", Arial, sans-serif; /* Títulos Solemnes */
+        --ff-body: Arial, "Helvetica Neue", sans-serif; /* Cuerpo Técnico / Administrativo */
+        --mono: "Courier New", Courier, monospace;
+    }
+    *{box-sizing:border-box}
+    html,body,#app{width:100%;height:100%;margin:0;overflow:hidden}
+    body{background:transparent;color:var(--text);font-family:var(--ff-body);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+    #app{height:100%;padding:0 3px;display:flex;align-items:stretch}
+    .grid{width:100%;height:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+    .card{--accent:var(--gob-navy);position:relative;min-width:0;min-height:0;overflow:hidden;background:transparent;border:1px solid var(--border);border-radius:4px;padding:12px 14px 17px;box-shadow:0 1px 3px rgba(12,35,64,.06);display:flex;flex-direction:column;justify-content:flex-start;gap:2px}
+    .card:before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:transparent}
+      .top {
+        font-family: var(--ff-disp);
+        font-size: 100px;
+        color: var(--gob-navy);
+        font-weight: 700;
+        letter-spacing: .01em;
+        line-height: 1.12;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical
+    }
+
+    .label {
+        font-family: var(--ff-disp);
+        font-size: 23px;
+        line-height: 1;
+        color: var(--gob-navy);
+        font-weight: 800;
+        letter-spacing: .01em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis
+    }
+    .ic{display:none}
+    .ic svg{display:block;width:100%;height:100%}
+    .metric{position:relative;z-index:1;min-width:0;display:flex;align-items:center;flex:0 0 auto}
+    .amount{min-width:0;width:100%}
+    .num {
+        font-family: var(--ff-body);
+        font-size: 45px;
+        font-weight: 700;
+        line-height: .96;
+        color: var(--accent);
+        letter-spacing: -.012em;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-top: 3px
+    }
+
+    .unit {
+        text-align: left;
+        margin-left: 0;
+        padding-left: 8px;
+        font-size: 1rem;
+        white-space: normal;
+    }
+    .ctx{position:absolute;left:12px;right:12px;bottom:5px;z-index:1;display:grid;grid-template-columns:minmax(40px,1fr) auto;align-items:center;gap:7px;min-height:8px}
+    .bar{height:2px;border-radius:2px;background:#E2E8F0;overflow:hidden}
+    .bar>i{display:block;height:100%;border-radius:2px;background:var(--accent)}
+    .pct{font-family:var(--mono);font-size:var(--pctFs,18px);font-weight:800;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+    .state{height:100%;width:100%;display:grid;place-items:center;text-align:center;border:1px solid var(--border);border-radius:4px;background:#fff;color:var(--muted);padding:16px}
+    .state strong{display:block;font-family:var(--ff-disp);color:var(--gob-navy);font-size:25px;margin-bottom:4px;font-weight:800}
+    .state span{font-size:20px;color:var(--faint)}
+    #app.compact{padding:5px}
+    .compact .grid{gap:7px}
+    #app.short{padding:0 2px}
+    .short .grid{gap:6px}
+    .short .card{padding:9px 11px 14px;gap:1px;box-shadow:none}
+    .compact .card{padding:9px 11px 14px;gap:1px}
+    #app.wrap2 .grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr))}
+    #app.ultra{padding:3px}
+    .ultra .grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:5px}
+    .ultra .card{padding:7px 9px 12px;box-shadow:none;gap:0}
+    .ultra .ic{display:none}
+  </style>
+</head>
+<body>
+<main id="app">
+  <section class="state"><div><strong>Esperando datos</strong><span>PUBLIC.IMM_CENTRO</span></div></section>
+</main>
+<script>
+(function(){
+  "use strict";
+  const app=document.getElementById("app");let rows=[],cols=[];
+  const order={id_caso:0,id_empresa:1,mto_impacto:2,mto_accionable:3,mto_regularizado:4,mto_revision:5,multa_min:6,multa_max:7,recaudacion_esp:8};
+  const ICON={
+    check:'<circle cx="12" cy="12" r="9"/><path d="M8 12.2l2.7 2.8L16 9"/>',
+    search:'<circle cx="10.5" cy="10.5" r="6"/><path d="M20 20l-5-5"/>',
+    alert:'<path d="M12 3 22 20H2Z"/><path d="M12 10v5M12 17.6v.2"/>',
+    trend:'<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>'
+  };
+  function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+  function payload(x){if(typeof x==="string"){try{x=JSON.parse(x)}catch(e){return null}}for(const p of [x,x&&x.data,x&&x.payload,x&&x.detail,x&&x.result,x&&x.results,x&&x.resultData,x&&x.vaData,x&&x.reportData,x&&x.message&&x.message.data,x&&x.message]){if(!p)continue;if(Array.isArray(p.columns)&&Array.isArray(p.data))return p;if(Array.isArray(p.columns)&&Array.isArray(p.rows))return{columns:p.columns,data:p.rows};if(Array.isArray(p.columnNames)&&Array.isArray(p.data))return{columns:p.columnNames,data:p.data}}return null}
+  function cell(v){return v&&typeof v==="object"?("value" in v?v.value:("formattedValue" in v?v.formattedValue:("label" in v?v.label:v))):v}
+  function norm(v){return String(v==null?"":v).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"")}
+  function cname(c){return norm(c&&(c.name||c.label||c.id||c.columnName||c.displayName||c.variableName)||c)}
+  function idx(name){const n=norm(name);let i=cols.findIndex(c=>cname(c)===n);if(i>=0)return i;i=cols.findIndex(c=>{const cn=cname(c);return cn&&(cn.includes(n)||n.includes(cn))});return i>=0?i:order[name]}
+  function val(r,name){const i=idx(name);return Array.isArray(r)&&i!=null&&i>=0?cell(r[i]):cell(r&&r[name])}
+  function num(v){v=cell(v);if(v==null||v==="")return 0;if(typeof v==="number")return isFinite(v)?v:0;const n=Number(String(v).replace(/[$,%\s\u00A0]/g,"").replace(/,/g,""));return isFinite(n)?n:0}
+  function moneyParts(n){n=num(n);const a=Math.abs(n),u=a>=1e9?"MIL MILLONES":a>=1e6?"MILLONES":a>=1e3?"MIL":"";const div=a>=1e9?1e9:a>=1e6?1e6:a>=1e3?1e3:1;const max=div>=1e6?1:0;return{num:"$"+(n/div).toLocaleString("es-MX",{maximumFractionDigits:max}),unit:u}}
+  function rangeParts(a,b){a=num(a);b=num(b);const m=Math.max(Math.abs(a),Math.abs(b)),u=m>=1e9?"MIL MILLONES":m>=1e6?"MILLONES":m>=1e3?"MIL":"",div=m>=1e9?1e9:m>=1e6?1e6:m>=1e3?1e3:1,max=div>=1e6?1:0;const f=v=>(v/div).toLocaleString("es-MX",{maximumFractionDigits:max});return{num:"$"+f(a)+" – $"+f(b),unit:u}}
+  function pct(part,whole){whole=num(whole);return whole?Math.max(0,Math.min(100,num(part)/whole*100)):0}
+  function totals(){
+    const t={casos:new Set(),impacto:0,accion:0,reg:0,rev:0,min:0,max:0,rec:0},byCaso=new Map();
+    rows.forEach(r=>{const c=String(val(r,"id_caso")||"").trim();if(c){t.casos.add(c);if(!byCaso.has(c))byCaso.set(c,r)}});
+    const src=byCaso.size?[...byCaso.values()]:rows;
+    src.forEach(r=>{t.impacto+=num(val(r,"mto_impacto"));t.accion+=num(val(r,"mto_accionable"));t.reg+=num(val(r,"mto_regularizado"));t.rev+=num(val(r,"mto_revision"));t.min+=num(val(r,"multa_min"));t.max+=num(val(r,"multa_max"));t.rec+=num(val(r,"recaudacion_esp"))});
+    return t;
+  }
+  function state(a,b){app.innerHTML=`<section class="state"><div><strong>${esc(a)}</strong><span>${esc(b||"")}</span></div></section>`}
+  function icon(k){return `<span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICON[k]}</svg></span>`}
+  function ctxBar(p,lbl){return `<div class="ctx"><div class="bar"><i style="width:${p.toFixed(1)}%"></i></div><span class="pct">${p.toFixed(1)}% ${esc(lbl)}</span></div>`}
+  function card(label,ic,m,accent,ctx){return `<article class="card" style="--accent:${accent}"><div class="top"><div class="label">${esc(label)}</div>${icon(ic)}</div><div class="metric"><div class="amount" title="${esc(m.num+" "+m.unit)}"><div class="num">${esc(m.num)}</div><div class="unit">${esc(m.unit)}</div></div></div>${ctx}</article>`}
+  function render(){
+    if(!rows.length)return state("Sin registros","No se encontraron datos para los KPIs.");
+    const t=totals(), spread = t.max > 0 ? Math.max(0, Math.min(100, (t.max - t.min) / t.max * 100)) : 0;
+    const spreadCtx = ctxBar(spread, "de amplitud del rango");
+    app.innerHTML='<section class="grid">'+
+      card("Monto Regularizado","check",moneyParts(t.reg),"var(--gob-emerald)",ctxBar(pct(t.reg,t.impacto),"del impacto"))+
+      card("Sujeto a Comprobación","search",moneyParts(t.rev),"var(--gob-wine)",ctxBar(pct(t.rev,t.impacto),"del impacto"))+
+      card("Recaudación Esperada","trend",moneyParts(t.rec),"var(--gob-navy)",ctxBar(pct(t.rec,t.accion),"de lo accionable"))+
+      card("Multas Potenciales","alert",rangeParts(t.min,t.max),"var(--gob-gold)",spreadCtx)
+    resize();
+  }
+  function fitNums(){app.querySelectorAll(".num").forEach(el=>{el.style.fontSize="";let fs=parseFloat(getComputedStyle(el).fontSize)||39,guard=0;while(el.scrollWidth>el.clientWidth+1&&fs>23&&guard++<40){fs-=1;el.style.fontSize=fs+"px"}})}
+  function resize(){
+    const b=app.getBoundingClientRect(),oneRow=b.width>=620&&b.height>=48;
+    app.classList.toggle("short",b.height<100);
+    app.classList.toggle("ultra",b.height<58||b.width<340);
+    app.classList.toggle("wrap2",!oneRow&&!app.classList.contains("ultra"));
+    app.classList.toggle("compact",!oneRow&&!app.classList.contains("ultra"));
+    const h=Math.max(44,Math.min(92,b.height-6)),w=Math.max(110,(b.width-30)/(oneRow?4:2));
+    app.style.setProperty("--labelFs",Math.max(25,Math.min(23,h*.18)).toFixed(1)+"px");
+    app.style.setProperty("--numFs",Math.max(34,Math.min(37,Math.min(h*.34,w/8.7))).toFixed(1)+"px");
+    app.style.setProperty("--unitFs",Math.max(21,Math.min(17.5,h*.12)).toFixed(1)+"px");
+    app.style.setProperty("--pctFs",Math.max(20,Math.min(16.5,h*.1)).toFixed(1)+"px");
+    app.style.setProperty("--iconSize","0px");
+    fitNums();
+  }
+    function resize(){
+    const b=app.getBoundingClientRect(),W=b.width,H=b.height,ultra=W<720||H<500,compact=!ultra&&(W<1250||H<720);
+
+    app.style.setProperty("--knFs",(ultra?33:compact?39:45)+"px");
+
+  }
+  window.addEventListener("message",e=>{const p=payload(e.data);if(!p)return;cols=p.columns||[];rows=p.data||[];render()},false);
+  new ResizeObserver(resize).observe(app);
+  resize();
+})();
+</script>
+</body>
+</html>

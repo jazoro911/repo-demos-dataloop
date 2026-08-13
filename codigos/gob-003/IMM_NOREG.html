@@ -1,0 +1,655 @@
+<!--
+    OBJETO: IMM_REGESP_DASH
+    FUENTE: PUBLIC.IMM_CENTRO
+
+    CAMBIOS v2 (alineado a IMM_NOREG_DASH):
+      - El boton "Limpiar filtros" se movio de la barra de filtros al ENCABEZADO
+        (junto a la fecha de corte), con icono y estilo administrativo formal.
+      - La barra de filtros ahora muestra el CONTADOR de casos desplegados
+        (casos que pasan los filtros activos).
+
+    VARIABLES EN ORDEN:
+    1 id_caso  2 id_empresa  3 razon_social  4 fecha_caso  5 periodo
+    6 escenario  7 escenario_desc  8 subescenario  9 subesc_desc
+    10 aduana  11 tipo_aduana  12 sector  13 municipio
+    14 severidad  15 severidad_ord  16 prioridad  17 prioridad_ord  18 nivel_certeza
+    19 valor_afect  20 mto_impacto  21 mto_accionable  22 mto_regularizado
+    23 mto_revision  24 multa_min  25 multa_max
+    26 flag_ieps  27 flag_efos  28 flag_clas_incor
+    -->
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IMM_REGESP_DASH</title>
+<style>
+  :root {
+    --gob-navy: #0C2340;
+    --gob-deep: #051122;
+    --gob-gold: #9E7B3B;
+    --gob-emerald: #1E4620;
+    --gob-red: #8C232C;
+    --gob-wine: #5B2541;
+    --gob-amber: #A36A00;
+    --text: #1C2530;
+    --muted: #4A5568;
+
+    
+    --faint: #626E7D;
+    --border: #CCD4E0;
+/* CAMBIOS TIPOGRÁFICOS */
+        --ff-disp: "Calibri", Arial, sans-serif; /* Títulos Solemnes */
+        --ff-body: Arial, "Helvetica Neue", sans-serif; /* Cuerpo Técnico / Administrativo */
+        --mono: "Courier New", Courier, monospace;
+  }
+
+  * {box-sizing:border-box}
+  html,body {width:100%;min-height:100%;margin:0;overflow-y:auto}
+  body {background:transparent;color:var(--text);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  #app {min-height:100vh;padding:8px;background:transparent}
+  .dash {display:grid;grid-template-rows:auto auto auto minmax(300px,1.4fr) minmax(250px,1.1fr) minmax(250px,1.0fr);gap:10px}
+
+  .state {height:100%;display:grid;place-items:center;text-align:center;color:var(--muted);padding:18px}
+  .state strong {display:block;font-family:var(--ff-disp);color:var(--gob-navy);font-size:30px;margin-bottom:5px;font-weight:700}
+  .state span {font-size:25px;max-width:560px;display:inline-block;color:var(--faint)}
+  [hidden] {display:none!important}
+
+  .state .pulse {
+    width:40px;height:40px;border-radius:50%;margin:0 auto 14px;
+    background:radial-gradient(circle, var(--gob-gold), transparent 70%);
+    animation:p 1.6s ease-in-out infinite;
+  }
+  @keyframes p{0%,100%{opacity:.25;transform:scale(.85)}50%{opacity:.72;transform:scale(1.05)}}
+
+  .hbar {
+    position:relative;overflow:hidden;display:flex;align-items:center;gap:14px;
+    padding:11px 18px;border-radius:4px;color:#FFFFFF;
+    background:var(--gob-navy);border:1px solid var(--gob-deep);
+    box-shadow:0 2px 4px rgba(12,35,64,0.08);
+  }
+  .hbar:before {
+    content:"";position:absolute;left:0;right:0;top:0;height:3px;
+    background:linear-gradient(90deg, var(--gob-navy) 0%, var(--gob-navy) 40%, var(--gob-gold) 70%, var(--gob-emerald) 100%);
+  }
+  .hbar:after {display:none}
+
+  .mark {
+    position:relative;z-index:1;flex:0 0 auto;width:42px;height:42px;border-radius:2px;
+    display:grid;place-items:center;background:var(--gob-deep);border:1px solid var(--gob-gold);
+  }
+  .mark svg {width:64%;height:64%}
+  .mark .live {
+    position:absolute;top:-2px;right:-2px;width:9px;height:9px;border-radius:50%;
+    background:var(--gob-gold);box-shadow:0 0 0 2px var(--gob-deep), 0 0 9px var(--gob-gold);
+    animation:pulse 1.9s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:.45;transform:scale(.8)}50%{opacity:1;transform:scale(1.12)}}
+
+  .htxt {position:relative;z-index:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .hkick {font-family:var(--ff-body);font-size:21px;letter-spacing:.08em;text-transform:uppercase;color:var(--gob-gold);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .htitle {font-family:var(--ff-disp);font-size:var(--hTitleFs,35px);font-weight:700;letter-spacing:-.015em;line-height:1;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hsub {font-size:23px;color:#CCD4E0;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hspace {flex:1 1 auto;min-width:6px}
+
+  .hright {position:relative;z-index:1;flex:0 0 auto;display:flex;align-items:center;gap:16px}
+  .hcorte {display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+  .hcorte .cl {font-family:var(--ff-body);font-size:19.5px;letter-spacing:.05em;text-transform:uppercase;color:#CCD4E0;font-weight:700}
+  .hcorte .cv {font-size:26px;font-weight:700;color:#EAF1F8;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+  .clear {
+    display:inline-flex;align-items:center;gap:7px;cursor:pointer;border:1px solid var(--gob-gold);
+    background:transparent;color:#fff;border-radius:4px;padding:9px 14px;font:700 18px var(--ff-body);
+    letter-spacing:.02em;transition:.15s;white-space:nowrap;text-transform:uppercase;
+  }
+  .clear:hover {background:rgba(255,255,255,0.1);color:#fff}
+  .clear svg {width:15px;height:15px;stroke:currentColor;fill:none}
+
+  .fbar {position:relative;display:flex;align-items:flex-end;gap:10px;overflow:hidden;padding:10px 13px;border:1px solid var(--border);border-radius:4px;background:#FFFFFF;box-shadow:0 1px 3px rgba(12,35,64,.04)}
+  .fbar:before {content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--gob-navy)}
+  .fitem {display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 0}
+  .fitem .fl {font-family:var(--ff-body);font-size:15px;letter-spacing:.04em;text-transform:uppercase;color:var(--gob-navy);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:2px}
+  .selwrap {position:relative;min-width:0}
+  .selwrap:after {content:"";position:absolute;right:9px;top:50%;width:7px;height:7px;pointer-events:none;border-right:1.6px solid var(--muted);border-bottom:1.6px solid var(--muted);transform:translateY(-70%) rotate(45deg)}
+  .fitem select {-webkit-appearance:none;appearance:none;width:100%;min-width:0;cursor:pointer;font:600 10px var(--ff-body);color:var(--text);background:#F4F6F9;border:1px solid var(--border);border-radius:2px;padding:8px 24px 8px 10px;text-overflow:ellipsis;transition:.14s}
+  .fitem select:hover {border-color:var(--faint);background:#fff}
+  .fitem select:focus {outline:none;border-color:var(--gob-navy)}
+  .fitem.act select {border-color:var(--gob-gold);background:var(--gob-emerald);color:#fff;font-weight:700}
+  .fitem.act select option {color:var(--text);background:#fff}
+
+  .fcount {flex:0 0 auto;align-self:flex-end;display:flex;flex-direction:column;align-items:flex-end;gap:2px;padding-bottom:6px;padding-left:10px;margin-left:4px;border-left:1px solid var(--border)}
+  .fcount b {font-size:28px;font-weight:700;color:var(--gob-navy);font-variant-numeric:tabular-nums;line-height:1;font-family:var(--ff-body)}
+  .fcount span {font-family:var(--ff-body);font-size:19px;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);font-weight:700}
+
+  .compact .fbar,.ultra .fbar {overflow-x:auto}
+  .ultra .fitem .fl {display:none}
+  .ultra .fitem {flex:0 0 140px}
+
+  .kpirow {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+  .kpi {
+    --accent:var(--gob-navy);
+    position:relative;min-width:0;min-height:74px;overflow:hidden;background:#FFFFFF;
+    border:1px solid var(--border);border-radius:4px;padding:7px 11px 6px;
+    box-shadow:0 1px 3px rgba(12,35,64,0.04);
+    display:grid;grid-template-columns:auto minmax(0,1fr);gap:9px;align-items:start
+  }
+  .kpi:before {content:"";position:absolute;left:0;right:0;top:0;height:3.5px;background:var(--accent)}
+  .ktile {
+    position:relative;z-index:1;width:var(--tileSz,36px);height:var(--tileSz,36px);border-radius:2px;
+    display:grid;place-items:center;background:#F4F6F9;border:1px solid var(--border)
+  }
+  .ktile svg {width:58%;height:58%;stroke:var(--accent);fill:none}
+  .kbody {position:relative;z-index:1;min-width:0;display:grid;grid-template-rows:2.32em auto auto;align-content:start}
+  .kl {font-family:var(--ff-disp);font-size:var(--klFs,24px);color:var(--gob-navy);font-weight:700;letter-spacing:.01em;line-height:1.12;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .kn {font-family:var(--ff-body);font-size:var(--knFs,37px);font-weight:700;line-height:.96;color:var(--accent);letter-spacing:-.012em;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
+  .kc {font-size:20.5px;color:var(--faint);font-weight:600;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;text-transform:uppercase;letter-spacing:0.02em}
+
+  .kc{
+  text-align: left;
+  margin-left: 0;
+  padding-left: 8px;
+  font-size: 0.85rem;
+  white-space: normal;
+}
+  .midrow1 {display:grid;grid-template-columns:2fr 1fr;gap:10px;min-height:0}
+  .midrow2 {display:grid;grid-template-columns:1fr;gap:0px;overflow:auto}
+  .panel {
+    position:relative;min-width:0;min-height:0;overflow:hidden;background:#FFFFFF;
+    border:2px solid var(--border);border-radius:4px;
+    box-shadow:0 1px 3px rgba(12,35,64,0.04);
+    padding:11px 14px 10px;display:grid;grid-template-rows:auto minmax(0,1fr);gap:8px;max-height:550px;
+  }
+  .panel:after {display:none}
+  .panel:before {content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--gob-navy)}
+
+  .phead,.pbody {position:relative;z-index:1;min-width:0}
+  .pbody {min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;-ms-overflow-style:none}
+  .pbody::-webkit-scrollbar {display:none}
+
+  .pkick {font-family:var(--ff-body);font-size:var(--pkickFs,22px);letter-spacing:.06em;text-transform:uppercase;color:var(--gob-gold);font-weight:700;line-height:1;margin-bottom:3px}
+  .ptitle {font-family:var(--ff-disp);font-size:var(--titleFs,30px);font-weight:700;color:var(--gob-navy);letter-spacing:-.01em;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  .pnote {
+    float:right;display:inline-flex;align-items:center;gap:7px;
+    font-size:21px;color:var(--faint);font-weight:700;
+    white-space:nowrap;margin-left:8px;text-transform:uppercase
+  }
+  .pnote select {
+    -webkit-appearance:none;appearance:none;
+    font:700 16px var(--ff-body);color:var(--gob-navy);
+    background:#F4F6F9;border:1px solid var(--border);
+    border-radius:2px;padding:3px 22px 3px 7px;cursor:pointer;
+    text-transform:uppercase;letter-spacing:.02em;
+  }
+  .pnote select:hover {border-color:var(--faint);background:#fff}
+  .pnote select:focus {outline:none;border-color:var(--gob-navy)}
+  .pnote .selwrap {position:relative;display:inline-block}
+  .pnote .selwrap:after {content:"";position:absolute;right:7px;top:50%;width:6px;height:6px;pointer-events:none;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:translateY(-70%) rotate(45deg)}
+
+  .mechs {height:100%;display:flex;flex-direction:column;gap:10px;justify-content:flex-start}
+  .mgroup {display:flex;flex-direction:column;gap:5px}
+  .mlabel {font-family:var(--ff-disp);font-size:23px;font-weight:700;color:var(--faint);border-bottom:1px dashed var(--border);padding-bottom:2px}
+  .mbar {display:grid;grid-template-columns:minmax(200px,350px) 1fr auto;align-items:center;gap:11px}
+  .mname {font-size:30.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mtrk {height:14px;border-radius:2px;background:#F1F4F8;overflow:hidden;border:1px solid #E2E8F0}
+  .mtrk>i {display:block;height:100%;border-radius:1px}
+  .mval {font-family:var(--mono);font-size:24.5px;font-weight:700;color:var(--text);white-space:nowrap;flex:0 0 auto}
+
+  table {width:100%;border-collapse:collapse;table-layout:fixed;font-variant-numeric:tabular-nums}
+  thead th {
+    position:sticky;top:0;z-index:2;background:#F4F6F9;color:var(--gob-navy);
+    font-size:var(--thFs,21px);font-weight:700;letter-spacing:.02em;text-transform:uppercase;
+    text-align:center;padding:7px 8px;border-bottom:2px solid var(--border);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+  }
+  tbody td {font-size:var(--tdFs,24px);padding:7px 8px;border-bottom:1px solid #E2E8F0;text-align:center;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  tbody tr:hover {background:#F8FAFC}
+  .l {text-align:left!important}
+  .r {text-align:right!important}
+  .mono {font-family:var(--ff-body);font-weight:700;color:var(--text)}
+  .mut {color:var(--muted)}
+
+  .amtcell {position:relative}
+  .amtcell .abar {position:absolute;left:8px;right:8px;bottom:2px;height:3px;border-radius:1px;background:#EEF2F6;overflow:hidden}
+  .amtcell .abar>i {display:block;height:100%;border-radius:1px;background:var(--gob-navy)}
+  .amtcell .av {position:relative;z-index:1}
+
+  .pill {
+    display:inline-block;max-width:100%;padding:2px 9px;border-radius:2px;
+    font-size:.82em;font-weight:700;line-height:1.4;overflow:hidden;text-overflow:ellipsis;
+    vertical-align:middle;text-transform:uppercase;letter-spacing:0.02em;
+  }
+  .pill.ok {color:var(--gob-emerald);background:#EAF3EE;border:1px solid #CCDDCF}
+  .pill.warn {color:var(--gob-amber);background:#FCF6EC;border:1px solid #F3E3CD}
+  .pill.risk {color:var(--gob-red);background:#F6EBF0;border:1px solid #E8CDD5}
+
+  .mini {height:100%;display:grid;place-items:center;color:var(--faint);font-size:22px;font-family:var(--ff-disp);text-align:center;padding:12px}
+
+  .barcell {position:relative;text-align:right}
+  .barcell .miniBar {position:absolute;left:8px;right:8px;bottom:3px;height:3px;border-radius:1px;background:#E2E8F0;overflow:hidden}
+  .barcell .miniBar>i {display:block;height:100%;border-radius:1px;background:var(--gob-gold)}
+
+  /* ── Concentración por aduana — estilo IMM_ESCEN ── */
+  .awrap{height:100%;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:32px;padding:6px 10px}
+  /* Dona: tamaño fijo proporcional a los paneles vecinos (mlabel/mname ~23-30px) */
+  .adonut{position:relative;flex:0 0 auto;width:clamp(180px,35%,260px);aspect-ratio:1}
+  .adonut svg{width:100%;height:100%;display:block}
+  /* Centro de la dona */
+  .acenter{position:absolute;inset:20%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none}
+  .acenter b{display:block;white-space:nowrap;color:var(--gob-navy);font-family:var(--ff-body);font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+  .acenter span{display:none}
+  /* Etiquetas % dentro de los segmentos */
+  .plabel-adu{fill:#fff;font-family:var(--ff-body);font-weight:700;font-variant-numeric:tabular-nums;
+    paint-order:stroke;stroke:var(--gob-deep);stroke-width:2.5px}
+  /* Leyenda lateral — tipografía alineada a .mname/.mval del panel vecino */
+  .aleg{flex:1 1 0;min-width:0;max-width:280px;height:100%;display:flex;flex-direction:column;justify-content:center;gap:10px;overflow-y:auto;padding-right:4px}
+  .aleg::-webkit-scrollbar{width:3px}
+  .aleg::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+  .aleg-total{display:flex;flex-direction:column;gap:3px;padding-bottom:10px;margin-bottom:4px;border-bottom:1.5px solid var(--border)}
+  .aleg-lbl{font-family:var(--ff-body);font-size:17px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+  .aleg-val{font-family:var(--ff-body);font-size:27px;font-weight:800;color:var(--gob-navy);line-height:1;font-variant-numeric:tabular-nums}
+  /* Fila de cada aduana */
+  .arow{display:grid;grid-template-columns:14px minmax(0,1fr) auto;align-items:center;gap:9px;padding:4px 0}
+  .arow .adot{width:14px;height:14px;border-radius:2px;flex:0 0 auto}
+  .arow .an-wrap{min-width:0;display:flex;flex-direction:column;gap:3px}
+  .arow .an{font-size:24px;color:var(--text);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .arow .ap{font-family:var(--mono);font-size:23px;font-weight:700;color:var(--muted);text-align:right;white-space:nowrap}
+
+  #app.compact {padding:6px}
+  .compact .dash {gap:8px}
+  .compact .kpirow {grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+  .compact .midrow1 {grid-template-columns:1fr;gap:0}
+  .compact .midrow2 {gap:8px}
+  .compact .p-recur {display:none}
+  .compact .panel {padding:10px 12px}
+  .compact .hsub {display:none}
+  .compact .col-opt {display:none}
+  .compact .clear {padding:8px 11px;font-size:21.5px}
+
+  #app.ultra {padding:5px}
+  .ultra .dash {grid-template-rows:auto auto auto minmax(0,1.4fr) minmax(0,1.1fr) minmax(0,1fr);gap:6px}
+  .ultra .kpirow {grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+  .ultra .midrow1 {grid-template-columns:1fr}
+  .ultra .midrow2 {grid-template-columns:1fr}
+  .ultra .p-adu,.ultra .p-recur {display:none}
+  .ultra .panel {padding:8px 10px;border-radius:2px;box-shadow:none}
+  .ultra .ktile,.ultra .kc,.ultra .hsub,.ultra .hkick,.ultra .col-opt {display:none}
+  .ultra .kpi {grid-template-columns:1fr;min-height:58px}
+  .ultra .hright {gap:9px}
+  .ultra .clear {padding:7px 9px;font-size:20.5px;gap:5px}
+  .ultra .clear svg {width:13px;height:13px}
+  
+
+  :root{--gob-navy:#611232;--gob-deep:#4A0E26;--gob-red:#9F2241;--gob-wine:#7A1834;--gob-gold:#9E7B3B;--gob-emerald:#1E4620;--gob-amber:#A36A00}
+  .hsub{font-size:24.5px}.hcorte .cv{font-size:23px}.kc{font-size:23px}.pnote{font-size:22.5px}
+  .mlabel{font-size:25px}.mname{font-size:23.5px}.mval{font-size:24.5px}
+  .state span{font-size:24.5px}.mini{font-size:23.5px}
+  .fitem select{font-size:15.5px}.fitem .fl{font-size:15.5px}
+
+  /* ═══════════════════════════════════════════════════════════
+     RESPONSIVE MÓVIL — mejoras adicionales
+     El modo .ultra (JS lo activa cuando ancho < 720 px) ya
+     oculta elementos. Estas reglas lo complementan.
+  ═══════════════════════════════════════════════════════════ */
+
+  /* 1 — Header: dos líneas en pantalla angosta */
+  .ultra .hbar { flex-wrap:wrap; row-gap:6px; padding:9px 12px 8px; }
+  .ultra .hspace { display:none; }
+  .ultra .hright { width:100%; justify-content:space-between; }
+
+  /* Texto del botón: sólo ícono en móvil */
+  .ultra .clear-txt { display:none; }
+
+  /* 2 — Filtros: scroll horizontal nativo */
+  .fbar { -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  .fbar::-webkit-scrollbar { display:none; }
+  .ultra .fitem { flex:0 0 115px; }
+
+  /* 3 — KPI: 2 columnas en pantallas ≤ 400 px */
+  @media (max-width:400px) {
+    .ultra .kpirow { grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px; }
+  }
+
+  /* 4 — Barras de mecanismos: sin mínimo de 200 px */
+  .mbar { grid-template-columns:minmax(0,1.8fr) 1fr auto; }
+  .ultra .mbar { grid-template-columns:minmax(0,1fr) auto; gap:6px; }
+  .ultra .mtrk { display:none; }
+
+  /* 5 — Dona: apilada verticalmente en ultra */
+  .ultra .awrap { flex-direction:column; align-items:center; gap:8px; padding:6px; overflow-y:auto; }
+  .ultra .adonut { width:clamp(130px,50%,175px); flex:0 0 auto; }
+  .ultra .aleg { max-width:100%; width:100%; height:auto; flex:0 0 auto; }
+
+  /* 6 — Tablas: scroll horizontal dentro del panel */
+  .ultra .pbody { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .ultra table { min-width:340px; }
+
+  /* 7 — Tipografía reducida para móvil */
+  .ultra .mname  { font-size:18px; }
+  .ultra .mval   { font-size:18px; }
+  .ultra .mlabel { font-size:17px; }
+  .ultra .hcorte .cl { font-size:13px; letter-spacing:.02em; }
+  .ultra .hcorte .cv { font-size:18px; }
+  .ultra .arow .an   { font-size:16px; }
+  .ultra .arow .ap   { font-size:16px; }
+  .ultra .aleg-val   { font-size:20px; }
+  .ultra .mini       { font-size:17px; }
+  .ultra .fcount b   { font-size:22px; }
+  .ultra .fcount span { font-size:12px; }
+  .ultra .fitem select { font-size:14px; }
+
+  /* 8 — Altura de paneles: libre en ultra para flujo natural */
+  .ultra .panel { max-height:none; }
+  .ultra .p-main .panel { max-height:60vh; }
+  .ultra .p-mech .panel { max-height:50vh; }
+
+  /* 9 — Media queries de respaldo (antes de que corra el JS)  */
+  @media (max-width:719px) {
+    .hbar  { flex-wrap:wrap; row-gap:6px; }
+    .hspace { display:none; }
+    .hright { width:100%; justify-content:space-between; }
+    .midrow1 { grid-template-columns:1fr !important; }
+    .midrow2 { grid-template-columns:1fr !important; }
+    .mbar  { grid-template-columns:minmax(0,1fr) auto; gap:6px; }
+    .mtrk  { display:none; }
+    .kpirow { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .p-adu, .p-recur { display:none; }
+    .fbar  { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  }
+  @media (max-width:400px) {
+    .kpirow { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+  }
+
+</style>
+</head>
+<body>
+<main id="app">
+  <section class="state" id="state"><div><div class="pulse"></div><strong>Esperando datos</strong><span>Asigna las 28 variables de PUBLIC.IMM_CENTRO. El objeto necesita recibir REG_ESP y, si existe, NO_REG.</span></div></section>
+  <div class="dash" id="dash" hidden>
+    <header class="hbar">
+      <div class="mark"><span class="live"></span><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/><circle cx="12" cy="12" r="9"/></svg></div>
+      <div class="htxt"><div class="hkick">Centro de Control IMMEX</div><div class="htitle">Regularización Espontánea</div><div class="hsub">Recuperación lograda y comportamiento recurrentes</div></div>
+      <div class="hspace"></div>
+      <div class="hright">
+        <div class="hcorte"><span class="cl">Fecha de corte</span><span class="cv" id="corte">—</span></div>
+        <button class="clear" id="clearBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M6 6l1 14h10l1-14M9 6V4h6v2M10 10v6M14 10v6"/></svg>
+          <span class="clear-txt">Limpiar filtros</span>
+        </button>
+      </div>
+    </header>
+    <section class="fbar" id="fbar"></section>
+    <section class="kpirow" id="kpirow"></section>
+    <div class="midrow2">
+      <section class="panel p-main"><div class="phead"><span class="pnote" id="mainnote"></span><div class="pkick">Empresas</div><div class="ptitle">Empresas con mayor monto regularizado</div></div><div class="pbody" id="main-body"></div></section>
+    </div>
+    <div class="midrow1">
+      <section class="panel p-mech"><div class="phead"><div class="pkick">Mecanismos</div><div class="ptitle">Mecanismos de regularización</div></div><div class="pbody" id="mech-body"></div></section>
+      <section class="panel p-adu"><div class="phead"><div class="pkick">Aduanas</div><div class="ptitle">Concentración por aduana</div></div><div class="pbody" id="adu-body"></div></section>
+    </div>
+    <div class="midrow2">
+      <section class="panel"><div class="phead"><div class="pkick">Recurrencia</div><div class="ptitle">Empresas recurrentes</div></div><div class="pbody" id="rec-body"></div></section>
+    </div>
+  </div>
+</main>
+<script>
+(function(){
+  "use strict";
+  const $=id=>document.getElementById(id), app=$("app"), stateEl=$("state"), dash=$("dash"), kpirow=$("kpirow"),
+    fbar=$("fbar"), mechBody=$("mech-body"), aduBody=$("adu-body"), recBody=$("rec-body"), mainBody=$("main-body"),
+    mainNote=$("mainnote"), corteEl=$("corte");
+  let rows=[],cols=[],allCases=[],regCases=[],noRegEmp=new Set();
+  let fstate={}, dataSig="", mainLimit=10;
+
+  const order={id_caso:0,id_empresa:1,razon_social:2,fecha_caso:3,periodo:4,escenario:5,escenario_desc:6,subescenario:7,subesc_desc:8,aduana:9,tipo_aduana:10,sector:11,municipio:12,severidad:13,severidad_ord:14,prioridad:15,prioridad_ord:16,nivel_certeza:17,valor_afect:18,mto_impacto:19,mto_accionable:20,mto_regularizado:21,mto_revision:22,multa_min:23,multa_max:24,flag_ieps:25,flag_efos:26,flag_clas_incor:27};
+  const CRIT=["id_caso","id_empresa","razon_social","fecha_caso","escenario","subesc_desc","aduana","mto_regularizado","mto_impacto","valor_afect"];
+  const FDEF=[
+    {key:"fecha",label:"Fecha",get:c=>c.fechaDisp,sortByKey:c=>c.fechaKey,dir:-1},
+    {key:"aduana",label:"Aduana",get:c=>c.aduana},
+    {key:"tipo_aduana",label:"Tipo de aduana",get:c=>c.tipo_aduana},
+    {key:"sector",label:"Sector",get:c=>c.sector},
+    {key:"municipio",label:"Municipio",get:c=>c.municipio},
+    {key:"prioridad",label:"Prioridad",get:c=>c.prioridad},
+    {key:"severidad",label:"Severidad",get:c=>c.severidad},
+    {key:"nivel_certeza",label:"Nivel de certeza",get:c=>c.nivel_certeza}
+  ];
+
+  const ICON={doc:'<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>',money:'<circle cx="12" cy="12" r="9"/><path d="M12 7v10M14.5 9.2C14 8.3 13 8 12 8c-1.5 0-2.5.8-2.5 1.9 0 2.6 5 1.4 5 4.1 0 1.1-1 2-2.5 2-1.1 0-2.1-.4-2.6-1.3"/>',trend:'<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',shield:'<path d="M12 3l7 3v6c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6z"/><path d="M9 12l2 2 4-4"/>',build:'<path d="M4 21V6l8-3v18M12 9h8v12M8 9h.01M8 13h.01M8 17h.01M16 13h.01M16 17h.01"/>',a3:'<path d="M4 6h16M4 12h16M4 18h16"/><path d="M8 6v12M16 6v12"/>',swap:'<path d="M7 7h12l-3-3M17 17H5l3 3"/><path d="M19 7l-3 3M5 17l3-3"/>',cycle:'<path d="M4 12a8 8 0 0 1 13.7-5.6L20 8M20 4v4h-4"/><path d="M20 12a8 8 0 0 1-13.7 5.6L4 16M4 20v-4h4"/>',risk:'<path d="M12 3 22 20H2z"/><path d="M12 9v5M12 17h.01"/>'};
+
+  function payload(x){if(typeof x==="string"){try{x=JSON.parse(x)}catch(e){return null}}const c=[x,x&&x.data,x&&x.payload,x&&x.detail,x&&x.result,x&&x.results,x&&x.resultData,x&&x.vaData,x&&x.reportData,x&&x.message&&x.message.data,x&&x.message];for(const p of c){if(!p)continue;if(Array.isArray(p.columns)&&Array.isArray(p.data))return p;if(Array.isArray(p.columns)&&Array.isArray(p.rows))return{columns:p.columns,data:p.rows};if(Array.isArray(p.columnNames)&&Array.isArray(p.data))return{columns:p.columnNames,data:p.data};if(Array.isArray(p.metadata)&&Array.isArray(p.data))return{columns:p.metadata,data:p.data}}return null}
+  function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+  function cell(v){return v&&typeof v==="object"?("value" in v?v.value:("formattedValue" in v?v.formattedValue:("label" in v?v.label:v))):v}
+  function norm(v){return String(v==null?"":v).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"")}
+  function cname(c){return norm(c&&(c.name||c.label||c.id||c.columnName||c.displayName||c.variableName)||c)}
+  function idxByName(name){const n=norm(name);let i=cols.findIndex(c=>cname(c)===n);if(i>=0)return i;i=cols.findIndex(c=>{const cn=cname(c);return cn&&(cn.includes(n)||n.includes(cn))});return i>=0?i:-1}
+  function idx(name){const i=idxByName(name);return i>=0?i:(order[name]!=null?order[name]:-1)}
+  function val(r,name){const i=idx(name);return Array.isArray(r)&&i>=0?cell(r[i]):cell(r&&r[name])}
+  function num(v){v=cell(v);if(v==null||v==="")return 0;if(typeof v==="number")return isFinite(v)?v:0;const n=Number(String(v).replace(/[$,%\s\u00A0]/g,"").replace(/,/g,""));return isFinite(n)?n:0}
+  function txt(r,name){const v=cell(val(r,name));return v==null?"":String(v).trim()}
+  function money(n){n=num(n);const a=Math.abs(n);if(a>=1e9)return "$"+(n/1e9).toFixed(1)+" mil M";if(a>=1e6)return "$"+(n/1e6).toFixed(1)+" M";if(a>=1e3)return "$"+(n/1e3).toFixed(0)+" mil";return "$"+Math.round(n).toLocaleString("es-MX")}
+  function cnt(n){return Number(n||0).toLocaleString("es-MX")}
+  function pct(part,total){total=num(total);return total?(num(part)/total*100):0}
+  function pctTxt(part,total){return pct(part,total).toFixed(1)+"%"}
+  function parseDate(v){v=cell(v);if(v==null||v==="")return null;if(v instanceof Date)return isNaN(v)?null:v;if(typeof v==="number"){if(v>3000&&v<80000)return new Date(Date.UTC(1960,0,1)+v*864e5);const d=new Date(v);return isNaN(d)?null:d}const d=new Date(String(v));return isNaN(d)?null:d}
+  function fmtDate(d){return d?d.toLocaleDateString("es-MX",{day:"numeric",month:"short",year:"numeric"}).replace(".",""):"—"}
+  function fmtMonth(d){return d?d.toLocaleDateString("es-MX",{month:"short",year:"numeric"}).replace(".",""):"—"}
+  function escType(v){const s=norm(v);if(s.includes("regesp"))return"REG_ESP";if(s.includes("noreg"))return"NO_REG";return String(v||"").toUpperCase()}
+  function mech(v){const s=norm(v);if(s.includes("a3")||s.includes("definitiva"))return"A3 / Importación definitiva";if(s.includes("transferencia")||s.includes("retornovirtual")||s.includes("virtual"))return"Transferencia / Retorno virtual";return String(v||"Sin clasificar")}
+  function missingCritical(){return CRIT.filter(name=>{if(idxByName(name)>=0)return false;const p=order[name];return !(p!=null&&p<cols.length)})}
+
+  function showState(t,m){dash.hidden=true;stateEl.hidden=false;stateEl.innerHTML=`<div><div class="pulse"></div><strong>${esc(t)}</strong><span>${esc(m)}</span></div>`}
+  function parseData(){
+    const map=new Map();
+    rows.forEach(r=>{
+      const id=txt(r,"id_caso");if(!id||map.has(id))return;
+      const d=parseDate(val(r,"fecha_caso"));
+      map.set(id,{id_caso:id,id_empresa:txt(r,"id_empresa")||("__"+id),razon:txt(r,"razon_social"),fecha:d,fechaRaw:cell(val(r,"fecha_caso")),fechaKey:d?d.getFullYear()*100+d.getMonth():String(cell(val(r,"fecha_caso"))||""),fechaDisp:d?fmtMonth(d):String(cell(val(r,"fecha_caso"))||"").trim(),esc:escType(val(r,"escenario")),sub:txt(r,"subesc_desc"),mech:mech(txt(r,"subesc_desc")),aduana:txt(r,"aduana")||"Sin aduana",tipo_aduana:txt(r,"tipo_aduana"),sector:txt(r,"sector"),municipio:txt(r,"municipio"),severidad:txt(r,"severidad"),prioridad:txt(r,"prioridad"),nivel_certeza:txt(r,"nivel_certeza"),valor:num(val(r,"valor_afect")),impacto:num(val(r,"mto_impacto")),regularizado:num(val(r,"mto_regularizado"))});
+    });
+    allCases=[...map.values()];
+    const maxD=allCases.reduce((m,c)=>c.fecha&&(!m||c.fecha>m)?c.fecha:m,null);
+    corteEl.textContent=fmtDate(maxD);
+  }
+
+  function buildModel(){
+    const emp=new Map(), adu=new Map(), mechMap=new Map();
+    const baseMechs=["A3 / Importación definitiva","Transferencia / Retorno virtual"];
+    baseMechs.forEach(m=>mechMap.set(m,{name:m,casos:new Set(),regularizado:0,valor:0}));
+    regCases.forEach(c=>{
+      let e=emp.get(c.id_empresa);
+      if(!e){e={id:c.id_empresa,razon:c.razon||c.id_empresa,casos:new Set(),regularizado:0,impacto:0,valor:0,mechs:new Map(),ultima:null,hasNoReg:noRegEmp.has(c.id_empresa)};emp.set(c.id_empresa,e)}
+      e.casos.add(c.id_caso);e.regularizado+=c.regularizado;e.impacto+=c.impacto;e.valor+=c.valor;
+      if(c.fecha&&(!e.ultima||c.fecha>e.ultima))e.ultima=c.fecha;
+      const mm=e.mechs.get(c.mech)||{casos:new Set(),regularizado:0};mm.casos.add(c.id_caso);mm.regularizado+=c.regularizado;e.mechs.set(c.mech,mm);
+      let a=adu.get(c.aduana);if(!a){a={aduana:c.aduana,regularizado:0};adu.set(c.aduana,a)}a.regularizado+=c.regularizado;
+      let m=mechMap.get(c.mech);if(!m){m={name:c.mech,casos:new Set(),regularizado:0,valor:0};mechMap.set(c.mech,m)}m.casos.add(c.id_caso);m.regularizado+=c.regularizado;m.valor+=c.valor;
+    });
+    const companies=[...emp.values()].map(e=>{let best=[...e.mechs.entries()].sort((a,b)=>b[1].casos.size-a[1].regularizado||b[1].regularizado-a[1].regularizado)[0];e.mechPrincipal=best?best[0]:"—";return e});
+    const totalReg=regCases.reduce((s,c)=>s+c.regularizado,0), totalImp=regCases.reduce((s,c)=>s+c.impacto,0), totalVal=regCases.reduce((s,c)=>s+c.valor,0);
+    return {companies,aduanas:[...adu.values()].sort((a,b)=>b.regularizado-a.regularizado),mechs:[...mechMap.values()],k:{casos:new Set(regCases.map(c=>c.id_caso)).size,regularizado:totalReg,impacto:totalImp,valor:totalVal,empresas:companies.length,a3:(mechMap.get("A3 / Importación definitiva")||{casos:new Set()}).casos.size,virt:(mechMap.get("Transferencia / Retorno virtual")||{casos:new Set()}).casos.size,recurrentes:companies.filter(e=>e.casos.size>1).length,conNoReg:companies.filter(e=>e.hasNoReg).length}};
+  }
+
+  function renderKPIs(m){
+    const k=m.k;
+    const cards=[["Recuperación estimada",money(k.impacto),"Regularización Esperada","trend","var(--gob-deep)"],["Valor afectado",money(k.valor),"referencia","shield","var(--gob-gold)"],["Importación Definitiva",cnt(k.a3),pctTxt(k.a3,k.casos)+" de casos","a3","var(--gob-navy)"],["Retorno virtual",cnt(k.virt),pctTxt(k.virt,k.casos)+" de casos","swap","var(--gob-gold)"],["Empresas recurrentes",cnt(k.recurrentes),pctTxt(k.recurrentes,k.empresas)+" de empresas","cycle","var(--gob-amber)"]];
+    kpirow.innerHTML=cards.map(c=>`<article class="kpi" style="--accent:${c[4]}"><span class="ktile"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7">${ICON[c[3]]}</svg></span><div class="kbody"><div class="kl">${esc(c[0])}</div><div class="kn" title="${esc(c[1])}">${esc(c[1])}</div><div class="kc">${esc(c[2])}</div></div></article>`).join("");
+    fitKN();
+  }
+
+  function renderMechs(m){
+    const metrics=[["Regularización Espontánea","casos",cnt],["Monto regularizado","regularizado",money],["Valor afectado","valor",money]];
+    const names=["A3 / Importación definitiva","Transferencia / Retorno virtual"];
+    let h='<div class="mechs">';
+    metrics.forEach(mt=>{
+      const max=Math.max(1,...m.mechs.map(x=>mt[1]==="casos"?x.casos.size:x[mt[1]]));
+      h+=`<div class="mgroup"><div class="mlabel">${mt[0]}</div>`;
+      names.forEach((name,i)=>{
+        const x=m.mechs.find(q=>q.name===name)||{casos:new Set(),regularizado:0,valor:0};
+        const val=mt[1]==="casos"?x.casos.size:x[mt[1]];
+        h+=`<div class="mbar"><span class="mname">${esc(name)}</span><span class="mtrk"><i style="width:${(val/max*100).toFixed(1)}%;background:${i?"var(--gob-gold)":"var(--gob-navy)"}"></i></span><span class="mval">${mt[2](val)}</span></div>`;
+      });
+      h+='</div>';
+    });
+    mechBody.innerHTML=h+'</div>';
+  }
+
+  function renderAdu(m){
+    // Paleta institucional alineada a IMM_ESCEN
+    const ADUCOL=["var(--gob-red)","var(--gob-gold)","var(--gob-emerald)","var(--gob-navy)","var(--gob-wine)"];
+    const ADUCOL_HEX=["#8C232C","#9E7B3B","#1E4620","#0C2340","#5B2541"];
+    const all=m.aduanas,tot=m.k.regularizado||1;
+    if(!all.length){aduBody.innerHTML='<div class="mini">Sin aduanas para mostrar.</div>';return}
+    const top=all.slice(0,4),rest=all.slice(4).reduce((z,a)=>z+a.regularizado,0);
+    const segs=top.map((a,i)=>({label:a.aduana,val:a.regularizado,col:ADUCOL[i%ADUCOL.length],hex:ADUCOL_HEX[i%ADUCOL_HEX.length]}));
+    if(rest>0)segs.push({label:"Otras",val:rest,col:ADUCOL[4],hex:ADUCOL_HEX[4]});
+    const total=segs.reduce((z,x)=>z+x.val,0)||1;
+    // Dona — dimensiones dinámicas via viewBox cuadrado 200×200
+    const side=200,cx=side/2,cy=side/2,R=side*0.47,r=side*0.30;
+    function ring(a0,a1){
+      if(a1-a0>=2*Math.PI-1e-6){const mid=a0+Math.PI;return ring(a0,mid)+ring(mid,a1)}
+      const P=(a,rad)=>((cx+rad*Math.sin(a)).toFixed(2)+" "+(cy-rad*Math.cos(a)).toFixed(2)),large=(a1-a0)>Math.PI?1:0;
+      return "M"+P(a0,R)+" A"+R+" "+R+" 0 "+large+" 1 "+P(a1,R)+" L"+P(a1,r)+" A"+r+" "+r+" 0 "+large+" 0 "+P(a0,r)+" Z"
+    }
+    let a=0,arcs="",labels="";
+    segs.forEach(sg=>{
+      const span=sg.val/total*2*Math.PI,a1=a+span,mid=(a+a1)/2,pctv=sg.val/total*100;
+      arcs+='<path class="slice" d="'+ring(a,a1)+'" fill="'+sg.col+'" stroke="#fff" stroke-width="1.5"><title>'+esc(sg.label)+" · "+money(sg.val)+" · "+pctv.toFixed(1)+'%</title></path>';
+      // porcentaje dentro del segmento (igual que IMM_ESCEN)
+      if(span>0.25){
+        const lr=(R+r)/2,lx=cx+lr*Math.sin(mid),ly=cy-lr*Math.cos(mid),fs=Math.max(10,Math.min((R-r)*0.65,side*0.1));
+        labels+='<text class="plabel-adu" x="'+lx.toFixed(1)+'" y="'+(ly+fs*0.35).toFixed(1)+'" text-anchor="middle" style="font-size:'+fs.toFixed(1)+'px">'+pctv.toFixed(0)+'%</text>';
+      }
+      a=a1;
+    });
+    // texto central — tamaño auto-ajustado al diámetro del hueco
+    const totStr=money(tot),hole=2*r,cfont=Math.max(14,Math.min(26,(hole*0.88)/((totStr.length||1)*0.56)));
+    const donut='<div class="adonut"><svg viewBox="0 0 '+side+' '+side+'">'+arcs+labels+'</svg>'+
+      '<div class="acenter"><b style="font-size:'+cfont.toFixed(1)+'px">'+totStr+'</b></div></div>';
+    // leyenda con barra proporcional — igual a erow/srow de IMM_ESCEN
+    const leg='<div class="aleg">'+
+      '<div class="aleg-total"><span class="aleg-lbl">Regularizado</span></div>'+
+      segs.map(sg=>'<div class="arow">'+
+        '<i class="adot" style="background:'+sg.col+'"></i>'+
+        '<div class="an-wrap">'+
+          '<span class="an" title="'+esc(sg.label)+'">'+esc(sg.label)+'</span>'+
+        '</div>'+
+        '<span class="ap">'+pctTxt(sg.val,total)+'</span>'+
+      '</div>').join("")+
+    '</div>';
+    aduBody.innerHTML='<div class="awrap">'+donut+leg+'</div>';
+  }
+
+  function renderRecur(m){
+    const d=m.companies.filter(e=>e.casos.size>1).sort((a,b)=>b.casos.size-a.casos.size||b.regularizado-a.regularizado).slice(0,6);
+    if(!d.length){recBody.innerHTML='<div class="mini">No se identifican empresas recurrentes para los filtros seleccionados.</div>';return}
+    recBody.innerHTML='<table><thead><tr><th class="l">Empresa</th><th style="width:13%">Previas</th><th style="width:15%">Última</th><th style="width:20%">Monto</th></tr></thead><tbody>'+d.map(e=>`<tr><td class="l" title="${esc(e.razon)}">${esc(e.razon)}</td><td><span class="pill warn">${cnt(e.casos.size)}</span></td><td>${fmtMonth(e.ultima)}</td><td class="mono">${money(e.regularizado)}</td></tr>`).join("")+'</tbody></table>';
+  }
+
+  function renderMain(m){
+    const sorted=m.companies.slice().sort((a,b)=>b.regularizado-a.regularizado||b.casos.size-a.casos.size);
+    const d=mainLimit===0?sorted:sorted.slice(0,mainLimit);
+    const total=sorted.length;
+
+    const opts=[
+      {v:10,l:"Top 10"},
+      {v:0,l:"Todas"}
+    ];
+    const selHTML='<span class="selwrap"><select id="mainLimitSel">'+
+      opts.map(o=>`<option value="${o.v}"${mainLimit===o.v?" selected":""}>${o.l}</option>`).join("")+
+      '</select></span>';
+    const labelHTML=`<span>${mainLimit===0?"Todas":"Top "+Math.min(d.length,total)} de ${cnt(total)} empresas</span>`;
+    mainNote.innerHTML=selHTML+labelHTML;
+
+    const selEl=document.getElementById("mainLimitSel");
+    if(selEl){
+      selEl.onchange=function(){
+        mainLimit=Number(this.value);
+        renderMain(m);
+      };
+    }
+
+    if(!d.length){
+      mainBody.innerHTML='<div class="mini">Sin empresas regularizadas para los filtros seleccionados.</div>';
+      return;
+    }
+    const mx=Math.max(1,...d.map(e=>e.regularizado));
+    mainBody.innerHTML='<table><thead><tr><th style="width:4%">#</th><th class="l">Empresa</th><th style="width:10%">Casos REG_ESP</th><th class="l col-opt" style="width:18%">Mecanismo principal</th><th style="width:16%">Monto regularizado</th><th style="width:13%">Reincidencia</th></tr></thead><tbody>'+
+      d.map((e,i)=>`<tr><td class="mono">${i+1}</td><td class="l" title="${esc(e.razon)}">${esc(e.razon)}</td><td class="mono">${cnt(e.casos.size)}</td><td class="l col-opt" title="${esc(e.mechPrincipal)}">${esc(e.mechPrincipal)}</td><td class="amtcell mono"><span class="av">${money(e.regularizado)}</span><span class="abar"><i style="width:${(e.regularizado/mx*100).toFixed(1)}%"></i></span></td><td>${e.casos.size>1?'<span class="pill warn">Recurrente</span>':'<span class="pill ok">No recurrente</span>'}</td></tr>`).join("")+
+      '</tbody></table>';
+  }
+
+  function fitKN(){kpirow.querySelectorAll(".kn").forEach(el=>{el.style.fontSize="";let fs=parseFloat(getComputedStyle(el).fontSize)||26,guard=0;while(el.scrollWidth>el.clientWidth+1&&fs>11&&guard++<40){fs-=1;el.style.fontSize=fs+"px"}})}
+
+  function buildFilters(){
+    fbar.innerHTML=FDEF.map(f=>{
+      const seen=new Map();
+      allCases.forEach(c=>{const v=f.get(c);if(v==null||v==="")return;if(!seen.has(v))seen.set(v,f.sortByKey?f.sortByKey(c):v)});
+      let opts=[...seen.entries()];
+      if(!opts.length)return"";
+      if(f.sortByKey)opts.sort((a,b)=>((a[1]>b[1]?1:a[1]<b[1]?-1:0))*(f.dir||1));
+      else opts.sort((a,b)=>String(a[0]).localeCompare(String(b[0]),"es"));
+      const cur=fstate[f.key]||"";
+      if(cur&&!opts.some(o=>o[0]===cur))fstate[f.key]="";
+      const active=(fstate[f.key]||"")!=="";
+      return `<div class="fitem${active?' act':''}" data-k="${f.key}"><span class="fl">${esc(f.label)}</span><span class="selwrap"><select data-k="${f.key}"><option value="">Todos</option>`+opts.map(o=>`<option value="${esc(o[0])}"${o[0]===fstate[f.key]?' selected':''}>${esc(o[0])}</option>`).join("")+`</select></span></div>`;
+    }).join("")+`<div class="fcount"><b id="fcount-n">0</b><span>casos</span></div>`;
+    fbar.querySelectorAll("select").forEach(sel=>sel.onchange=()=>{
+      fstate[sel.dataset.k]=sel.value;
+      const it=sel.closest(".fitem");if(it)it.classList.toggle("act",sel.value!=="");
+      applyAndRender();
+    });
+  }
+
+  function applyFilters(){return allCases.filter(c=>FDEF.every(f=>{const v=fstate[f.key];return !v||f.get(c)===v}))}
+
+  function applyAndRender(){
+    const filtered=applyFilters();
+    regCases=filtered.filter(c=>c.esc==="REG_ESP");
+    noRegEmp=new Set(filtered.filter(c=>c.esc==="NO_REG").map(c=>c.id_empresa));
+    const m=buildModel();
+    const cn=$("fcount-n");if(cn)cn.textContent=regCases.length.toLocaleString("es-MX");
+    renderKPIs(m);renderMechs(m);renderAdu(m);renderRecur(m);renderMain(m);resize();
+  }
+
+  function render(){
+    if(!rows.length)return showState("Sin datos","No hay registros para los filtros seleccionados.");
+    const miss=missingCritical();
+    if(miss.length)return showState("Faltan variables críticas","Asigna desde PUBLIC.IMM_CENTRO: "+miss.join(", ")+".");
+    const sig=cols.length+"|"+rows.length;
+    parseData();
+    if(!allCases.some(c=>c.esc==="REG_ESP"))return showState("No hay casos de regularización espontánea","No hay casos de regularización espontánea para los filtros seleccionados.");
+    stateEl.hidden=true;dash.hidden=false;
+    if(sig!==dataSig){dataSig=sig;buildFilters()}
+    applyAndRender();
+  }
+
+  function resize(){
+    const b=app.getBoundingClientRect(),W=b.width,H=b.height,ultra=W<720||H<500,compact=!ultra&&(W<1250||H<720);
+    app.classList.toggle("ultra",ultra);app.classList.toggle("compact",compact);
+    app.style.setProperty("--hTitleFs",(ultra?26:compact?29:33)+"px");
+    app.style.setProperty("--tileSz",(ultra?30:compact?34:36)+"px");
+    app.style.setProperty("--knFs",(ultra?33:compact?39:45)+"px");
+    app.style.setProperty("--klFs",(ultra?19:compact?22:23)+"px");
+    app.style.setProperty("--kcFs",(ultra?17:18)+"px");
+    app.style.setProperty("--titleFs",(ultra?22:compact?24:27)+"px");
+    app.style.setProperty("--pkickFs",(ultra?15:16.5)+"px");
+    app.style.setProperty("--thFs",(ultra?16.5:17.5)+"px");
+    app.style.setProperty("--tdFs",(ultra?19:compact?20.5:22)+"px");
+    if(kpirow.children.length)fitKN();
+  }
+
+  $("clearBtn").onclick=()=>{
+    fstate={};
+    fbar.querySelectorAll("select").forEach(s=>{s.value="";const it=s.closest(".fitem");if(it)it.classList.remove("act")});
+    applyAndRender();
+  };
+
+  function receive(e){const p=payload(e&&e.data);if(!p)return;cols=p.columns||[];rows=p.data||[];render()}
+  function ready(){try{if(parent&&parent!==window){parent.postMessage({type:"ready"},"*");parent.postMessage({resultName:"ready"},"*");parent.postMessage("ready","*")}}catch(e){}}
+  window.addEventListener("message",receive,false);window.onmessage=receive;
+  ready();setTimeout(ready,120);setTimeout(ready,500);setTimeout(ready,1500);
+  new ResizeObserver(resize).observe(app);resize();
+  setTimeout(()=>{if(!rows.length)showState("No recibí datos de VA","Revisa que el objeto tenga las 28 variables asignadas y que no exista filtro global de escenario.")},5000);
+})();
+</script>
+</body>
+</html>

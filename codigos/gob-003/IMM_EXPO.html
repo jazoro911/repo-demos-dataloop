@@ -1,0 +1,138 @@
+<!--
+OBJETO: IMM_EXPO
+FUENTE ESPERADA: PUBLIC.IMM_CENTRO
+ORDEN:
+1  escenario           Categoría  Sin agregación
+2  escenario_desc      Categoría  Sin agregación
+3  subesc_desc         Categoría  Sin agregación
+4  valor_afect         Medida     SUM   (solo referencia en tooltip — NO se suma a exposición)
+5  mto_igi             Medida     SUM
+6  mto_iva             Medida     SUM
+7  mto_ieps            Medida     SUM
+8  mto_actualiz        Medida     SUM
+9  mto_recargos        Medida     SUM
+10 multa_min           Medida     SUM
+11 multa_max           Medida     SUM
+12 mto_impacto         Medida     SUM
+-->
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>IMM_EXPO</title>
+  <style>
+    :root{--navy:#082F5B;--deep:#061F3D;--teal:#0B8F8C;--gold:#C5962B;--amber:#E19A27;--red:#C7353A;--wine:#713B65;
+      --text:#17233A;--muted:#5A6B82;--faint:#8A99AD;--border:#E3E9F0;
+      --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-family:Inter,"Segoe UI",Arial,sans-serif}
+    *{box-sizing:border-box}html,body,#app{width:100%;height:100%;margin:0;overflow:hidden}
+    body{background:transparent;color:var(--text);-webkit-font-smoothing:antialiased}
+    #app{padding:6px}
+    .panel{position:relative;height:100%;background:linear-gradient(180deg,#fff,#FBFCFE);border:1px solid var(--border);
+      border-radius:16px;box-shadow:0 1px 2px rgba(8,47,91,.05),0 14px 34px -16px rgba(8,47,91,.22);
+      padding:12px 14px 9px;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;gap:7px;overflow:hidden}
+    .kicker{font-family:var(--mono);font-size:16px;letter-spacing:.16em;text-transform:uppercase;color:var(--teal);font-weight:600;margin-bottom:2px}
+    .title{font-size:33px;font-weight:800;color:var(--navy);letter-spacing:-.01em;line-height:1.05}
+    .sub{font-size:19px;color:var(--muted);margin-top:1px}
+    .legend{display:flex;gap:6px;flex-wrap:wrap;font-size:16px}
+    .lg{display:inline-flex;align-items:center;gap:4px;background:#F5F8FB;border:1px solid var(--border);border-radius:999px;padding:2px 7px;font-weight:600;color:var(--muted)}
+    .sw{width:8px;height:8px;border-radius:2px}
+    .lg.rng .sw{border-radius:2px;background:repeating-linear-gradient(90deg,var(--red),var(--red) 2px,transparent 2px,transparent 4px);border:1px solid var(--red)}
+    #chart{position:relative;min-height:0}
+    .state{height:100%;display:grid;place-items:center;text-align:center;color:var(--muted);padding:12px;font-size:18px}
+    .lbl{font-weight:700;fill:var(--text)}
+    .amt{fill:var(--muted);font-variant-numeric:tabular-nums;font-family:var(--mono)}
+    .note{font-size:16px;color:var(--faint);line-height:1.3;border-top:1px solid #EEF2F6;padding-top:5px}
+    .note b{color:var(--wine);font-weight:700}
+    .compact .sub,.compact .note,.ultra .sub,.ultra .note,.ultra .kicker,.ultra .legend{display:none}
+    .compact .panel{padding:9px 10px;grid-template-rows:auto auto minmax(0,1fr)}
+    .ultra{padding:2px}.ultra .panel{padding:6px;border-radius:9px;box-shadow:0 6px 16px -10px rgba(8,47,91,.3);grid-template-rows:auto minmax(0,1fr)}
+    .ultra .title{font-size:19px}
+    #app{padding:0!important}
+    .panel{background:transparent!important;border:none!important;box-shadow:none!important;border-radius:0!important;padding:2px 8px 4px!important;gap:6px!important}
+    .kicker,.note{display:none!important}
+  </style>
+</head>
+<body><main id="app"><section class="panel">
+  <div><div class="kicker">Centro de Control IMMEX</div><div class="title">Composición económica por escenario</div><div class="sub">Exposición fiscal apilada · rango potencial de multa</div></div>
+  <div class="legend" id="legend"></div>
+  <div id="chart"><div class="state">Esperando datos</div></div>
+  <div class="note"><b>Valor afectado ≠ monto fiscal.</b> El valor afectado es referencia económica y no se suma a la exposición fiscal; se muestra solo en el detalle.</div>
+</section></main>
+<script>
+(function(){
+  "use strict";
+  const app=document.getElementById("app"), chart=document.getElementById("chart"), legend=document.getElementById("legend");
+  let rows=[],cols=[];
+  const order={escenario:0,escenario_desc:1,subesc_desc:2,valor_afect:3,mto_igi:4,mto_iva:5,mto_ieps:6,mto_actualiz:7,mto_recargos:8,multa_min:9,multa_max:10,mto_impacto:11};
+  const COMP=[
+    {k:"igi",label:"IGI",v:"mto_igi",col:"#082F5B"},
+    {k:"iva",label:"IVA",v:"mto_iva",col:"#0B8F5A"},
+    {k:"ieps",label:"IEPS",v:"mto_ieps",col:"#C5962B"},
+    {k:"act",label:"Actualización",v:"mto_actualiz",col:"#A36A00"},
+    {k:"rec",label:"Recargos",v:"mto_recargos",col:"#713B65"},
+    {k:"mmin",label:"Multa mín.",v:"multa_min",col:"#9F2241"}
+  ];
+  function payload(x){if(typeof x==="string"){try{x=JSON.parse(x)}catch(e){return null}}for(const p of [x,x&&x.data,x&&x.payload,x&&x.detail])if(p&&Array.isArray(p.columns)&&Array.isArray(p.data))return p;return null}
+  function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+  function cell(v){return v&&typeof v==="object"?("value" in v?v.value:("formattedValue" in v?v.formattedValue:("label" in v?v.label:v))):v}
+  function norm(v){return String(v==null?"":v).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"")}
+  function cname(c){return norm(c&&(c.name||c.label||c.id||c.columnName||c.displayName||c.variableName)||c)}
+  function idx(name){const n=norm(name);const i=cols.findIndex(c=>cname(c)===n);if(i>=0)return i;const j=cols.findIndex(c=>cname(c).includes(n)||n.includes(cname(c)));return j>=0?j:order[name]}
+  function val(r,name){const i=idx(name);return Array.isArray(r)&&i!=null&&i>=0?cell(r[i]):cell(r&&r[name])}
+  function num(v){v=cell(v);if(v==null||v==="")return 0;if(typeof v==="number")return isFinite(v)?v:0;const n=Number(String(v).replace(/[$,%\s]/g,"").replace(/,/g,""));return isFinite(n)?n:0}
+  function money(n){n=num(n);const a=Math.abs(n);if(a>=1e9)return "$"+(n/1e9).toFixed(1)+" mil M";if(a>=1e6)return "$"+(n/1e6).toFixed(1)+" M";if(a>=1e3)return "$"+(n/1e3).toFixed(0)+" mil";return "$"+n.toFixed(0)}
+  function build(){
+    const m=new Map();
+    rows.forEach(r=>{
+      const e=String(val(r,"escenario")||"SIN_ESC"),ed=String(val(r,"escenario_desc")||e),sd=String(val(r,"subesc_desc")||"");
+      let o=m.get(e);if(!o){o={escenario:e,desc:ed,subs:new Set(),igi:0,iva:0,ieps:0,act:0,rec:0,mmin:0,mmax:0,valor:0,impacto:0};m.set(e,o)}
+      if(sd)o.subs.add(sd);
+      o.igi+=num(val(r,"mto_igi"));o.iva+=num(val(r,"mto_iva"));o.ieps+=num(val(r,"mto_ieps"));
+      o.act+=num(val(r,"mto_actualiz"));o.rec+=num(val(r,"mto_recargos"));
+      o.mmin+=num(val(r,"multa_min"));o.mmax+=num(val(r,"multa_max"));
+      o.valor+=num(val(r,"valor_afect"));o.impacto+=num(val(r,"mto_impacto"));
+    });
+    return [...m.values()].map(o=>{o.fiscal=o.igi+o.iva+o.ieps+o.act+o.rec+o.mmin;o.extra=Math.max(0,o.mmax-o.mmin);return o}).filter(o=>o.fiscal||o.impacto).sort((a,b)=>b.fiscal-a.fiscal);
+  }
+  function drawLegend(){legend.innerHTML=COMP.map(c=>`<span class="lg"><i class="sw" style="background:${c.col}"></i>${c.label}</span>`).join("")+`<span class="lg rng"><i class="sw"></i>Rango multa</span>`}
+  function render(){
+    if(!rows.length){chart.innerHTML='<div class="state">Sin datos para el universo seleccionado</div>';return}
+    const d=build();
+    if(!d.length){chart.innerHTML='<div class="state">Sin componentes fiscales.<br>Asigna de IMM_CENTRO: mto_igi, mto_iva, mto_ieps, mto_actualiz, mto_recargos, multa_min, multa_max.</div>';return}
+    const w=chart.clientWidth,h=chart.clientHeight,n=d.length,tiny=w<360||h<130,fs=tiny?16.5:19;
+    const maxNumChars=Math.max(4,...d.map(o=>money(o.fiscal).length));
+    const rightW=Math.min(Math.round(w*0.20),Math.max(tiny?48:62,Math.ceil(maxNumChars*fs*0.55)+14));
+    const labelW=Math.round(Math.max(tiny?84:170,Math.min(w*0.34,tiny?150:260))),
+      x0=labelW+6, barW=Math.max(30,w-x0-rightW);
+    const padT=3,padB=2,band=(h-padT-padB)/n,barH=Math.max(12,Math.min(band-(band>=30?12:5),24)),
+      scaleMax=Math.max(...d.map(o=>o.fiscal+o.extra),1), maxChars=Math.max(6,Math.floor(labelW/(fs*0.55)));
+    let s=`<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">`;
+    s+=`<g stroke="#EDF1F5" stroke-width="1">`;
+    for(let g=1;g<=4;g++){const gx=(x0+g/4*barW).toFixed(1);s+=`<line x1="${gx}" y1="${padT}" x2="${gx}" y2="${h-padB}"/>`}
+    s+=`</g>`;
+    d.forEach((o,i)=>{
+      const y=+(padT+i*band+(band-barH)/2).toFixed(1), midY=+(y+barH/2).toFixed(1),
+        fw=Math.max(1,barW*o.fiscal/scaleMax), rx=Math.min(barH*0.22,4).toFixed(1),
+        tip=`${esc(o.desc)}${o.subs.size===1?" · "+esc([...o.subs][0]):(o.subs.size>1?" · "+o.subs.size+" subescenarios":"")} · valor afectado ${money(o.valor)} · IGI ${money(o.igi)} · IVA ${money(o.iva)} · IEPS ${money(o.ieps)} · actualización ${money(o.act)} · recargos ${money(o.rec)} · multa ${money(o.mmin)} a ${money(o.mmax)} · impacto ${money(o.impacto)}`;
+      s+=`<rect x="${x0}" y="${y}" width="${barW}" height="${barH.toFixed(1)}" rx="${rx}" fill="#F1F4F8"/>`;
+      s+=`<clipPath id="xc${i}"><rect x="${x0}" y="${y}" width="${fw.toFixed(1)}" height="${barH.toFixed(1)}" rx="${rx}"/></clipPath>`;
+      s+=`<g clip-path="url(#xc${i})">`;
+      let xc=x0;
+      COMP.forEach(c=>{const v=o[c.k],bw=fw*v/(o.fiscal||1);if(v>0){s+=`<rect x="${xc.toFixed(1)}" y="${y}" width="${(bw+0.8).toFixed(1)}" height="${barH.toFixed(1)}" fill="${c.col}"><title>${tip}</title></rect>`}xc+=bw});
+      s+=`</g>`;
+      if(o.extra>0){
+        const ex=barW*o.extra/scaleMax, xEnd=x0+fw;
+        s+=`<rect x="${xEnd.toFixed(1)}" y="${(y+barH*0.18).toFixed(1)}" width="${ex.toFixed(1)}" height="${(barH*0.64).toFixed(1)}" fill="#9F2241" opacity=".22"><title>${tip}</title></rect>`;
+        s+=`<line x1="${(xEnd+ex).toFixed(1)}" y1="${(y-1).toFixed(1)}" x2="${(xEnd+ex).toFixed(1)}" y2="${(y+barH+1).toFixed(1)}" stroke="#9F2241" stroke-width="1.4"/>`;
+      }
+      const shown=o.desc.length>maxChars?o.desc.slice(0,Math.max(1,maxChars-1))+"…":o.desc;
+      s+=`<text class="lbl" x="0" y="${midY}" style="font-size:${fs}px" dominant-baseline="middle">${esc(shown)}</text>`;
+      s+=`<text class="amt" x="${w-4}" y="${midY}" style="font-size:${fs}px" text-anchor="end" dominant-baseline="middle">${money(o.fiscal)}</text>`;
+    });
+    s+="</svg>";chart.innerHTML=s;
+  }
+  function size(){const b=app.getBoundingClientRect();app.classList.toggle("ultra",b.height<125||b.width<320);app.classList.toggle("compact",b.height<205||b.width<560);render()}
+  drawLegend();
+  window.addEventListener("message",e=>{const p=payload(e.data);if(!p)return;cols=p.columns||[];rows=p.data||[];render();size()},false);
+  new ResizeObserver(size).observe(app);size();
+})();
+</script></body></html>

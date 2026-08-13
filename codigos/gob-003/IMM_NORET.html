@@ -1,0 +1,658 @@
+<!--
+    OBJETO: IMM_NOREG_DASH  (v3 · encabezado + filtros funcionales + reincidencia en tabla)
+    PAGINA: "No Regularización: monto recuperable y empresas recurrentes"
+    FUENTE: PUBLIC.IMM_CENTRO  (via Data Driven Content de SAS Visual Analytics — NO SQL directo)
+    -->
+    <!doctype html>
+    <html lang="es-MX">
+    <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>IMM_NOREG_DASH</title>
+    <style>
+      :root {
+        --gob-navy: #0C2340;
+        --gob-deep: #051122;
+        --gob-gold: #9E7B3B;
+        --gob-emerald: #1E4620;
+        --gob-red: #8C232C;
+        --gob-wine: #5B2541;
+        --gob-amber: #A36A00;
+        --text: #1C2530;
+        --muted: #4A5568;
+        --faint: #626E7D;
+        --border: #CCD4E0;
+/* CAMBIOS TIPOGRÁFICOS */
+        --ff-disp: "Calibri", Arial, sans-serif; /* Títulos Solemnes */
+        --ff-body: Arial, "Helvetica Neue", sans-serif; /* Cuerpo Técnico / Administrativo */
+        --mono: "Courier New", Courier, monospace;
+      }
+
+      *{box-sizing:border-box}
+      html,body,#app{width:100%;height:100%;margin:0;overflow:hidden}
+      body{background:transparent;color:var(--text);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+      #app{padding:8px;height:100%}
+
+      .dash{height:100%;display:grid;
+        grid-template-rows:auto auto auto minmax(0,1.05fr) minmax(0,1.3fr);gap:10px}
+      .midrow{display:grid;grid-template-columns:1.4fr 1fr;gap:10px;min-height:0}
+
+      .hbar{position:relative;overflow:hidden;display:flex;align-items:center;gap:14px;
+        padding:11px 18px;border-radius:4px;color:#EAF1F8;
+        background:var(--gob-navy);
+        border:1px solid var(--gob-deep);
+        box-shadow:0 2px 4px rgba(12, 35, 64, 0.08)}
+      .hbar:before {
+        content:"";position:absolute;left:0;right:0;top:0;height:3px;
+        background:linear-gradient(90deg, var(--gob-navy) 0%, var(--gob-navy) 40%, var(--gob-gold) 70%, var(--gob-emerald) 100%);
+      }
+      .hbar:after {display:none;}
+
+      .mark{position:relative;z-index:1;flex:0 0 auto;width:var(--markSz,47px);height:var(--markSz,47px);
+        border-radius:2px;display:grid;place-items:center;
+        background:var(--gob-deep);border:1px solid var(--gob-gold);box-shadow:none}
+      .mark svg{width:64%;height:64%}
+      .mark .blip{fill:var(--gob-gold)}
+      .mark .live{position:absolute;top:10px;right:-2px;width:9px;height:9px;border-radius:50%;background:var(--gob-gold);
+        box-shadow:0 0 0 2px var(--gob-deep),0 0 9px var(--gob-gold);animation:pulse 1.9s ease-in-out infinite}
+      @keyframes pulse{0%,100%{opacity:.45;transform:scale(.8)}50%{opacity:1;transform:scale(1.12)}}
+
+      .htxt{position:relative;z-index:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+      .hkick{font-family:var(--ff-body);font-size:21px;letter-spacing:.08em;text-transform:uppercase;
+        color:var(--gob-gold);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .htitle{font-family:var(--ff-disp);font-size:var(--hTitleFs,35px);font-weight:700;letter-spacing:-.015em;line-height:1;color:#fff;
+        white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .hsub{font-size:18px;color:#CCD4E0;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .hspace{flex:1 1 auto;min-width:6px}
+      .hright{position:relative;z-index:1;flex:0 0 auto;display:flex;align-items:center;gap:16px}
+      .hcorte{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+      .hcorte .cl{font-family:var(--ff-body);font-size:19.5px;letter-spacing:.05em;text-transform:uppercase;color:#CCD4E0;font-weight:700}
+      .hcorte .cv{font-size:21px;font-weight:700;color:#EAF1F8;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+  .clear {
+    display:inline-flex;align-items:center;gap:7px;cursor:pointer;border:1px solid var(--gob-gold);
+    background:transparent;color:#fff;border-radius:4px;padding:9px 14px;font:700 18px var(--ff-body);
+    letter-spacing:.02em;transition:.15s;white-space:nowrap;text-transform:uppercase;
+  }
+  .clear:hover {background:rgba(255,255,255,0.1);color:#fff}
+  .clear svg {width:15px;height:15px;stroke:currentColor;fill:none}
+
+
+
+      .fbar{position:relative;display:flex;align-items:flex-end;gap:10px;overflow:hidden;
+        padding:10px 13px;border:1px solid var(--border);border-radius:4px;
+        background:#FFFFFF;box-shadow:0 1px 3px rgba(12, 35, 64, 0.04)}
+      .fbar:before {content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--gob-navy);}
+      .fitem{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 0}
+      .fitem .fl{font-family:var(--ff-body);font-size:var(--flFs,15px);letter-spacing:.02em;text-transform:uppercase;
+        color:var(--gob-navy);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:2px}
+      .selwrap{position:relative;min-width:0}
+      .selwrap:after{content:"";position:absolute;right:10px;top:50%;width:8px;height:8px;pointer-events:none;
+        border-right:1.7px solid var(--muted);border-bottom:1.7px solid var(--muted);transform:translateY(-70%) rotate(45deg)}
+      .fitem select{-webkit-appearance:none;appearance:none;width:100%;min-width:0;cursor:pointer;
+        font:600 var(--selFs,18px) var(--ff-body);color:var(--text);
+        background:#F4F6F9;border:1px solid var(--border);border-radius:2px;padding:8px 26px 8px 11px;
+        text-overflow:ellipsis;transition:.14s}
+      .fitem select:hover{border-color:var(--faint);background:#fff}
+      .fitem select:focus{outline:none;border-color:var(--gob-navy);box-shadow:none}
+      .fitem.act select{border-color:var(--gob-gold);background:var(--gob-emerald);color:#fff;font-weight:700}
+      .fitem.act select option { color: var(--text); background: #fff; }
+      .fcount{flex:0 0 auto;align-self:flex-end;display:flex;flex-direction:column;align-items:flex-end;gap:2px;padding-bottom:6px;padding-left:6px}
+      .fcount b{font-size:23px;font-weight:700;color:var(--gob-navy);font-variant-numeric:tabular-nums;line-height:1}
+      .fcount span{font-family:var(--ff-body);font-size:14px;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);font-weight:700}
+
+      .kpirow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+    .kpi {
+        --accent: var(--gob-navy);
+        position: relative;
+        min-width: 0;
+        min-height: 74px;
+        /* 62 */
+        overflow: hidden;
+        background: #FFFFFF;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 7px 11px 6px;
+        box-shadow: 0 1px 3px rgba(12, 35, 64, 0.04);
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: 9px;
+        align-items: start;
+    }
+    .kpi:hover{background-color:#F8FAFC;transform:none}
+      .kpi:before{content:"";position:absolute;left:0;right:0;top:0;height:3.5px;background:var(--accent)}
+      .kpi:after{display:none}
+      .ktile{position:relative;z-index:1;flex:0 0 auto;width:var(--tileSz,37px);height:var(--tileSz,37px);border-radius:2px;
+        display:grid;place-items:center;background:#F4F6F9;border:1px solid var(--border)}
+      .ktile svg{width:58%;height:58%;stroke:var(--accent);fill:none}
+        .kbody {
+        position: relative;
+        z-index: 1;
+        min-width: 0;
+        display: grid;
+        grid-template-rows: 2.32em auto auto;
+        align-content: start
+    }
+
+    .kl {
+        font-family: var(--ff-disp);
+        font-size: var(--klFs, 24px);
+        color: var(--gob-navy);
+        font-weight: 700;
+        letter-spacing: .01em;
+        line-height: 1.12;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .kn {
+        font-family: var(--ff-body);
+        font-size: var(--knFs, 37px);
+        font-weight: 700;
+        line-height: .92;
+        color: var(--text);
+        letter-spacing: -.012em;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-top: 3px
+    }
+      .kc{font-size:20.5px;color:var(--faint);font-weight:600;line-height:1.02;
+        white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;text-transform:uppercase;letter-spacing:0.02em}
+
+      .panel{position:relative;min-width:0;min-height:0;overflow:hidden;
+        background:#FFFFFF;border:1px solid var(--border);border-radius:4px;
+        box-shadow:0 1px 3px rgba(12, 35, 64, 0.04);
+        padding:11px 15px 10px;display:grid;grid-template-rows:auto minmax(0,1fr);gap:8px}
+      .panel:after{display:none}
+      .panel:before {content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--gob-navy);}
+      .phead{position:relative;z-index:1;min-width:0}
+      .pkick{font-family:var(--ff-body);font-size:var(--pkickFs,15px);letter-spacing:.06em;text-transform:uppercase;color:var(--gob-gold);font-weight:700;line-height:1;margin-bottom:3px}
+      .phrow{display:flex;align-items:baseline;justify-content:space-between;gap:10px;min-width:0}
+      .ptitle{font-family:var(--ff-disp);font-size:var(--titleFs,23px);font-weight:700;color:var(--gob-navy);letter-spacing:-.01em;
+        line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .pnote{font-size:16px;color:var(--faint);font-weight:700;white-space:nowrap;flex:0 0 auto;text-transform:uppercase}
+      .pbody{position:relative;z-index:1;min-height:0;overflow-y:auto;overflow-x:hidden}
+      .pbody::-webkit-scrollbar{width:0px;height:4px}
+      .pbody::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+      table{width:100%;border-collapse:collapse;table-layout:fixed;font-variant-numeric:tabular-nums}
+      thead th{position:sticky;top:0;z-index:2;background:#F4F6F9;color:var(--gob-navy);
+        font-size:var(--thFs,16px);font-weight:700;letter-spacing:.02em;text-transform:uppercase;
+        text-align:right;padding:8px 9px;border-bottom:2px solid var(--border);
+        white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      thead th.l{text-align:left}
+      tbody td{font-size:var(--tdFs,19px);padding:7px 9px;border-bottom:1px solid #E2E8F0;
+        text-align:right;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+      tbody td.l{text-align:left}
+      .tcenter th,.tcenter td{text-align:center}
+      .tcenter th.l,.tcenter td.l{text-align:left}
+      .tcenter td .emp{display:inline-block;max-width:100%;vertical-align:middle}
+      .top-table thead th,.top-table thead th.l{text-align:center}
+      .top-table tbody td,.top-table tbody td.l{text-align:center}
+      .top-table .rank{margin-right:5px}
+      tbody tr{transition:background .12s}
+      tbody tr:hover{background:#F8FAFC}
+      tbody tr.clk{cursor:pointer}
+      tbody tr.sel{background:#EAF3F3;box-shadow:inset 3px 0 0 var(--gob-gold)}
+      .rank{display:inline-block;min-width:1.4em;color:var(--faint);font-family:var(--mono);font-size:.86em;font-weight:700;margin-right:7px;text-align:right}
+      .emp{font-weight:700;color:var(--text)}
+      .mono{font-family:var(--ff-body);font-weight:700;color:var(--text)}
+      .mono.mut{color:var(--muted);font-weight:600}
+      .zero{color:var(--faint);font-weight:600}
+      .idc{font-family:var(--mono);font-size:.95em;font-weight:700;color:var(--gob-navy)}
+      .tp{font-family:var(--ff-body);font-weight:700}
+      .tp .t{color:var(--gob-red)}.tp .p{color:var(--gob-amber)}.tp .s{color:var(--faint);margin:0 2px}
+
+      .amtcell{position:relative;padding-right:9px!important}
+      .amtcell .abar{position:absolute;left:8px;right:8px;bottom:2px;height:3px;border-radius:1px;
+        background:#EEF2F6;overflow:hidden}
+      .amtcell .abar>i{display:block;height:100%;border-radius:1px;background:var(--gob-navy)}
+      .amtcell .av{position:relative;z-index:1}
+
+      .chip{display:inline-block;padding:2px 10px;border-radius:2px;font-size:.85em;font-weight:700;
+        letter-spacing:.01em;color:#fff;line-height:1.3;text-transform:uppercase}
+      .tag{display:inline-block;padding:1.5px 9px;border-radius:2px;font-size:.82em;font-weight:700;border:1px solid var(--border);text-transform:uppercase}
+      .tag.total{color:var(--gob-red);border-color:#E8CDD5;background:#F6EBF0}
+      .tag.parcial{color:var(--gob-amber);border-color:#F3E3CD;background:#FCF6EC}
+      .pill{display:inline-block;max-width:100%;padding:2px 9px;border-radius:2px;font-size:.82em;font-weight:700;
+        line-height:1.4;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;text-transform:uppercase}
+      .pill.rec{color:var(--gob-amber);background:#FCF6EC;border:1px solid #F3E3CD}
+      .pill.norec{color:var(--gob-emerald);background:#EAF3EE;border:1px solid #CCDDCF}
+      .pill.rec b{font-variant-numeric:tabular-nums}
+      .ant{font-weight:700}
+      .ant.no{color:var(--gob-emerald);background:#EAF3EE;border:1px solid #CCDDCF;border-radius:2px;padding:2px 10px;font-weight:700}
+
+      .p-comp .pbody{overflow-y:auto;overflow-x:hidden}
+      .comp{min-height:100%;display:flex;flex-direction:column;gap:7px;padding-top:1px}
+      .cmetric{flex:0 0 auto;min-height:42px;display:flex;flex-direction:column;justify-content:flex-start;gap:4px;overflow:hidden}
+      .cmlabel{font-family:var(--ff-disp);font-size:20.5px;font-weight:700;color:var(--gob-navy);letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .cbar{display:grid;grid-template-columns:55px 1fr auto;align-items:center;gap:10px}
+      .cbar .cn{font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+      .cbar .ctrk{height:10px;border-radius:2px;background:#F1F4F8;overflow:hidden;min-width:8px;border:1px solid #E2E8F0}
+      .cbar .ctrk>i{display:block;height:100%;border-radius:1px;box-shadow:none}
+      .cbar .cv{font-size:20.5px;font-weight:700;font-family:var(--mono);color:var(--text);text-align:right;white-space:nowrap}
+      .clegend{flex:0 0 auto;display:flex;gap:14px;font-size:14px;font-weight:700;color:var(--muted);padding-top:4px;border-top:1px solid var(--border);margin-top:2px;text-transform:uppercase}
+      .clegend i{display:inline-block;width:10px;height:10px;border-radius:1px;margin-right:5px;vertical-align:-1px}
+
+      .state{height:100%;display:grid;place-items:center;text-align:center;color:var(--muted);padding:18px}
+      .state strong{display:block;font-family:var(--ff-disp);color:var(--gob-navy);font-size:23px;margin-bottom:5px;font-weight:700}
+      .state span{font-size:18px;max-width:480px;display:inline-block;color:var(--faint)}
+      .state .pulse{width:40px;height:40px;border-radius:50%;margin:0 auto 14px;
+        background:radial-gradient(circle,var(--gob-gold),transparent 70%);animation:p 1.6s ease-in-out infinite}
+      @keyframes p{0%,100%{opacity:.25;transform:scale(.85)}50%{opacity:.7;transform:scale(1.05)}}
+      .pbody .mini{height:100%;display:grid;place-items:center;color:var(--faint);font-size:17px;font-family:var(--ff-disp);text-align:center;padding:12px}
+      [hidden]{display:none!important}
+
+      #app.compact{padding:6px}
+      #app.compact .dash{gap:8px}
+      #app.compact .kpirow{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+      #app.compact .midrow{grid-template-columns:1.3fr 1fr;gap:8px}
+      #app.compact .col-sec{display:none}
+      #app.compact .panel{padding:10px 12px}
+      #app.compact .hsub{display:none}
+      #app.compact thead th,#app.compact tbody td{padding-left:6px;padding-right:6px}
+      #app.compact .clear {padding:8px 11px;font-size:21.5px}
+
+      #app.ultra{padding:5px}
+      #app.ultra .dash{grid-template-rows:auto auto auto minmax(0,1fr) minmax(0,1.25fr);gap:6px}
+      #app.ultra .kpirow{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+      #app.ultra .midrow{grid-template-columns:1fr;gap:6px}
+      #app.ultra .col-sec,#app.ultra .col-ter{display:none}
+      #app.ultra .panel{padding:8px 10px;border-radius:2px;box-shadow:none}
+      #app.ultra .p-comp{display:none}
+      #app.ultra .kpi{grid-template-columns:1fr}
+      #app.ultra .ktile,#app.ultra .kc{display:none}
+      #app.ultra .hsub,#app.ultra .hkick{display:none}
+      #app.ultra .fitem{flex:0 0 140px}
+      #app.ultra .fitem .fl{display:none}
+      #app.ultra .fbar{overflow-x:auto}
+    #app.ultra .clear {padding:7px 9px;font-size:20.5px;gap:5px}
+    #app.ultra .clear svg {width:13px;height:13px}
+
+      :root{--gob-navy:#611232;--gob-deep:#4A0E26;--gob-red:#9F2241;--gob-wine:#7A1834;--gob-gold:#9E7B3B;--gob-emerald:#1E4620;--gob-amber:#A36A00}
+      .hsub{font-size:24.5px}.hcorte .cv{font-size:23px}.kc{font-size:23px}.pnote{font-size:17.5px}
+      .cmlabel{font-size:20px}.cbar .cn{font-size:16.5px}.cbar .cv{font-size:19.5px}
+      .state span{font-size:19.5px}.pbody .mini{font-size:18.5px}
+      .fitem select{font-size:15.5px}.fitem .fl{font-size:15.5px}
+    </style>
+    </head>
+    <body>
+    <main id="app">
+      <section class="state" id="state"><div><div class="pulse"></div><strong>Esperando datos</strong><span>Asigna las variables de PUBLIC.IMM_CENTRO en el orden indicado. El objeto necesita recibir escenario NO_REG y REG_ESP.</span></div></section>
+
+      <div class="dash" id="dash" hidden>
+        <header class="hbar">
+          <div class="mark"><span class="live"></span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.4"/>
+              <path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle class="blip" cx="15.6" cy="8.4" r="1.7" stroke="none"/>
+            </svg>
+          </div>
+          <div class="htxt">
+            <div class="hkick">Centro de Control IMMEX</div>
+            <div class="htitle">No Regularización</div>
+            <div class="hsub">Monto recuperable y empresas recurrentes</div>
+          </div>
+          <div class="hspace"></div>
+          <div class="hright">
+            <div class="hcorte"><span class="cl">Fecha de corte</span><span class="cv" id="corte">—</span></div>            
+            <button class="clear" id="clearBtn" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M6 6l1 14h10l1-14M9 6V4h6v2M10 10v6M14 10v6"/></svg>
+              Limpiar filtros
+            </button>
+          </div>
+        </header>
+
+        <section class="fbar" id="fbar"></section>
+        <section class="kpirow" id="kpirow"></section>
+
+        <div class="midrow">
+          <section class="panel p-top">
+            <div class="phead"><div class="pkick">Recuperación</div><div class="phrow"><div class="ptitle">Top de empresas por monto estimado</div><div class="pnote" id="topnote"></div></div></div>
+            <div class="pbody" id="top-body"></div>
+          </section>
+          <section class="panel p-comp">
+            <div class="phead"><div class="pkick">Total vs parcial</div><div class="phrow"><div class="ptitle">No regularización: total vs parcial</div></div></div>
+            <div class="pbody" id="comp-body"></div>
+          </section>
+        </div>
+
+        <section class="panel p-rank">
+          <div class="phead"><div class="pkick">Casos</div><div class="phrow"><div class="ptitle">Ranking de casos de no regularización</div><div class="pnote" id="ranknote"></div></div></div>
+          <div class="pbody" id="rank-body"></div>
+        </section>
+      </div>
+    </main>
+
+    <script>
+    (function(){
+      "use strict";
+      const $=id=>document.getElementById(id);
+      const app=$("app"),stateEl=$("state"),dash=$("dash"),kpirow=$("kpirow"),fbar=$("fbar"),
+        topBody=$("top-body"),compBody=$("comp-body"),rankBody=$("rank-body"),
+        topNote=$("topnote"),rankNote=$("ranknote"),corteEl=$("corte");
+      let rows=[],cols=[],allCasos=[],noregAll=[],regByEmp=new Map(),selCaso=null,dataSig="";
+      let fstate={};
+
+      const order={id_caso:0,id_empresa:1,razon_social:2,fecha_caso:3,periodo:4,escenario:5,
+        escenario_desc:6,subescenario:7,subesc_desc:8,aduana:9,tipo_aduana:10,sector:11,municipio:12,
+        severidad:13,severidad_ord:14,prioridad:15,prioridad_ord:16,nivel_certeza:17,valor_afect:18,
+        mto_impacto:19,mto_accionable:20,mto_regularizado:21,mto_revision:22,multa_min:23,multa_max:24,
+        flag_ieps:25,flag_efos:26,flag_clas_incor:27};
+      const CRIT=["id_caso","id_empresa","razon_social","escenario","subesc_desc",
+        "mto_accionable","mto_impacto","mto_regularizado","valor_afect"];
+      const FDEF=[
+        {key:"fecha",label:"Fecha de caso",get:c=>c.fechaDisp,sortByKey:c=>c.fechaKey,dir:-1},
+        {key:"aduana",label:"Aduana",get:c=>c.aduana},
+        {key:"subesc",label:"Subescenario",get:c=>c.subesc_desc},
+        {key:"tipo_aduana",label:"Tipo de aduana",get:c=>c.tipo_aduana},
+        {key:"sector",label:"Sector",get:c=>c.sector},
+        {key:"municipio",label:"Municipio",get:c=>c.municipio},
+        {key:"prioridad",label:"Prioridad",get:c=>c.prioridad},
+        {key:"severidad",label:"Severidad",get:c=>c.severidad},
+        {key:"nivel_certeza",label:"Nivel de certeza",get:c=>c.nivel_certeza}
+      ];
+      const ICON={
+        doc:'<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>',
+        dollar:'<circle cx="12" cy="12" r="9"/><path d="M12 7v10M14.5 9.2C14 8.3 13 8 12 8c-1.5 0-2.5.8-2.5 1.9 0 2.6 5 1.4 5 4.1 0 1.1-1 2-2.5 2-1.1 0-2.1-.4-2.6-1.3"/>',
+        impact:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+        shield:'<path d="M12 3l7 3v6c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6z"/><path d="M9 12l2 2 4-4"/>',
+        build:'<path d="M4 21V6l8-3v18M12 9h8v12M8 9h.01M8 13h.01M8 17h.01M16 13h.01M16 17h.01"/>',
+        xcirc:'<circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/>',
+        pie:'<path d="M12 3a9 9 0 1 0 9 9h-9z"/><path d="M12 3v9h9A9 9 0 0 0 12 3z" opacity=".45"/>',
+        cycle:'<path d="M4 12a8 8 0 0 1 13.7-5.6L20 8M20 4v4h-4"/><path d="M20 12a8 8 0 0 1-13.7 5.6L4 16M4 20v-4h4"/>'
+      };
+
+      function payload(x){
+        if(typeof x==="string"){try{x=JSON.parse(x)}catch(e){return null}}
+        const cands=[x,x&&x.data,x&&x.payload,x&&x.detail,x&&x.result,x&&x.results,
+          x&&x.resultData,x&&x.vaData,x&&x.reportData,x&&x.message&&x.message.data,x&&x.message];
+        for(const p of cands){
+          if(!p)continue;
+          if(Array.isArray(p.columns)&&Array.isArray(p.data))return p;
+          if(Array.isArray(p.columns)&&Array.isArray(p.rows))return {columns:p.columns,data:p.rows};
+          if(Array.isArray(p.columnNames)&&Array.isArray(p.data))return {columns:p.columnNames,data:p.data};
+        }
+        return null;
+      }
+      function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+      function cell(v){return v&&typeof v==="object"?("value" in v?v.value:("formattedValue" in v?v.formattedValue:("label" in v?v.label:v))):v}
+      function norm(v){return String(v==null?"":v).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"")}
+      function cname(c){return norm(c&&(c.name||c.label||c.id||c.columnName||c.displayName||c.variableName)||c)}
+      function idxByName(name){const n=norm(name);let i=cols.findIndex(c=>cname(c)===n);if(i>=0)return i;
+        i=cols.findIndex(c=>{const cn=cname(c);return cn&&(cn.includes(n)||n.includes(cn))});return i>=0?i:-1}
+      function idx(name){const i=idxByName(name);return i>=0?i:(order[name]!=null?order[name]:-1)}
+      function val(r,name){const i=idx(name);return Array.isArray(r)&&i>=0?cell(r[i]):cell(r&&r[name])}
+      function num(v){v=cell(v);if(v==null||v==="")return 0;if(typeof v==="number")return isFinite(v)?v:0;
+        const n=Number(String(v).replace(/[$,%\s\u00A0]/g,"").replace(/,/g,""));return isFinite(n)?n:0}
+      function txt(r,name){const v=cell(val(r,name));return v==null?"":String(v).trim()}
+      function money(n){n=num(n);const a=Math.abs(n);
+        if(a>=1e9)return "$"+(n/1e9).toFixed(1)+" mil M";
+        if(a>=1e6)return "$"+(n/1e6).toFixed(1)+" M";
+        if(a>=1e3)return "$"+(n/1e3).toFixed(0)+" mil";
+        return "$"+Math.round(n).toLocaleString("es-MX");}
+      function cnt(n){return Number(n||0).toLocaleString("es-MX")}
+      function pctStr(part,whole){whole=num(whole);const p=whole?num(part)/whole*100:0;return (Math.max(0,Math.min(100,p))).toFixed(1)+"%"}
+      function whichEsc(v){const s=norm(v);if(s.includes("noreg"))return "NO_REG";if(s.includes("regesp"))return "REG_ESP";return String(cell(v)||"").toUpperCase()}
+      function tipoNR(sd){const s=norm(sd);if(s.includes("total"))return "Total";if(s.includes("parcial"))return "Parcial";return ""}
+      function prioColor(p){const s=norm(p);
+        if(s.includes("alta")||s.includes("critic"))return "var(--gob-red)";
+        if(s.includes("media")||s.includes("medio"))return "var(--gob-amber)";
+        if(s.includes("baja")||s.includes("bajo"))return "var(--gob-emerald)";
+        return "var(--muted)";}
+      function prioLabel(p){const s=String(p||"").trim();return s?s.charAt(0).toUpperCase()+s.slice(1).toLowerCase():"—"}
+      function parseDate(v){v=cell(v);if(v==null||v==="")return null;
+        if(v instanceof Date)return isNaN(v)?null:v;
+        if(typeof v==="number"){if(v>3000&&v<80000)return new Date(Date.UTC(1960,0,1)+v*864e5);const d=new Date(v);return isNaN(d)?null:d}
+        const d=new Date(String(v));return isNaN(d)?null:d;}
+      function fmtMonth(d){let s=d.toLocaleDateString("es-MX",{month:"short",year:"numeric"}).replace(".","");return s.charAt(0).toUpperCase()+s.slice(1)}
+      function fmtCorte(d){return d.toLocaleDateString("es-MX",{day:"numeric",month:"short",year:"numeric"}).replace(".","")}
+      function missingCritical(){return CRIT.filter(name=>{if(idxByName(name)>=0)return false;const pos=order[name];return !(pos!=null&&pos<cols.length)})}
+
+      function recPill(regPrev,regHist,regUltima){
+        if(!regPrev)return '<span class="pill norec" title="Sin antecedentes de regularización espontánea">No</span>';
+        const ult=regUltima?(regUltima.d?fmtMonth(regUltima.d):(regUltima.raw||"")):"";
+        const tip="Empresa recurrente · "+regPrev+" regularización(es) espontánea(s) previa(s)"+
+          (regHist?" · histórico "+money(regHist)+"" : "")+(ult?" · última "+ult:"");
+        return '<span class="pill rec" title="'+esc(tip)+'">Recurrente · <b>'+cnt(regPrev)+'</b></span>';
+      }
+
+      function parseData(){
+        const casoMap=new Map();
+        rows.forEach(r=>{
+          const id=txt(r,"id_caso");if(!id||casoMap.has(id))return;
+          const fecha=val(r,"fecha_caso"),d=parseDate(fecha);
+          casoMap.set(id,{
+            id_caso:id,id_empresa:txt(r,"id_empresa")||("__"+id),razon:txt(r,"razon_social"),
+            fecha:fecha,fechaDate:d,fechaKey:d?d.getFullYear()*100+d.getMonth():String(cell(fecha)||""),
+            fechaDisp:d?fmtMonth(d):(String(cell(fecha)||"").trim()),
+            esc:whichEsc(val(r,"escenario")),tipo:tipoNR(txt(r,"subesc_desc")),
+            subesc_desc:txt(r,"subesc_desc"),aduana:txt(r,"aduana"),tipo_aduana:txt(r,"tipo_aduana"),
+            sector:txt(r,"sector"),municipio:txt(r,"municipio"),severidad:txt(r,"severidad"),
+            nivel_certeza:txt(r,"nivel_certeza"),prioridad:txt(r,"prioridad"),prioridad_ord:num(val(r,"prioridad_ord")),
+            valor:num(val(r,"valor_afect")),impacto:num(val(r,"mto_impacto")),accion:num(val(r,"mto_accionable")),
+            reg:num(val(r,"mto_regularizado")),min:num(val(r,"multa_min")),max:num(val(r,"multa_max"))
+          });
+        });
+        allCasos=[...casoMap.values()];
+        noregAll=allCasos.filter(c=>c.esc==="NO_REG");
+        const regesp=allCasos.filter(c=>c.esc==="REG_ESP");
+        regByEmp=new Map();
+        regesp.forEach(c=>{let o=regByEmp.get(c.id_empresa);
+          if(!o){o={casos:new Set(),reg:0,ultima:null};regByEmp.set(c.id_empresa,o)}
+          o.casos.add(c.id_caso);o.reg+=c.reg;
+          const disp={d:c.fechaDate,raw:cell(c.fecha)};
+          if(!o.ultima)o.ultima=disp;
+          else if(c.fechaDate&&o.ultima.d){if(c.fechaDate>o.ultima.d)o.ultima=disp}
+          else if(c.fechaDate&&!o.ultima.d)o.ultima=disp;
+        });
+        const maxD=allCasos.reduce((m,c)=>c.fechaDate&&(!m||c.fechaDate>m)?c.fechaDate:m,null);
+        corteEl.textContent=maxD?fmtCorte(maxD):"—";
+      }
+
+      function buildFilters(){
+        fbar.innerHTML=FDEF.map(f=>{
+          const seen=new Map();
+          noregAll.forEach(c=>{const v=f.get(c);if(v==null||v==="")return;if(!seen.has(v))seen.set(v,f.sortByKey?f.sortByKey(c):v)});
+          let opts=[...seen.entries()];
+          if(f.sortByKey)opts.sort((a,b)=>((a[1]>b[1]?1:a[1]<b[1]?-1:0))*(f.dir||1));
+          else opts.sort((a,b)=>String(a[0]).localeCompare(String(b[0]),"es"));
+          const cur=fstate[f.key]||"";if(cur&&!opts.some(o=>o[0]===cur))fstate[f.key]="";
+          const active=(fstate[f.key]||"")!=="";
+          return `<div class="fitem${active?' act':''}" data-k="${f.key}"><span class="fl">${esc(f.label)}</span>`+
+            `<span class="selwrap"><select data-k="${f.key}"><option value="">Todos</option>`+
+            opts.map(o=>`<option value="${esc(o[0])}"${o[0]===fstate[f.key]?' selected':''}>${esc(o[0])}</option>`).join("")+
+            `</select></span></div>`;
+        }).join("")+`<div class="fcount"><b id="fcount-n">0</b><span>casos</span></div>`;
+        fbar.querySelectorAll("select").forEach(sel=>sel.onchange=()=>{
+          fstate[sel.dataset.k]=sel.value;
+          const item=sel.closest(".fitem");if(item)item.classList.toggle("act",sel.value!=="");
+          applyAndRender();
+        });
+      }
+      function applyFilters(){return noregAll.filter(c=>FDEF.every(f=>{const v=fstate[f.key];return !v||f.get(c)===v}))}
+
+      function buildModel(noreg){
+        const empMap=new Map();
+        noreg.forEach(c=>{
+          let o=empMap.get(c.id_empresa);
+          if(!o){o={id_empresa:c.id_empresa,razon:c.razon,casos:0,total:0,parcial:0,accion:0,impacto:0,valor:0,prioridad:"",prioridad_ord:-Infinity};empMap.set(c.id_empresa,o)}
+          o.casos++;if(c.tipo==="Total")o.total++;else if(c.tipo==="Parcial")o.parcial++;
+          o.accion+=c.accion;o.impacto+=c.impacto;o.valor+=c.valor;
+          if(!o.razon&&c.razon)o.razon=c.razon;
+          if(c.prioridad_ord>o.prioridad_ord){o.prioridad_ord=c.prioridad_ord;o.prioridad=c.prioridad}
+        });
+        empMap.forEach((o,id)=>{const rg=regByEmp.get(id);
+          o.regPrev=rg?rg.casos.size:0;o.regHist=rg?rg.reg:0;o.regUltima=rg?rg.ultima:null;o.razon=o.razon||id});
+        const comp={Total:{casos:0,accion:0,valor:0,impacto:0,min:0,max:0},Parcial:{casos:0,accion:0,valor:0,impacto:0,min:0,max:0}};
+        noreg.forEach(c=>{const g=comp[c.tipo];if(!g)return;g.casos++;g.accion+=c.accion;g.valor+=c.valor;g.impacto+=c.impacto;g.min+=c.min;g.max+=c.max});
+        const empArr=[...empMap.values()];
+        const topEmp=empArr.slice().sort((a,b)=>b.accion-a.accion||b.impacto-a.impacto||b.regPrev-a.regPrev);
+        const ranking=noreg.slice().sort((a,b)=>b.accion-a.accion||b.impacto-a.impacto||b.prioridad_ord-a.prioridad_ord);
+        const sum=(arr,k)=>arr.reduce((s,c)=>s+c[k],0),allSum=k=>allCasos.reduce((s,c)=>s+c[k],0);
+        const empAntec=empArr.filter(o=>o.regPrev>0).length;
+        const kpi={
+          casosNR:noreg.length,accion:sum(noreg,"accion"),impacto:sum(noreg,"impacto"),valor:sum(noreg,"valor"),
+          empresas:empArr.length,nrTotal:noreg.filter(c=>c.tipo==="Total").length,nrParcial:noreg.filter(c=>c.tipo==="Parcial").length,
+          empAntec:empAntec,totCasos:allCasos.length,totAccion:allSum("accion"),totImpacto:allSum("impacto"),
+          totValor:allSum("valor"),totEmpresas:new Set(allCasos.map(c=>c.id_empresa)).size
+        };
+        return {kpi,topEmp,ranking,comp};
+      }
+
+      function renderKPIs(m){
+        const k=m.kpi;
+        const cards=[
+          {l:"Casos de no reg.",v:cnt(k.casosNR),c:"var(--gob-navy)",i:"doc",ctx:pctStr(k.casosNR,k.totCasos)+" del total"},
+          {l:"Monto estimado",v:money(k.accion),c:"var(--gob-emerald)",i:"dollar",ctx:pctStr(k.accion,k.totAccion)+" del estimado"},
+          {l:"Empresas",v:cnt(k.empresas),c:"var(--gob-wine)",i:"build",ctx:pctStr(k.empresas,k.totEmpresas)+" del total"},
+          {l:"No reg. total",v:cnt(k.nrTotal),c:"var(--gob-red)",i:"xcirc",ctx:pctStr(k.nrTotal,k.casosNR)+" de casos NR"},
+          {l:"No reg. parcial",v:cnt(k.nrParcial),c:"var(--gob-amber)",i:"pie",ctx:pctStr(k.nrParcial,k.casosNR)+" de casos NR"}
+        ];
+        kpirow.innerHTML=cards.map(c=>
+          `<article class="kpi" style="--accent:${c.c}">`+
+          `<span class="ktile"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7">${ICON[c.i]}</svg></span>`+
+          `<div class="kbody"><div class="kl">${esc(c.l)}</div><div class="kn" title="${esc(c.v)}">${esc(c.v)}</div><div class="kc">${esc(c.ctx)}</div></div></article>`).join("");
+        fitKN();
+      }
+      function textW(el,fs){const cs=getComputedStyle(el),s=document.createElement("span");
+        s.style.cssText="position:absolute;left:-9999px;top:0;visibility:hidden;white-space:nowrap;"+
+          "font-family:"+cs.fontFamily+";font-weight:"+cs.fontWeight+";letter-spacing:"+cs.letterSpacing+";font-size:"+fs+"px";
+        s.textContent=el.textContent;document.body.appendChild(s);const w=s.offsetWidth;s.remove();return w;}
+      function fitKN(){
+        kpirow.querySelectorAll(".kn").forEach(el=>{
+          el.style.fontSize="";const avail=el.clientWidth;if(!avail)return;
+          const base=parseFloat(getComputedStyle(el).fontSize)||28,nat=textW(el,100);if(!nat)return;
+          const fs=Math.min(base,Math.floor(100*(avail-1)/nat));el.style.fontSize=Math.max(11,fs)+"px";
+        });
+      }
+      function renderTop(m){
+        const d=m.topEmp.slice(0,10);
+        topNote.textContent="Mostrando "+d.length+" de "+m.topEmp.length+" empresas";
+        if(!d.length){topBody.innerHTML='<div class="mini">Sin empresas para los filtros seleccionados.</div>';return}
+        const mx=Math.max(1,...d.map(o=>o.accion));
+        let h='<table class="top-table"><thead><tr>'+
+          '<th class="l">Empresa</th>'+
+          '<th style="width:8%" title="Casos de no regularización">Casos</th>'+
+          '<th class="col-sec" style="width:9%" title="Total / Parcial">T / P</th>'+
+          '<th style="width:20%" title="Monto estimado">Estimado</th>'+
+          '<th style="width:14%">Prioridad</th></tr></thead><tbody>';
+        d.forEach((o,i)=>{const w=(o.accion/mx*100).toFixed(1);
+          h+='<tr>'+
+            `<td class="l" title="${esc(o.razon)}"><span class="rank">${i+1}</span><span class="emp">${esc(o.razon)}</span></td>`+
+            `<td class="mono">${cnt(o.casos)}</td>`+
+            `<td class="tp col-sec"><span class="t">${cnt(o.total)}</span><span class="s">/</span><span class="p">${cnt(o.parcial)}</span></td>`+
+            `<td class="amtcell"><span class="av mono">${money(o.accion)}</span><span class="abar"><i style="width:${w}%"></i></span></td>`+
+            `<td><span class="chip" style="background:${prioColor(o.prioridad)}">${esc(prioLabel(o.prioridad))}</span></td></tr>`;
+        });
+        topBody.innerHTML=h+'</tbody></table>';
+      }
+      function renderComp(m){
+        const c=m.comp;
+        const metrics=[{k:"casos",label:"Casos",fmt:cnt},
+          {k:"min",label:"Multa potencial mínima",fmt:money},
+          {k:"max",label:"Multa potencial máxima",fmt:money}];
+        let h='<div class="comp">';
+        metrics.forEach(mt=>{const t=c.Total[mt.k],p=c.Parcial[mt.k],mx=Math.max(t,p,1);
+          h+='<div class="cmetric"><div class="cmlabel">'+esc(mt.label)+'</div>'+
+            `<div class="cbar"><span class="cn" style="color:var(--gob-red)">Total</span><span class="ctrk"><i style="width:${(t/mx*100).toFixed(1)}%;background:var(--gob-red);color:var(--gob-red)"></i></span><span class="cv">${mt.fmt(t)}</span></div>`+
+            `<div class="cbar"><span class="cn" style="color:var(--gob-amber)">Parc.</span><span class="ctrk"><i style="width:${(p/mx*100).toFixed(1)}%;background:var(--gob-amber);color:var(--gob-amber)"></i></span><span class="cv">${mt.fmt(p)}</span></div></div>`;
+        });
+        compBody.innerHTML=h+'</div>';
+      }
+      function renderRank(m){
+        const d=m.ranking.slice(0,10);
+        rankNote.textContent="Top "+d.length+" por monto estimado";
+        if(!d.length){rankBody.innerHTML='<div class="mini">Sin casos para los filtros seleccionados.</div>';return}
+        let h='<table class="tcenter"><thead><tr>'+
+          '<th style="width:8%">ID caso</th>'+
+          '<th class="l">Empresa</th>'+
+          '<th class="col-sec" style="width:10%">Aduana</th>'+
+          '<th style="width:8%">Tipo NR</th>'+
+          '<th style="width:14%" title="Monto estimado">Estimado</th>'+
+          '<th class="col-ter" style="width:18%">Multa potencial</th>'+
+          '<th style="width:11%">Prioridad</th></tr></thead><tbody>';
+        d.forEach(c=>{
+          const tipo=c.tipo?`<span class="tag ${c.tipo==='Total'?'total':'parcial'}">${c.tipo}</span>`:'<span class="zero">—</span>';
+          h+=`<tr class="clk" data-id="${esc(c.id_caso)}" data-emp="${esc(c.id_empresa)}" data-rz="${esc(c.razon)}">`+
+            `<td><span class="idc">${esc(c.id_caso)}</span></td>`+
+            `<td class="l" title="${esc(c.razon)}"><span class="emp">${esc(c.razon||"—")}</span></td>`+
+            `<td class="col-sec">${esc(c.aduana||"—")}</td>`+
+            `<td>${tipo}</td>`+
+            `<td class="mono">${money(c.accion)}</td>`+
+            `<td class="col-ter mono mut">${money(c.min)} – ${money(c.max)}</td>`+
+            `<td><span class="chip" style="background:${prioColor(c.prioridad)}">${esc(prioLabel(c.prioridad))}</span></td></tr>`;
+        });
+        rankBody.innerHTML=h+'</tbody></table>';
+        rankBody.querySelectorAll("tr.clk").forEach(tr=>tr.onclick=()=>selectCaso(tr));
+        if(selCaso){const tr=rankBody.querySelector('tr.clk[data-id="'+(window.CSS&&CSS.escape?CSS.escape(selCaso):selCaso)+'"]');if(tr)tr.classList.add("sel")}
+      }
+      function selectCaso(tr){
+        const id_caso=tr.dataset.id,id_empresa=tr.dataset.emp,razon_social=tr.dataset.rz;selCaso=id_caso;
+        rankBody.querySelectorAll("tr.clk").forEach(x=>x.classList.toggle("sel",x===tr));
+        try{if(typeof onCasoSelect==="function")onCasoSelect({id_caso,id_empresa,razon_social})}catch(e){}
+        try{if(parent&&parent!==window)parent.postMessage({type:"IMM_NOREG_CASO_SELECT",id_caso,id_empresa,razon_social},"*")}catch(e){}
+      }
+
+      function showState(title,msg){dash.hidden=true;stateEl.hidden=false;
+        stateEl.innerHTML=`<div><div class="pulse"></div><strong>${esc(title)}</strong><span>${esc(msg)}</span></div>`}
+      function applyAndRender(){
+        const noreg=applyFilters();
+        const cn=$("fcount-n");if(cn)cn.textContent=noreg.length.toLocaleString("es-MX");
+        const m=buildModel(noreg);
+        renderKPIs(m);renderTop(m);renderComp(m);renderRank(m);
+        resize();
+      }
+      function render(){
+        if(!rows.length)return showState("Sin datos","No hay registros para los filtros seleccionados.");
+        const miss=missingCritical();
+        if(miss.length)return showState("Faltan variables críticas","Asigna desde PUBLIC.IMM_CENTRO: "+miss.join(", ")+".");
+        const sig=cols.length+"|"+rows.length;
+        parseData();
+        if(!noregAll.length)return showState("Sin casos de no regularización","No hay casos de no regularización para los filtros seleccionados.");
+        stateEl.hidden=true;dash.hidden=false;
+        if(sig!==dataSig){dataSig=sig;buildFilters()}
+        applyAndRender();
+      }
+
+      function resize(){
+        const b=app.getBoundingClientRect(),W=b.width,H=b.height;
+        const ultra=W<680||H<460;
+        const compact=!ultra&&(W<1200||H<680);
+        app.classList.toggle("ultra",ultra);
+        app.classList.toggle("compact",compact);
+        app.style.setProperty("--hTitleFs",(ultra?25:compact?29:33)+"px");
+        app.style.setProperty("--markSz",(ultra?37:47)+"px");
+        app.style.setProperty("--tileSz",(ultra?33:compact?35:37)+"px");
+        app.style.setProperty("--knFs",(ultra?33:compact?39:45)+"px");
+        app.style.setProperty("--klFs",(ultra?19:compact?22:23)+"px");
+        app.style.setProperty("--kcFs",(ultra?17:18)+"px");
+        app.style.setProperty("--titleFs",(ultra?22:compact?24:27)+"px");
+        app.style.setProperty("--pkickFs",(ultra?15:16.5)+"px");
+        app.style.setProperty("--thFs",(ultra?16.5:17.5)+"px");
+        app.style.setProperty("--tdFs",(ultra?19:compact?20.5:22)+"px");
+        app.style.setProperty("--selFs",(ultra?18.5:19.5)+"px");
+        app.style.setProperty("--flFs",(ultra?15.5:16.5)+"px");
+        if(kpirow.children.length)fitKN();
+      }
+
+      function receive(e){const p=payload(e&&e.data);if(!p)return;cols=p.columns||[];rows=p.data||[];render()}
+      function ready(){try{if(parent&&parent!==window){parent.postMessage({type:"ready"},"*");parent.postMessage({resultName:"ready"},"*");parent.postMessage("ready","*")}}catch(e){}}
+        $("clearBtn").onclick=()=>{
+    fstate={};
+    fbar.querySelectorAll("select").forEach(s=>{s.value="";const it=s.closest(".fitem");if(it)it.classList.remove("act")});
+    applyAndRender();
+  };
+      window.addEventListener("message",receive,false);
+      window.onmessage=receive;
+      ready();setTimeout(ready,120);setTimeout(ready,500);setTimeout(ready,1500);
+      new ResizeObserver(resize).observe(app);resize();
+      setTimeout(()=>{if(!rows.length)showState("No recibí datos de VA","Revisa que el objeto tenga las 28 variables asignadas y que reciba escenario NO_REG y REG_ESP (sin filtro global de escenario).")},5000);
+    })();
+    </script>
+    </body>
+    </html>

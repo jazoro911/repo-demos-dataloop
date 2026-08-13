@@ -1,0 +1,364 @@
+<!--
+    OBJETO: IMM_HEADER  (encabezado de la página "Centro de Control IMMEX")
+    FUENTE ESPERADA: PUBLIC.IMM_CENTRO  (opcional — sin datos muestra solo la marca)
+    Pensado para una banda ancha y baja (10–12% del alto de la página).
+    Marca, título y KPIs se escalan al alto de la banda para llenar el espacio.
+    VARIABLES OPCIONALES (para los KPIs de la derecha):
+    1 id_caso          Categoría  Sin agregación
+    2 mto_impacto      Medida     SUM
+    3 mto_accionable   Medida     SUM
+    -->
+    <!doctype html>
+    <html lang="es-MX">
+    <head>
+      <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>IMM_HEADER</title>
+    <style>
+      /* ============================================================
+         VARIABLES DE IDENTIDAD INSTITUCIONAL / GOBIERNO
+         ============================================================ */
+      :root {
+        --gob-navy: #0C2340;     /* Azul Institucional / Heráldico */
+        --gob-deep: #051122;     /* Azul Oscuro de Contraste */
+        --gob-gold: #9E7B3B;     /* Oro / Bronce de Estado */
+        --gob-emerald: #1E4620;  /* Verde Bandera / Aprobaciones */
+        --gob-red: #8C232C;      /* Guinda / Alertas Oficiales */
+        
+        --text: #1C2530;         /* Texto Principal Alta Legibilidad */
+        --muted: #4A5568;        /* Subtítulos y Metadatos */
+        --faint: #718096;        /* Etiquetas Secundarias */
+        --border: #CCD4E0;       /* Línea Divisoria Formal */
+        
+        /* CAMBIOS TIPOGRÁFICOS */
+        --ff-disp: "Calibri", Arial, sans-serif; /* Títulos Solemnes */
+        --ff-body: Arial, "Helvetica Neue", sans-serif; /* Cuerpo Técnico / Administrativo */
+        --mono: "Courier New", Courier, monospace;
+      }
+    
+      * {
+        box-sizing: border-box;
+      }
+    
+      html, body, #app {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+      }
+    
+      body {
+        background: transparent;
+        color: var(--text);
+        -webkit-font-smoothing: antialiased;
+      }
+    
+      #app {
+        padding: 0px;
+        height: 100%;
+        display: flex;
+        align-items: flex-start;
+      }
+    
+      /* --- BARRA PRINCIPAL (ESTILO MARCO OFICIAL) --- */
+    .bar {
+      position: relative;
+      width: 100%;
+      height:112px ; /* 👈 Cambiado de 100% a la variable dinámica */
+    
+      display: flex;
+      align-items: center; /* 👈 Asegura centrado vertical */
+      gap: 14px;
+      padding: 10px 20px; /* 👈 Quitamos padding superior/inferior para que dependa solo de align-items */
+      
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background:var(--gob-navy);
+      box-shadow: 0 2px 4px rgba(12, 35, 64, 0.06);
+      margin: 7px;
+    }
+    
+      /* Listón tricolor superior de Gobierno */
+      .bar:before {
+        border-radius: 4px;
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--gob-navy) 0%, var(--gob-navy) 40%, var(--gob-gold) 70%, var(--gob-emerald) 100%);
+      }
+      
+      /* Se remueve el pseudo-elemento :after con degradados "tech" innecesarios */
+      .bar:after {
+        display: none;
+      }
+    
+   /* --- ESCUDO / EMBLEMA CONTENEDOR --- */
+    .mark {
+        position: relative;
+        z-index: 1;
+        flex: 0 0 auto;
+        width: 42px;
+        height: 42px;
+        border-radius: 2px;
+        display: grid;
+        place-items: center;
+        background: var(--gob-deep);
+        border: 1px solid var(--gob-gold);
+    }
+
+    .mark svg {
+        width: 64%;
+        height: 64%;
+    }
+
+
+
+    /* Indicador de sistema activo modificado a modo sobrio fijo (sin animación) */
+    .live {
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--gob-gold);
+        box-shadow: 0 0 0 2px var(--gob-deep), 0 0 9px var(--gob-gold);
+        animation: pulse 1.9s ease-in-out infinite;
+    }
+    
+    /* --- SECCIÓN DE IDENTIFICACIÓN --- */
+    .id {
+        position: relative;
+        z-index: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        margin-top: 4px;
+    }
+
+    /* Código interno o folio */
+    .kick {
+        font-family: var(--ff-body);
+        font-size: 21px !important;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: var(--gob-gold);
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 0px !important;
+    }
+
+    /* Título principal solemne */
+    .title {
+        font-family: var(--ff-disp);
+        font-size: var(--hTitleFs, 35px) !important;
+        font-weight: 700;
+        letter-spacing: -.015em;
+        line-height: 1;
+        color: #fff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis
+    }
+
+    /* Subtítulo o dependencia */
+    .sub {
+        font-size: 24.5px !important;
+        color: #CCD4E0;
+        line-height: 1.05;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis
+    }
+
+    .spacer {
+        flex: 1 1 auto;
+        min-width: 6px;
+    }
+    
+      /* --- CONTENEDORES DE CIFRAS Y RENDIMIENTO (KPIS) --- */
+      .kpis {
+        position: relative;
+        z-index: 1;
+        flex: 0 0 auto;
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        padding-top: 2px;
+      }
+    
+      .kpi {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        text-align: right;
+        padding-left: 16px;
+        border-left: 1px solid var(--border);
+        min-width: 0;
+      }
+    
+      /* Cifras numéricas institucionales */
+      .kpi b {
+        font-family: var(--ff-body);
+        font-weight: 700;
+        font-size: 23px;
+        color: #ffffff;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+      }
+    
+      .kpi b.teal { 
+        color: #ffffff; 
+      }
+      
+      .kpi b.gold { 
+        color: #ffffff; 
+      }
+    
+      /* Etiquetas de los datos */
+      .kpi span {
+        font-size: 15px;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: #CCD4E0;
+        font-weight: 700;
+        white-space: nowrap;
+        margin-top: 2px;
+      }
+    
+      /* Reglas adaptativas */
+      .narrow .kpis {
+        display: none;
+      }
+    
+      .low .mark {
+        display: none;
+      }
+    
+      .low .bar {
+        padding: 8px 16px 4px;
+      }
+    
+      /* === Guinda 4T (Morena) + legibilidad === */
+      :root{--gob-navy:#611232;--gob-deep:#4A0E26;--gob-gold:#9E7B3B;--gob-emerald:#1E4620;--gob-red:#9F2241}
+      .sub{font-size:18.5px}
+    </style>
+    </head>
+    <body>
+    <main id="app"><section class="bar">
+      <div class="mark" id="mark">
+        <span class="live" aria-hidden="true"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.4"/>
+          <path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>
+          <circle class="blip" cx="15.6" cy="8.4" r="1.7" stroke="none"/>
+        </svg>
+      </div>
+      <div class="id">
+        <div class="kick" id="kick">Vigilancia de operaciones </div>
+        <div class="title" id="title">Centro de Control </div>
+        <div class="sub" id="subt">Aduanas de Tamaulipas · impacto económico, escenarios y focos de atención</div>
+      </div>
+      <div class="spacer"></div>
+      <div class="kpis" id="kpis"></div>
+    </section></main>
+    <script>
+    (function(){
+      "use strict";
+      const app=document.getElementById("app"), kpis=document.getElementById("kpis"),
+        markEl=document.getElementById("mark"), kickEl=document.getElementById("kick"),
+        titleEl=document.getElementById("title"), subEl=document.getElementById("subt");
+      let rows=[],cols=[],lastSig="";
+      const order={id_caso:0,mto_impacto:1,mto_accionable:2};
+      function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+      function payload(x){if(typeof x==="string"){try{x=JSON.parse(x)}catch(e){return null}}for(const p of [x,x&&x.data,x&&x.payload,x&&x.detail])if(p&&Array.isArray(p.columns)&&Array.isArray(p.data))return p;return null}
+      function cell(v){return v&&typeof v==="object"?("value" in v?v.value:("formattedValue" in v?v.formattedValue:("label" in v?v.label:v))):v}
+      function norm(v){return String(v==null?"":v).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"")}
+      function cname(c){return norm(c&&(c.name||c.label||c.id||c.columnName||c.displayName||c.variableName)||c)}
+      function idx(name){const n=norm(name);const i=cols.findIndex(c=>cname(c)===n);if(i>=0)return i;const j=cols.findIndex(c=>cname(c).includes(n)||n.includes(cname(c)));return j>=0?j:order[name]}
+      function val(r,name){const i=idx(name);return Array.isArray(r)&&i!=null&&i>=0?cell(r[i]):cell(r&&r[name])}
+      function num(v){v=cell(v);if(v==null||v==="")return 0;if(typeof v==="number")return isFinite(v)?v:0;const n=Number(String(v).replace(/[$,%\s]/g,"").replace(/,/g,""));return isFinite(n)?n:0}
+      function money(n){n=num(n);const a=Math.abs(n);if(a>=1e9)return "$"+(n/1e9).toFixed(1)+" mil M";if(a>=1e6)return "$"+(n/1e6).toFixed(1)+" M";if(a>=1e3)return "$"+(n/1e3).toFixed(0)+" mil";return "$"+Math.round(n)}
+      function totals(){
+        const t={casos:new Set(),impacto:0,accion:0,hasMeasures:false};
+        const byCaso=new Map();
+        rows.forEach(r=>{const c=String(val(r,"id_caso")||"").trim();if(c){t.casos.add(c);if(!byCaso.has(c))byCaso.set(c,r);}});
+        const src=byCaso.size?[...byCaso.values()]:rows;
+        src.forEach(r=>{const im=num(val(r,"mto_impacto")),ac=num(val(r,"mto_accionable"));if(im||ac)t.hasMeasures=true;t.impacto+=im;t.accion+=ac;});
+        if(!t.casos.size)src.forEach((_,i)=>t.casos.add(String(i+1)));
+        return t;
+      }
+      function render(){
+        if(!rows.length){kpis.innerHTML="";return}
+        const t=totals();
+        if(!t.hasMeasures&&!t.casos.size){kpis.innerHTML="";return}
+        kpis.innerHTML=
+          `<div class="kpi"><b>${t.casos.size.toLocaleString("es-MX")}</b><span>Casos</span></div>`+
+          `<div class="kpi"><b class="teal">${money(t.impacto)}</b><span>Impacto</span></div>`+
+          `<div class="kpi"><b class="gold">${money(t.accion)}</b><span>Accionable</span></div>`;
+      }
+      function size(){
+        const b=app.getBoundingClientRect(), H=b.height, W=b.width, Hin=Math.max(24,H-4);
+        const targetH=Math.min(Hin,88);
+        app.style.setProperty("--barH",targetH.toFixed(0)+"px");
+        const low=targetH<52;
+        app.classList.toggle("low",low);
+        const mk=Math.round(Math.min(targetH*0.68,42));
+        markEl.style.width=markEl.style.height=mk+"px";
+        markEl.style.borderRadius=Math.round(mk*0.26)+"px";
+        titleEl.style.fontSize=Math.max(23,Math.min(targetH*(low?0.52:0.46),37)).toFixed(1)+"px";
+        const showKick=!low&&targetH>=56&&W>=560, showSub=true;
+        kickEl.style.display=showKick?"":"none";
+        kickEl.style.fontSize=Math.max(16,Math.min(targetH*0.185,18.5)).toFixed(1)+"px";
+        kickEl.style.marginBottom=showKick?"1px":"0";
+        subEl.style.display=showSub?"":"none";
+        subEl.style.fontSize=Math.max(15,Math.min(Hin*0.11,16.5)).toFixed(1)+"px";
+        subEl.style.marginTop=showSub?"2px":"0";
+        
+        // ⬇️ AJUSTE AQUÍ: Reducimos sutilmente los multiplicadores para evitar el espacio inferior
+        kpis.style.setProperty("--kf",Math.max(21,Math.min(targetH*(low?0.44:0.42),32)).toFixed(1)+"px");
+        kpis.style.setProperty("--klf",Math.max(14,Math.min(targetH*0.155,16)).toFixed(1)+"px");
+        kpis.style.setProperty("--kgap","1px");
+        
+        app.classList.toggle("narrow",W<620||targetH<38);
+        fitK();
+    }
+      // Reduce los KPIs si su ancho excede la banda, para que nunca se recorten.
+      function fitK(){
+        const barEl=document.querySelector(".bar");
+        if(!barEl||!kpis.children.length)return;
+        let fs=parseFloat(getComputedStyle(kpis).getPropertyValue("--kf"))||27, guard=0;
+        while(guard++<40){
+          const barRight=barEl.getBoundingClientRect().right-14;
+          if(kpis.getBoundingClientRect().right<=barRight+1||fs<=19)break;
+          fs-=1; kpis.style.setProperty("--kf",fs.toFixed(1)+"px");
+        }
+      }
+      function resize(){
+    const b=app.getBoundingClientRect(),W=b.width,H=b.height,ultra=W<720||H<500,compact=!ultra&&(W<1250||H<720);
+    app.classList.toggle("ultra",ultra);app.classList.toggle("compact",compact);
+    app.style.setProperty("--hTitleFs",(ultra?26:compact?29:33)+"px");
+    app.style.setProperty("--tileSz",(ultra?30:compact?34:36)+"px");
+    app.style.setProperty("--knFs",(ultra?33:compact?39:45)+"px");
+    app.style.setProperty("--klFs",(ultra?19:compact?22:23)+"px");
+    app.style.setProperty("--kcFs",(ultra?17:18)+"px");
+    app.style.setProperty("--titleFs",(ultra?22:compact?24:27)+"px");
+    app.style.setProperty("--pkickFs",(ultra?15:16.5)+"px");
+    app.style.setProperty("--thFs",(ultra?16.5:17.5)+"px");
+    app.style.setProperty("--tdFs",(ultra?19:compact?20.5:22)+"px");
+    if(kpirow.children.length)fitKN();
+  }
+
+      const st=document.createElement("style");
+      st.textContent=".kpi b{font-size:var(--kf,27px)}.kpi span{font-size:var(--klf,14px);margin-top:var(--kgap,3px)}";
+      document.head.appendChild(st);
+      window.addEventListener("message",e=>{const p=payload(e.data);if(!p)return;const sig=JSON.stringify(p.data);if(sig===lastSig)return;lastSig=sig;cols=p.columns||[];rows=p.data||[];render();size()},false);
+      new ResizeObserver(size).observe(app);size();
+    })();
+    </script>
+    </body>
+    </html>
