@@ -1391,6 +1391,8 @@
             var ESPACIO = 150;  // separación horizontal entre tarjetas (px)
             var VELOCIDAD = 30; // px por segundo
             var ALTO_ARCO = 46; // qué tanto se eleva el centro del arco (px)
+            var BOOST_FACTOR = 14;   // multiplicador de velocidad al perseguir un objeto
+            var MARGEN_VISIBLE = 0.12; // % del ancho considerado "fuera de rango" en los bordes (coincide con el fundido del contenedor)
 
             var contenedor = document.getElementById('arco-objetos');
             var pista = document.getElementById('arco-objetos-pista');
@@ -1400,6 +1402,7 @@
             var anchoContenedor = 0;
             var anchoTotal = 0;
             var ultimoTick = null;
+            var boostObjetivo = null; // id del objeto que el carrusel está persiguiendo para traerlo a la vista
 
             function construirPista() {
                 anchoContenedor = contenedor.offsetWidth;
@@ -1440,16 +1443,28 @@
                 anchoTotal = totalTarjetas * ESPACIO;
             }
 
+            function estaEnRangoVisible(idObjeto) {
+                var margen = anchoContenedor * MARGEN_VISIBLE;
+                for (var i = 0; i < tarjetas.length; i++) {
+                    var t = tarjetas[i];
+                    if (t.el.dataset.objeto === idObjeto && t.x >= margen && t.x <= anchoContenedor - margen) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
             function animar(tiempo) {
                 if (ultimoTick === null) ultimoTick = tiempo;
                 var dt = (tiempo - ultimoTick) / 1000;
                 ultimoTick = tiempo;
 
+                var velocidad = boostObjetivo ? VELOCIDAD * BOOST_FACTOR : VELOCIDAD;
                 var mitad = anchoContenedor / 2;
 
                 for (var i = 0; i < tarjetas.length; i++) {
                     var t = tarjetas[i];
-                    t.x += VELOCIDAD * dt;
+                    t.x += velocidad * dt;
                     if (t.x > anchoContenedor + ESPACIO) {
                         t.x -= anchoTotal;
                     }
@@ -1461,6 +1476,12 @@
                     t.el.style.transform = 'translate(' + t.x + 'px,' + y + 'px)';
                 }
 
+                // Si estábamos acelerando para traer un objeto a la vista y ya
+                // entró en el rango visible, volvemos a la velocidad normal.
+                if (boostObjetivo && estaEnRangoVisible(boostObjetivo)) {
+                    boostObjetivo = null;
+                }
+
                 requestAnimationFrame(animar);
             }
 
@@ -1468,6 +1489,17 @@
                 var seleccionados = pista.querySelectorAll('.objeto-arco[data-objeto="' + idObjeto + '"] .objeto-arco-card');
                 for (var i = 0; i < seleccionados.length; i++) {
                     seleccionados[i].classList.toggle('seleccionado', activar);
+                }
+
+                if (activar) {
+                    // Si el objeto seleccionado ya está visible en el carrusel, no
+                    // hace falta nada más (solo se agranda vía .seleccionado).
+                    // Si no está visible, aceleramos hasta que aparezca.
+                    if (!estaEnRangoVisible(idObjeto)) {
+                        boostObjetivo = idObjeto;
+                    }
+                } else if (boostObjetivo === idObjeto) {
+                    boostObjetivo = null;
                 }
             };
 
