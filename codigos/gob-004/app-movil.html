@@ -1,0 +1,755 @@
+<!--
+    OBJETO: IMM_EJECUTIVO  (Resumen ejecutivo móvil — "celular virtual")
+    FUENTE: PUBLIC.IMM_CENTRO
+-->
+<!doctype html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IMM · Resumen Ejecutivo</title>
+<style>
+  :root{
+    --guinda:#611232;--guinda-deep:#45091f;--guinda-vivo:#9F2241;--vino:#7A1834;
+    --gold:#9E7B3B;--gold-lt:#C6A15B;--rosa:#B4015E;
+    --app:#F2F1F4;--card:#FFFFFF;--ink:#241019;--muted:#6B5560;--faint:#9A8A91;--line:#E9E3E6;
+    --ff:"Inter","Segoe UI",system-ui,-apple-system,"Montserrat",Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;width:100%;overflow:hidden;font-family:var(--ff)}
+  body{background:radial-gradient(1200px 700px at 20% -10%,#3a2530 0%,transparent 55%),linear-gradient(160deg,#2c1c25 0%,#1a1016 60%,#120a0e 100%);display:grid;place-items:center;color:var(--ink)}
+
+  .stage{height:100vh;width:100vw;display:grid;place-items:center;padding:10px;overflow:hidden}
+  .phone{position:relative;aspect-ratio:500/944;height:min(96vh,860px,calc(96vw * 2.164));max-width:100vw;flex:0 0 auto;background:#0a0a0d;border-radius:52px;padding:12px;
+    box-shadow:0 2px 4px rgba(0,0,0,.4),0 40px 90px -30px rgba(0,0,0,.85),inset 0 0 0 2px #26262c,inset 0 0 0 6px #0a0a0d;}
+  .screen{position:relative;height:100%;width:100%;border-radius:42px;overflow:hidden;background:var(--app);display:flex;flex-direction:column;isolation:isolate}
+  .island{position:absolute;top:16px;left:50%;transform:translateX(-50%);width:110px;height:30px;background:#000;border-radius:20px;z-index:40;box-shadow:0 1px 2px rgba(0,0,0,.5)}
+
+  .topwrap{flex:0 0 auto;position:relative;color:#fff;z-index:5;border-radius:42px 42px 0 0;
+    background:radial-gradient(130% 100% at 12% 0%,#7a1a3c 0%,var(--guinda) 46%,var(--guinda-deep) 100%);
+    box-shadow:0 10px 22px -14px rgba(69,9,31,.9)}
+  .statusbar{height:52px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 26px 4px 30px;color:#fff;font-weight:700;font-size:19px}
+  .statusbar .sig{display:flex;align-items:center;gap:6px}.statusbar svg{display:block}
+
+  .appbar{position:relative;padding:4px 20px 15px}
+  .hbrand{font-size:15.5px;letter-spacing:.16em;text-transform:uppercase;color:#E7C9A0;font-weight:800;display:flex;align-items:center;gap:10px}
+  .htitle{font-size:28px;font-weight:800;letter-spacing:-.02em;margin-top:2px;display:flex;align-items:center;gap:9px}
+  .htitle .live{width:8px;height:8px;border-radius:50%;background:#F2C9A0;box-shadow:0 0 0 3px rgba(242,201,160,.28);animation:pulse 1.8s infinite}
+  @keyframes pulse{50%{opacity:.4}}
+
+  .hmeta{display:flex;align-items:center;justify-content:space-between;margin-top:10px;gap:8px}
+  .hcorte{font-size:17.5px;color:#F0DCC4;font-weight:600;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hcorte b{color:#fff;font-weight:800}
+
+  .user-circle-phone {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--ff);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .03em;
+    border: 2px solid #d1d5db;
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 50%, #9ca3af 100%);
+    color: #1f2937;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,.1),
+                0 2px 4px -1px rgba(0,0,0,.06),
+                inset 0 2px 3px rgba(255,255,255,.8),
+                inset 0 -2px 3px rgba(0,0,0,.15);
+    flex-shrink: 0;
+    cursor: default;
+    user-select: none;
+  }
+  .user-circle-phone.admin {
+    background: linear-gradient(135deg,#4a0e26 0%,#611232 60%,#7a1a3c 100%);
+    color: #F0DCC4;
+    border-color: rgba(198,161,91,.6);
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,.25),
+                inset 0 2px 3px rgba(255,255,255,.15),
+                inset 0 -2px 3px rgba(0,0,0,.3);
+  }
+
+  .dlbtn{width:36px;height:36px;border-radius:12px;border:1px solid rgba(231,201,160,.5);background:rgba(255,255,255,.12);display:grid;place-items:center;cursor:pointer;transition:.18s;color:#fff;flex-shrink:0}
+  .dlbtn:hover{background:rgba(231,201,160,.22)}.dlbtn:active{transform:scale(.9)}
+  .dlbtn svg{width:19px;height:19px;stroke:#F0DCC4;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .ptrbar{position:absolute;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--gold),var(--gold-lt));z-index:9;opacity:0;transition:width .45s ease,opacity .3s;border-radius:0 3px 3px 0}
+  .ptrbar.on{opacity:1;width:100%}
+
+  .content{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:14px 15px 92px;-webkit-overflow-scrolling:touch}
+  .content::-webkit-scrollbar{width:0}
+  .view{display:none;animation:fade .28s ease}.view.on{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .sec-h{display:flex;align-items:baseline;justify-content:space-between;margin:16px 2px 9px}
+  .sec-h:first-child{margin-top:2px}
+  .sec-h h2{font-size:20px;font-weight:800;color:var(--ink);margin:0;letter-spacing:-.01em}
+  .sec-h .cta,.sec-h span{font-size:16px;font-weight:700;color:var(--faint)}
+
+  .chips{display:flex;gap:7px;overflow-x:auto;padding:1px 0 5px;margin-bottom:2px;-webkit-overflow-scrolling:touch}
+  .chips::-webkit-scrollbar{height:0}
+  .chips button{flex:0 0 auto;border:1px solid var(--line);background:#fff;color:var(--muted);font:800 12px var(--ff);padding:8px 15px;border-radius:999px;cursor:pointer;transition:.15s;white-space:nowrap}
+  .chips button:active{transform:scale(.96)}
+  .chips button.on{background:var(--guinda);color:#fff;border-color:var(--guinda);box-shadow:0 6px 14px -8px var(--guinda)}
+
+  .recaud{background:linear-gradient(160deg,#7a1a3c 0%,var(--guinda) 55%,var(--guinda-deep) 100%);border-radius:22px;padding:17px 18px 16px;color:#fff;position:relative;overflow:hidden;
+    box-shadow:0 18px 34px -22px rgba(69,9,31,.9)}
+  .recaud:before{content:"";position:absolute;right:-30px;top:-30px;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,rgba(198,161,91,.28),transparent 70%)}
+  .rc-top{display:flex;align-items:center;justify-content:space-between}
+  .rc-lab{font-size:17px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#F0D6BE}
+.rc-pct {
+  /* 1. Forzar comportamiento en bloque alineado */
+  display: inline-block !important;
+  text-align: center !important;
+  
+  /* 2. Controlar la altura de línea para centrado vertical perfecto */
+  line-height: 1 !important;
+  vertical-align: middle !important;
+  
+  /* Tus estilos originales */
+  font-size: 18px;
+  font-weight: 800;
+  background: rgba(198,161,91,.22);
+  border: 1px solid rgba(198,161,91,.5);
+  border-radius: 999px;
+  padding: 6px 14px; /* Ajustado ligeramente el padding */
+  color: #F4DBB6;
+}
+  .rc-big{font-size:45px;font-weight:850;letter-spacing:-.02em;line-height:1;margin-top:8px;font-variant-numeric:tabular-nums}
+  .rc-bar{height:10px;border-radius:6px;background:rgba(255,255,255,.18);overflow:hidden;margin-top:13px}
+  .rc-bar>i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,var(--gold),var(--gold-lt));transition:width .7s cubic-bezier(.22,1,.36,1)}
+  .rc-foot{display:flex;justify-content:space-between;margin-top:9px;font-size:17px;font-weight:600;color:#F0D6BE}
+  .rc-foot b{color:#fff;font-weight:800}
+
+  .kgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:11px}
+  .kcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px 14px;position:relative;overflow:hidden}
+  .kcard:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--c,var(--guinda))}
+  .kcard .kl{font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .kcard .kn{font-size:27px;font-weight:850;color:var(--ink);margin-top:5px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+  .kcard .kc{font-size:16px;color:var(--faint);font-weight:600;margin-top:4px}
+
+  .foco{position:relative;display:flex;gap:12px;align-items:center;border-radius:16px;padding:13px 14px;margin-bottom:10px;cursor:pointer;overflow:hidden;transition:.15s;
+    background:color-mix(in srgb,var(--c) 8%,#fff);border:1px solid color-mix(in srgb,var(--c) 26%,var(--line))}
+  .foco:active{transform:scale(.99)}
+  .foco:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--c)}
+  .foco .fic{flex:0 0 auto;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:#fff;border:1px solid color-mix(in srgb,var(--c) 30%,var(--line))}
+  .foco .fic svg{width:20px;height:20px;stroke:var(--c);fill:none;stroke-width:1.9}
+  .foco .ftx{min-width:0;flex:1}
+  .foco .fh{font-size:18.5px;font-weight:700;color:var(--ink);line-height:1.28}
+  .foco .fh b{color:var(--c);font-weight:850}
+  .foco .fc{font-size:16.5px;font-weight:800;color:var(--c);margin-top:3px;display:flex;align-items:center;gap:4px;text-transform:uppercase;letter-spacing:.02em}
+
+  .bars{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 15px}
+  .brow{margin-bottom:13px}.brow:last-child{margin-bottom:0}
+  .btop{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;gap:8px}
+  .bname{font-size:18px;font-weight:750;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+  .bval{font-size:17.5px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;flex:0 0 auto}
+  .bval small{font-weight:700;color:var(--faint);font-size:16px}
+  .btrack{height:12px;border-radius:6px;background:#EEE7EA;overflow:hidden}
+  .btrack>i{display:block;height:100%;border-radius:6px;transition:width .55s cubic-bezier(.22,1,.36,1)}
+  .btrack.clk{cursor:pointer}
+
+  .num4{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px}
+  .ncard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px 14px}
+  .ncard .l{font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:var(--muted)}
+  .ncard .v{font-size:28px;font-weight:850;margin-top:5px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+
+  .headline{background:linear-gradient(160deg,var(--guinda-vivo),var(--guinda) 70%);color:#fff;border-radius:20px;padding:16px 17px;margin-bottom:13px;position:relative;overflow:hidden}
+  .headline:before{content:"";position:absolute;right:-24px;bottom:-30px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.12),transparent 70%)}
+  .headline .hl-n{font-size:39px;font-weight:850;line-height:1;font-variant-numeric:tabular-nums}
+  .headline .hl-t{font-size:18px;font-weight:600;color:#F0DCC4;margin-top:6px;line-height:1.3}
+  .headline .hl-t b{color:#fff;font-weight:800}
+
+  .rank{display:flex;flex-direction:column;gap:9px}
+  .ritem{display:grid;grid-template-columns:30px 1fr auto;gap:11px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 13px;cursor:pointer;transition:.15s}
+  .ritem:active{transform:scale(.985);background:#FBF8F9}
+  .rpos{font-family:var(--mono);font-weight:800;font-size:20px;color:var(--gold);text-align:center}
+  .rmid{min-width:0}
+  .rname{font-size:19px;font-weight:750;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rmeta{font-size:16.5px;color:var(--faint);font-weight:600;margin-top:2px}
+  .rright{text-align:right;flex:0 0 auto}.ramt{font-size:19.5px;font-weight:850;color:var(--guinda);font-variant-numeric:tabular-nums}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:.02em}
+  .pill.alta{color:#fff;background:var(--guinda-vivo)}.pill.media{color:#7a5200;background:#F7ECD2}.pill.baja{color:#611232;background:#F3E6EC}
+
+  .tabbar{position:absolute;left:12px;right:12px;bottom:12px;height:66px;background:rgba(255,255,255,.95);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:22px;display:grid;grid-template-columns:repeat(4,1fr);box-shadow:0 10px 30px -12px rgba(69,9,31,.4);z-index:30}
+  .tab{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--faint);font:800 9.5px var(--ff);cursor:pointer;letter-spacing:.01em}
+  .tab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9}
+  .tab.on,.tab.on svg{color:var(--guinda);stroke:var(--guinda)}
+
+  .backdrop{position:absolute;inset:0;background:rgba(36,16,25,.44);opacity:0;pointer-events:none;transition:.25s;z-index:50}
+  .backdrop.on{opacity:1;pointer-events:auto}
+  .sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:26px 26px 0 0;z-index:51;transform:translateY(102%);transition:transform .34s cubic-bezier(.22,1,.36,1);padding:10px 18px 22px;max-height:82%;overflow-y:auto}
+  .sheet.on{transform:none}
+  .grip{width:42px;height:5px;border-radius:3px;background:#D9CDD2;margin:2px auto 12px}
+  .sh-name{font-size:24px;font-weight:850;color:var(--guinda-deep);letter-spacing:-.01em}
+  .sh-tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+  .sh-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}
+  .sh-cell{background:var(--app);border:1px solid var(--line);border-radius:14px;padding:11px 13px}
+  .sh-cell .l{font-size:15.5px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:var(--muted)}
+  .sh-cell .v{font-size:23px;font-weight:850;color:var(--ink);margin-top:3px;font-variant-numeric:tabular-nums}
+  .sh-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+  .btn{border:0;border-radius:14px;padding:14px;font:800 13.5px var(--ff);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:.15s}
+  .btn:active{transform:scale(.97)}.btn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2}
+  .btn.primary{background:var(--guinda);color:#fff;grid-column:span 2}
+  .btn.ghost{background:var(--app);color:var(--ink);border:1px solid var(--line)}
+  .toast{position:absolute;left:50%;bottom:92px;transform:translate(-50%,20px);background:#241019;color:#fff;padding:12px 18px;border-radius:14px;font-size:18px;font-weight:700;opacity:0;pointer-events:none;transition:.28s;z-index:60;box-shadow:0 12px 30px -8px rgba(0,0,0,.6);max-width:80%;text-align:center}
+  .toast.on{opacity:1;transform:translate(-50%,0)}
+  .homebar{position:absolute;left:50%;bottom:7px;transform:translateX(-50%);width:130px;height:5px;border-radius:3px;background:#0a0a0d;z-index:41;opacity:.55}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="phone">
+    <div class="island"></div>
+    <div class="screen">
+      <div class="ptrbar" id="ptrbar"></div>
+      <div class="topwrap">
+        <div class="statusbar">
+          <span id="clock">9:41</span>
+          <span class="sig">
+            <svg width="18" height="12" viewBox="0 0 18 12"><g fill="#fff"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="4.5" width="3" height="7.5" rx="1"/><rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1" opacity=".4"/></g></svg>
+            <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><path d="M8.5 3.2c2.2 0 4.2.8 5.7 2.2M8.5 3.2c-2.2 0-4.2.8-5.7 2.2M8.5 6.8c1.2 0 2.3.5 3.1 1.2M8.5 6.8c-1.2 0-2.3.5-3.1 1.2" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><circle cx="8.5" cy="10.4" r="1.1" fill="#fff"/></svg>
+            <svg width="26" height="12" viewBox="0 0 26 12"><rect x="1" y="1" width="21" height="10" rx="3" fill="none" stroke="#fff" stroke-opacity=".55"/><rect x="3" y="3" width="15" height="6" rx="1.5" fill="#fff"/><rect x="23" y="4" width="2" height="4" rx="1" fill="#fff" fill-opacity=".7"/></svg>
+          </span>
+        </div>
+        <header class="appbar">
+          <div class="hbrand">Centro de Control IMMEX
+             <b class="user-circle-phone admin" id="phoneUserCircle" title="Administrador">A</b>
+          </div>
+          <div class="htitle"><span class="live"></span>Resumen Ejecutivo</div>
+          <div class="hmeta">
+            <div class="hcorte">Fecha de corte · <b id="corte">—</b></div>
+            <button class="dlbtn" id="dl" title="Descargar informe ejecutivo" aria-label="Descargar informe"><svg viewBox="0 0 24 24"><path d="M12 3v11M8 11l4 4 4-4"/><path d="M5 20h14"/></svg></button>
+          </div>
+        </header>
+      </div>
+      <main class="content" id="content">
+        <section class="view on" id="v-home"></section>
+        <section class="view" id="v-recaud"></section>
+        <section class="view" id="v-conc"></section>
+        <section class="view" id="v-emp"></section>
+      </main>
+      <nav class="tabbar" id="tabbar">
+        <button class="tab on" data-view="home"><svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>Resumen</button>
+        <button class="tab" data-view="recaud"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M14.5 9.2C14 8.3 13 8 12 8c-1.5 0-2.5.8-2.5 1.9 0 2.6 5 1.4 5 4.1 0 1.1-1 2-2.5 2-1.1 0-2.1-.4-2.6-1.3"/></svg>Recaudación</button>
+        <button class="tab" data-view="conc"><svg viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>Concentración</button>
+        <button class="tab" data-view="emp"><svg viewBox="0 0 24 24"><path d="M4 21V6l8-3v18M12 9h8v12"/><path d="M8 9v.01M8 13v.01M8 17v.01M16 13v.01M16 17v.01"/></svg>Empresas</button>
+      </nav>
+      <div class="backdrop" id="backdrop"></div>
+      <div class="sheet" id="sheet"></div>
+      <div class="toast" id="toast"></div>
+      <div class="homebar"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const $=id=>document.getElementById(id);
+  let rows=[],cols=[],model=null;
+  const state={view:"home",recaudDim:"esc",concDim:"aduana",empSort:"accion"};
+  const order={id_caso:0,id_empresa:1,razon_social:2,fecha_caso:3,periodo:4,escenario:5,escenario_desc:6,subescenario:7,subesc_desc:8,aduana:9,tipo_aduana:10,sector:11,municipio:12,severidad:13,severidad_ord:14,prioridad:15,prioridad_ord:16,nivel_certeza:17,valor_afect:18,mto_impacto:19,mto_accionable:20,mto_regularizado:21,mto_revision:22,multa_min:23,multa_max:24,flag_ieps:25,flag_efos:26,flag_clas_incor:27};
+  const ESC={NO_REG:{d:"No regularización",c:"var(--guinda-vivo)"},REG_ESP:{d:"Regularización espontánea",c:"var(--guinda)"},RET_SIM:{d:"Retornos simulados",c:"var(--vino)"},CLAS_IEPS:{d:"Clasificación / IEPS",c:"var(--gold)"}};
+  const ICON={pin:'<path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/>',
+    build:'<path d="M4 21V6l8-3v18M12 9h8v12"/><path d="M8 9v.01M8 13v.01M8 17v.01M16 13v.01M16 17v.01"/>',
+    alert:'<path d="M12 3 22 20H2z"/><path d="M12 9v5M12 17.5v.2"/>',
+    flag:'<path d="M5 21V4"/><path d="M5 5h12l-2 4 2 4H5"/>',
+    money:'<circle cx="12" cy="12" r="9"/><path d="M12 7v10M14.5 9.2C14 8.3 13 8 12 8c-1.5 0-2.5.8-2.5 1.9 0 2.6 5 1.4 5 4.1 0 1.1-1 2-2.5 2-1.1 0-2.1-.4-2.6-1.3"/>'};
+
+  function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+  function cell(v){return v&&typeof v==="object"?("value" in v?v.value:("formattedValue" in v?v.formattedValue:("label" in v?v.label:v))):v}
+  function norm(v){return String(v==null?"":v).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]/g,"")}
+  function cname(c){return norm(c&&(c.name||c.label||c.id||c.columnName||c.displayName||c.variableName)||c)}
+  function idx(n){const k=norm(n);let i=cols.findIndex(c=>cname(c)===k);if(i>=0)return i;i=cols.findIndex(c=>{const cn=cname(c);return cn&&(cn.includes(k)||k.includes(cn))});return i>=0?i:(order[n]!=null?order[n]:-1)}
+  function val(r,n){const i=idx(n);return Array.isArray(r)&&i>=0?cell(r[i]):cell(r&&r[n])}
+  function num(v){v=cell(v);if(v==null||v==="")return 0;if(typeof v==="number")return isFinite(v)?v:0;const n=Number(String(v).replace(/[$,%\s]/g,"").replace(/,/g,""));return isFinite(n)?n:0}
+  function txt(r,n){const v=cell(val(r,n));return v==null?"":String(v).trim()}
+  function money(n){n=num(n);const a=Math.abs(n);if(a>=1e9)return "$"+(n/1e9).toFixed(1)+" mil M";if(a>=1e6)return "$"+(n/1e6).toFixed(1)+" M";if(a>=1e3)return "$"+(n/1e3).toFixed(0)+" mil";return "$"+Math.round(n).toLocaleString("es-MX")}
+  function cnt(n){return Number(n||0).toLocaleString("es-MX")}
+  function pct(p,t){t=num(t);return t?Math.max(0,num(p)/t*100):0}
+  function pctTxt(p,t){return pct(p,t).toFixed(1)+"%"}
+  function parseDate(v){v=cell(v);if(v==null||v==="")return null;if(v instanceof Date)return isNaN(v)?null:v;if(typeof v==="number"){if(v>3000&&v<80000)return new Date(Date.UTC(1960,0,1)+v*864e5);const d=new Date(v);return isNaN(d)?null:d}const d=new Date(String(v));return isNaN(d)?null:d}
+  function fmtDate(d){
+  const fecha = d || new Date();
+  return fecha.toLocaleDateString("es-MX",{day:"numeric",month:"short",year:"numeric"}).replace(".","");
+}
+  function whichEsc(v){const s=norm(v);if(s.includes("noreg"))return"NO_REG";if(s.includes("regesp"))return"REG_ESP";if(s.includes("retsim"))return"RET_SIM";if(s.includes("clas")||s.includes("ieps"))return"CLAS_IEPS";return String(cell(v)||"OTRO").toUpperCase()}
+  function prioTier(p,o){const s=norm(p);if(s.includes("crit")||s.includes("alta")||num(o)>=3)return"alta";if(s.includes("media")||s.includes("medio")||num(o)===2)return"media";return"baja"}
+
+  function build(){
+    const map=new Map();
+    rows.forEach(r=>{const id=txt(r,"id_caso");if(!id||map.has(id))return;
+      map.set(id,{id:id,emp:txt(r,"id_empresa")||("__"+id),razon:txt(r,"razon_social")||"—",fecha:parseDate(val(r,"fecha_caso")),
+        esc:whichEsc(val(r,"escenario")),aduana:txt(r,"aduana")||"Sin aduana",municipio:txt(r,"municipio")||"Sin municipio",sector:txt(r,"sector")||"Sin sector",
+        prioridad:txt(r,"prioridad")||"—",prio_ord:num(val(r,"prioridad_ord")),
+        impacto:num(val(r,"mto_impacto")),accion:num(val(r,"mto_accionable")),reg:num(val(r,"mto_regularizado")),
+        valor:num(val(r,"valor_afect")),efos:num(val(r,"flag_efos"))>0});
+    });
+    const cases=[...map.values()],sum=(a,k)=>a.reduce((s,c)=>s+c[k],0);
+    function group(key){const m=new Map();cases.forEach(c=>{const g=c[key];let o=m.get(g);if(!o){o={name:g,casos:0,impacto:0,accion:0,reg:0};m.set(g,o)}o.casos++;o.impacto+=c.impacto;o.accion+=c.accion;o.reg+=c.reg});return [...m.values()]}
+    const escM=new Map(),empM=new Map();
+    cases.forEach(c=>{
+      let e=escM.get(c.esc);if(!e){e={esc:c.esc,casos:0,impacto:0,accion:0,reg:0};escM.set(c.esc,e)}e.casos++;e.impacto+=c.impacto;e.accion+=c.accion;e.reg+=c.reg;
+      let m=empM.get(c.emp);if(!m){m={emp:c.emp,razon:c.razon,casos:0,impacto:0,accion:0,reg:0,valor:0,prio_ord:-1,prioridad:"—",aduana:c.aduana,efos:false};empM.set(c.emp,m)}
+      m.casos++;m.impacto+=c.impacto;m.accion+=c.accion;m.reg+=c.reg;m.valor+=c.valor;m.efos=m.efos||c.efos;
+      if(c.prio_ord>m.prio_ord){m.prio_ord=c.prio_ord;m.prioridad=c.prioridad;m.aduana=c.aduana}
+    });
+    const escenarios=[...escM.values()].map(e=>{e.name=(ESC[e.esc]||{}).d||e.esc;e.desc=e.name;e.color=(ESC[e.esc]||{}).c||"var(--faint)";return e}).sort((a,b)=>b.impacto-a.impacto);
+    const empresas=[...empM.values()];
+    const aduanas=group("aduana").sort((a,b)=>b.casos-a.casos);
+    const municipios=group("municipio").sort((a,b)=>b.casos-a.casos);
+    const sectores=group("sector").sort((a,b)=>b.casos-a.casos);
+    const k={casos:cases.length,empresas:empresas.length,impacto:sum(cases,"impacto"),accion:sum(cases,"accion"),reg:sum(cases,"reg"),
+      valor:sum(cases,"valor"),efos:cases.filter(c=>c.efos).length,criticos:cases.filter(c=>prioTier(c.prioridad,c.prio_ord)==="alta").length,
+      critMonto:cases.filter(c=>prioTier(c.prioridad,c.prio_ord)==="alta").reduce((s,c)=>s+c.accion,0),
+      efosMonto:cases.filter(c=>c.efos).reduce((s,c)=>s+c.accion,0)};
+    const maxD=cases.reduce((m,c)=>c.fecha&&(!m||c.fecha>m)?c.fecha:m,null);
+    return {cases,escenarios,empresas,aduanas,municipios,sectores,k,corte:fmtDate(maxD)};
+  }
+
+  function recaudInfo(m){const rec=m.k.reg,pot=m.k.accion,base=rec+pot;return {rec:rec,pot:pot,base:base,avance:base?rec/base*100:0}}
+
+  function focos(m){
+    const out=[],ri=recaudInfo(m);
+    out.push({c:"var(--gold)",icon:"money",goto:"recaud",fh:'Se ha recaudado el <b>'+ri.avance.toFixed(0)+'%</b> del potencial · faltan <b>'+money(ri.pot)+'</b> por recuperar',fc:"Ver recaudación"});
+    if(m.aduanas[0])out.push({c:"var(--guinda)",icon:"pin",goto:"conc",fh:'<b>'+esc(m.aduanas[0].name)+'</b> acumula <b>'+cnt(m.aduanas[0].casos)+' casos</b> ('+pctTxt(m.aduanas[0].casos,m.k.casos)+' del total)',fc:"Ver concentración"});
+    const topE=m.empresas.slice().sort((a,b)=>b.accion-a.accion),n=Math.min(5,topE.length),sh=topE.slice(0,n).reduce((s,e)=>s+e.accion,0);
+    if(n)out.push({c:"var(--guinda-vivo)",icon:"build",goto:"emp",fh:'<b>'+n+' empresas</b> concentran el <b>'+pctTxt(sh,m.k.accion)+'</b> del monto por recuperar',fc:"Ver empresas"});
+    if(m.k.criticos)out.push({c:"var(--vino)",icon:"alert",goto:"emp",fh:'<b>'+cnt(m.k.criticos)+' casos críticos</b> por <b>'+money(m.k.critMonto)+'</b> requieren atención',fc:"Priorizar"});
+    if(m.k.efos)out.push({c:"var(--rosa)",icon:"flag",goto:"conc",fh:'<b>'+cnt(m.k.efos)+' casos</b> con indicio EFOS por <b>'+money(m.k.efosMonto)+'</b> a comprobar',fc:"Revisar"});
+    return out;
+  }
+
+  function chips(name,opts,active){return '<div class="chips" data-chips="'+name+'">'+opts.map(o=>'<button data-val="'+o.v+'" class="'+(o.v===active?"on":"")+'">'+esc(o.t)+'</button>').join("")+'</div>'}
+
+  function renderHome(m){
+    const ri=recaudInfo(m);
+    const hero='<div class="recaud"><div class="rc-top"><span class="rc-lab">Recaudado a la fecha</span><span class="rc-pct">'+ri.avance.toFixed(0)+'% del potencial</span></div>'+
+      '<div class="rc-big">'+esc(money(ri.rec))+'</div><div class="rc-bar"><i style="width:'+ri.avance.toFixed(1)+'%"></i></div>'+
+      '<div class="rc-foot"><span>Recuperado</span><span>Potencial <b>'+esc(money(ri.base))+'</b></span></div></div>';
+    const cards=[
+      {l:"Por recuperar",v:money(m.k.accion),c:"var(--guinda)",cc:"monto accionable"},
+      {l:"Impacto económico",v:money(m.k.impacto),c:"var(--gold)",cc:cnt(m.k.casos)+" casos"},
+      {l:"Casos críticos",v:cnt(m.k.criticos),c:"var(--guinda-vivo)",cc:pctTxt(m.k.criticos,m.k.casos)+" del total"},
+      {l:"Indicio EFOS",v:cnt(m.k.efos),c:"var(--vino)",cc:money(m.k.efosMonto)}
+    ];
+    const kg='<div class="kgrid">'+cards.map(c=>'<div class="kcard" style="--c:'+c.c+'"><div class="kl">'+esc(c.l)+'</div><div class="kn">'+esc(c.v)+'</div><div class="kc">'+esc(c.cc)+'</div></div>').join("")+'</div>';
+    const fc='<div class="sec-h"><h2>Focos de acción</h2></div>'+focos(m).map(x=>'<div class="foco" data-goto="'+x.goto+'" style="--c:'+x.c+'"><span class="fic"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">'+ICON[x.icon]+'</svg></span><div class="ftx"><div class="fh">'+x.fh+'</div><div class="fc">'+esc(x.fc)+' ›</div></div></div>').join("");
+    $("v-home").innerHTML=hero+kg+fc;
+  }
+
+  function renderRecaud(m){
+    const ri=recaudInfo(m);
+    const hero='<div class="recaud"><div class="rc-top"><span class="rc-lab">Avance de recaudación</span><span class="rc-pct">'+ri.avance.toFixed(1)+'%</span></div>'+
+      '<div class="rc-big">'+esc(money(ri.rec))+'</div><div class="rc-bar"><i style="width:'+ri.avance.toFixed(1)+'%"></i></div>'+
+      '<div class="rc-foot"><span><b>'+esc(money(ri.rec))+'</b> recuperado</span><span><b>'+esc(money(ri.pot))+'</b> por recuperar</span></div></div>';
+    const nums='<div class="num4" style="margin-top:12px">'+
+      '<div class="ncard"><div class="l">Recuperado</div><div class="v" style="color:var(--gold)">'+money(m.k.reg)+'</div></div>'+
+      '<div class="ncard"><div class="l">Por recuperar</div><div class="v" style="color:var(--guinda)">'+money(m.k.accion)+'</div></div>'+
+      '<div class="ncard"><div class="l">Impacto total</div><div class="v">'+money(m.k.impacto)+'</div></div>'+
+      '<div class="ncard"><div class="l">Valor afectado</div><div class="v">'+money(m.k.valor)+'</div></div></div>';
+    const src={esc:m.escenarios,sector:m.sectores,aduana:m.aduanas}[state.recaudDim]||[];
+    const d=src.filter(x=>x.reg>0).slice().sort((a,b)=>b.reg-a.reg),mx=Math.max(1,...d.map(x=>x.reg));
+    const ctrl=chips("recaudDim",[{v:"esc",t:"Escenario"},{v:"sector",t:"Sector"},{v:"aduana",t:"Aduana"}],state.recaudDim);
+    const bars=d.length?('<div class="bars">'+d.map(x=>{const av=x.reg+x.accion?x.reg/(x.reg+x.accion)*100:0;const col=x.color||"var(--guinda)";
+        return '<div class="brow"><div class="btop"><span class="bname">'+esc(x.name)+'</span><span class="bval">'+esc(money(x.reg))+' <small>· '+av.toFixed(0)+'% avance</small></span></div><div class="btrack"><i style="width:'+(x.reg/mx*100).toFixed(1)+'%;background:'+col+'"></i></div></div>';}).join("")+'</div>')
+      :'<div class="bars"><div class="rmeta" style="text-align:center;padding:6px">Sin recaudación registrada en este desglose.</div></div>';
+    $("v-recaud").innerHTML=hero+nums+'<div class="sec-h"><h2>Recaudado por '+({esc:"escenario",sector:"sector",aduana:"aduana"}[state.recaudDim])+'</h2></div>'+ctrl+bars;
+  }
+
+  function renderConc(m){
+    const src={aduana:m.aduanas,municipio:m.municipios,sector:m.sectores}[state.concDim]||[];
+    const lab={aduana:"Aduana",municipio:"Municipio",sector:"Sector"}[state.concDim];
+    const top3=src.slice(0,3).reduce((s,a)=>s+a.casos,0);
+    const head='<div class="headline"><div class="hl-n">'+pctTxt(top3,m.k.casos)+'</div><div class="hl-t">de los <b>'+cnt(m.k.casos)+' casos</b> se concentra en '+(src.length>=3?'las <b>3 '+esc(lab.toLowerCase())+'s</b> principales':'lo registrado')+'</div></div>';
+    const ctrl=chips("concDim",[{v:"aduana",t:"Aduana"},{v:"municipio",t:"Municipio"},{v:"sector",t:"Sector"}],state.concDim);
+    const d=src.slice(0,8),mxC=Math.max(1,...d.map(x=>x.casos));
+    const bars='<div class="bars">'+d.map(x=>'<div class="brow"><div class="btop"><span class="bname">'+esc(x.name)+'</span><span class="bval">'+cnt(x.casos)+' <small>· '+esc(money(x.accion))+' por recup.</small></span></div><div class="btrack clk" data-place="'+esc(x.name)+'" data-dim="'+state.concDim+'"><i style="width:'+(x.casos/mxC*100).toFixed(1)+'%;background:var(--guinda)"></i></div></div>').join("")+'</div>';
+    $("v-conc").innerHTML=head+'<div class="sec-h"><h2>Casos por '+esc(lab.toLowerCase())+'</h2><span>'+cnt(src.length)+' '+esc(lab.toLowerCase())+'s</span></div>'+ctrl+bars;
+  }
+
+  function renderEmp(m){
+    const conf={
+      accion:{t:"Por recuperar",cmp:(a,b)=>b.accion-a.accion,val:e=>money(e.accion)},
+      reg:{t:"Recaudado",cmp:(a,b)=>b.reg-a.reg,val:e=>money(e.reg)},
+      casos:{t:"Casos",cmp:(a,b)=>b.casos-a.casos,val:e=>cnt(e.casos)+" casos"},
+      crit:{t:"Críticas",cmp:(a,b)=>(b.prio_ord-a.prio_ord)||(b.accion-a.accion),val:e=>money(e.accion)}
+    }[state.empSort]||{};
+    const ctrl=chips("empSort",[{v:"accion",t:"Por recuperar"},{v:"reg",t:"Recaudado"},{v:"casos",t:"Casos"},{v:"crit",t:"Críticas"}],state.empSort);
+    const d=m.empresas.slice().sort(conf.cmp).slice(0,12);
+    const list='<div class="rank">'+d.map((e,i)=>{const t=prioTier(e.prioridad,e.prio_ord);
+      return '<div class="ritem" data-emp="'+esc(e.emp)+'"><span class="rpos">'+(i+1)+'</span><div class="rmid"><div class="rname">'+esc(e.razon)+'</div><div class="rmeta">'+esc(e.aduana)+' · '+cnt(e.casos)+' casos'+(e.efos?' · <span style="color:var(--rosa);font-weight:800">EFOS</span>':'')+'</div></div><div class="rright"><div class="ramt">'+esc(conf.val(e))+'</div><span class="pill '+t+'">'+t+'</span></div></div>';}).join("")+'</div>';
+    $("v-emp").innerHTML='<div class="sec-h"><h2>Empresas · '+esc(conf.t)+'</h2><span>'+d.length+' de '+cnt(m.empresas.length)+'</span></div>'+ctrl+list;
+  }
+
+  const RENDER={home:renderHome,recaud:renderRecaud,conc:renderConc,emp:renderEmp};
+  function renderView(v){if(model&&RENDER[v]){RENDER[v](model);animBars()}}
+  function renderAll(){if(!model)return;$("corte").textContent=new Date().toLocaleDateString("es-MX",{day:"numeric",month:"long",year:"numeric"});
+  renderHome(model);renderRecaud(model);renderConc(model);renderEmp(model);animBars();}
+  function animBars(){requestAnimationFrame(()=>{document.querySelectorAll(".view.on .btrack>i,.view.on .rc-bar>i").forEach(el=>{const w=el.style.width;el.style.width="0";requestAnimationFrame(()=>el.style.width=w)})})}
+
+  function sheetEmp(e){const t=prioTier(e.prioridad,e.prio_ord);
+    return '<div class="grip"></div><div class="sh-name">'+esc(e.razon)+'</div>'+
+      '<div class="sh-tags"><span class="pill '+t+'">Prioridad '+t+'</span><span class="pill" style="background:#EFE9EB;color:var(--muted)">'+esc(e.aduana)+'</span>'+(e.efos?'<span class="pill" style="background:#F6E3EC;color:var(--rosa)">Indicio EFOS</span>':'')+'</div>'+
+      '<div class="sh-grid"><div class="sh-cell"><div class="l">Recaudado</div><div class="v" style="color:var(--gold)">'+money(e.reg)+'</div></div>'+
+      '<div class="sh-cell"><div class="l">Por recuperar</div><div class="v" style="color:var(--guinda)">'+money(e.accion)+'</div></div>'+
+      '<div class="sh-cell"><div class="l">Impacto</div><div class="v">'+money(e.impacto)+'</div></div>'+
+      '<div class="sh-cell"><div class="l">Casos</div><div class="v">'+cnt(e.casos)+'</div></div></div>'+
+      actions("call","Llamar al enlace","share","Compartir","follow","Dar seguimiento",e.razon);
+  }
+  function sheetPlace(name,item,label){
+    return '<div class="grip"></div><div class="sh-name">'+esc(name)+'</div>'+
+      '<div class="sh-tags"><span class="pill" style="background:#EFE9EB;color:var(--muted)">'+esc(label)+'</span><span class="pill alta">'+cnt(item.casos)+' casos</span></div>'+
+      '<div class="sh-grid"><div class="sh-cell"><div class="l">Impacto</div><div class="v">'+money(item.impacto)+'</div></div>'+
+      '<div class="sh-cell"><div class="l">Por recuperar</div><div class="v" style="color:var(--guinda)">'+money(item.accion)+'</div></div>'+
+      '<div class="sh-cell"><div class="l">Recaudado</div><div class="v" style="color:var(--gold)">'+money(item.reg)+'</div></div>'+
+      '<div class="sh-cell"><div class="l">% del total</div><div class="v">'+pctTxt(item.casos,model.k.casos)+'</div></div></div>'+
+      actions("assign","Asignar revisión","share","Compartir","follow","Marcar foco",name);
+  }
+  function actions(a1,t1,a2,t2,a3,t3,nm){
+    return '<div class="sh-actions">'+
+      '<button class="btn primary" data-act="'+a1+'" data-name="'+esc(nm)+'"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>'+esc(t1)+'</button>'+
+      '<button class="btn ghost" data-act="'+a2+'" data-name="'+esc(nm)+'"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>'+esc(t2)+'</button>'+
+      '<button class="btn ghost" data-act="'+a3+'" data-name="'+esc(nm)+'"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>'+esc(t3)+'</button></div>';
+  }
+  function openSheet(html){$("sheet").innerHTML=html;$("backdrop").classList.add("on");$("sheet").classList.add("on")}
+  function closeSheet(){$("backdrop").classList.remove("on");$("sheet").classList.remove("on")}
+  let toastT;function toast(m){const t=$("toast");t.textContent=m;t.classList.add("on");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("on"),1900)}
+
+  function setView(v){state.view=v;
+    document.querySelectorAll(".view").forEach(s=>s.classList.toggle("on",s.id==="v-"+v));
+    document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on",b.dataset.view===v));
+    $("content").scrollTop=0;renderView(v);
+  }
+  $("tabbar").addEventListener("click",e=>{const b=e.target.closest(".tab");if(b)setView(b.dataset.view)});
+
+  let ptrAccum=0,refreshing=false;
+  function doRefresh(){if(refreshing||!model)return;refreshing=true;ptrAccum=0;$("ptrbar").classList.add("on");
+    setTimeout(()=>{renderView(state.view);setTimeout(()=>$("ptrbar").classList.remove("on"),400);refreshing=false;},550);}
+  (function(){const c=$("content");
+    c.addEventListener("wheel",e=>{if(c.scrollTop<=0&&e.deltaY<0){ptrAccum+=-e.deltaY;if(ptrAccum>140)doRefresh();}else if(e.deltaY>0)ptrAccum=0;},{passive:true});
+    let ty=null;
+    c.addEventListener("touchstart",e=>{ty=c.scrollTop<=0?e.touches[0].clientY:null;ptrAccum=0;},{passive:true});
+    c.addEventListener("touchmove",e=>{if(ty==null)return;const dy=e.touches[0].clientY-ty;if(dy>0)$("ptrbar").classList.toggle("on",dy>30);if(dy>90){doRefresh();ty=null;}},{passive:true});
+    c.addEventListener("touchend",()=>{ty=null;if(!refreshing)$("ptrbar").classList.remove("on");},{passive:true});
+  })();
+
+  $("backdrop").addEventListener("click",closeSheet);
+  $("content").addEventListener("click",e=>{
+    const ch=e.target.closest(".chips button");
+    if(ch){const grp=ch.closest(".chips").dataset.chips;state[grp]=ch.dataset.val;renderView(state.view);$("content").scrollTop=$("content").scrollTop;return}
+    const g=e.target.closest("[data-goto]");if(g){setView(g.dataset.goto);return}
+    const em=e.target.closest("[data-emp]");if(em&&model){const o=model.empresas.find(x=>x.emp===em.dataset.emp);if(o)openSheet(sheetEmp(o));return}
+    const pl=e.target.closest("[data-place]");if(pl&&model){const dim=pl.dataset.dim,list={aduana:model.aduanas,municipio:model.municipios,sector:model.sectores}[dim]||[];const o=list.find(x=>x.name===pl.dataset.place);const lab={aduana:"Aduana",municipio:"Municipio",sector:"Sector"}[dim];if(o)openSheet(sheetPlace(pl.dataset.place,o,lab));return}
+  });
+  $("sheet").addEventListener("click",e=>{const b=e.target.closest("[data-act]");if(!b)return;const nm=b.dataset.name||"";
+    const msg={call:"Llamando al enlace de "+nm+"…",share:"Resumen de "+nm+" compartido",follow:"Marcado para seguimiento",assign:"Revisión asignada · "+nm}[b.dataset.act]||"Listo";
+    closeSheet();toast(msg)});
+
+  function pesos(n){return "$"+Math.round(num(n)).toLocaleString("es-MX")}
+  function stripTags(s){return String(s).replace(/<[^>]+>/g,"")}
+  function nowTxt(){try{return new Date().toLocaleString("es-MX",{day:"2-digit",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"})}catch(e){return""}}
+  function fileStamp(){try{const d=new Date(),p=x=>String(x).padStart(2,"0");return ""+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())}catch(e){return"informe"}}
+
+  /* ============================================================
+     reportHTML — DISEÑO EJECUTIVO DE ALTO NIVEL
+     Estructura: Cabecera institucional · Cifras grandes · Semáforo
+                 de escenarios · Top aduanas · Top empresas · Acción recomendada
+     ============================================================ */
+ function reportHTML(m){
+    const k=m.k, ri=recaudInfo(m);
+
+    /* Paleta en línea (sin variables CSS para máxima compatibilidad PDF) */
+    const G="#611232", Gd="#45091f", Gv="#9F2241", ORO="#9E7B3B", OROCL="#C6A15B";
+    const VINO="#7A1834", ROSA="#B4015E";
+    const SEMAFORO={NO_REG:{color:G,bg:"#F6EBF0",label:"No regularización"},
+      REG_ESP:{color:"#1E6B45",bg:"#EAF3EE",label:"Reg. espontánea"},
+      RET_SIM:{color:VINO,bg:"#F3E6EC",label:"Retornos simulados"},
+      CLAS_IEPS:{color:"#7A5200",bg:"#FCF6EC",label:"Clasif. / IEPS"},
+      OTRO:{color:"#4A5568",bg:"#F4F6F9",label:"Otro"}};
+
+    /* Escenarios con color de semáforo */
+    const escRows=m.escenarios.slice(0,4).map(e=>{
+      const s=SEMAFORO[e.esc]||SEMAFORO.OTRO;
+      const av=e.reg+e.accion?Math.round(e.reg/(e.reg+e.accion)*100):0;
+      const barW=Math.max(2,av);
+      return `<tr>
+        <td style="padding:10px 12px;border-bottom:1px solid #f0ebed;vertical-align:middle">
+          <span style="display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;background:${s.bg};color:${s.color}">${s.label}</span>
+        </td>
+        <td style="padding:10px 12px;border-bottom:1px solid #f0ebed;text-align:right;font-variant-numeric:tabular-nums;font-weight:700;font-size:13px">${pesos(e.impacto)}</td>
+        <td style="padding:10px 12px;border-bottom:1px solid #f0ebed;text-align:right;font-variant-numeric:tabular-nums;color:${G};font-weight:800;font-size:13px">${pesos(e.accion)}</td>
+        <td style="padding:10px 18px 10px 12px;border-bottom:1px solid #f0ebed;min-width:100px">
+          <div style="height:8px;border-radius:4px;background:#ece4e7;overflow:hidden">
+            <div style="height:100%;width:${barW}%;border-radius:4px;background:linear-gradient(90deg,${ORO},${OROCL})"></div>
+          </div>
+          <div style="font-size:11px;color:#9A8A91;margin-top:3px;font-weight:700">${av}% recuperado</div>
+        </td>
+      </tr>`;
+    }).join("");
+
+    /* Top 5 aduanas */
+    const aduRows=m.aduanas.slice(0,5).map((a,i)=>{
+      const pctCasos=m.k.casos?Math.round(a.casos/m.k.casos*100):0;
+      const medals=["🥇","🥈","🥉","4°","5°"];
+      return `<tr>
+        <td style="padding:9px 12px;border-bottom:1px solid #f0ebed;font-size:16px;text-align:center"></td>
+        <td style="padding:9px 12px;border-bottom:1px solid #f0ebed;font-weight:700;font-size:13px;color:#241019">${esc(a.name)}</td>
+        <td style="padding:9px 12px;border-bottom:1px solid #f0ebed;text-align:center;font-size:13px">
+          <span style="background:#F6EBF0;color:${G};font-weight:800;padding:2px 8px;border-radius:999px;font-size:12px">${a.casos} casos · ${pctCasos}%</span>
+        </td>
+        <td style="padding:9px 12px 9px 0;border-bottom:1px solid #f0ebed;text-align:right;font-weight:800;font-size:13px;color:${G}">${pesos(a.accion)}</td>
+      </tr>`;
+    }).join("");
+
+    /* Top 5 empresas */
+    const empRows=m.empresas.slice().sort((a,b)=>b.accion-a.accion).slice(0,5).map((e,i)=>{
+      const t=prioTier(e.prioridad,e.prio_ord);
+      const tColor={alta:Gv,media:"#7A5200",baja:"#4A5568"}[t];
+      const tBg={alta:"#F6EBF0",media:"#FCF6EC",baja:"#F4F6F9"}[t];
+      return `<tr>
+        <td style="padding:9px 12px;border-bottom:1px solid #f0ebed;font-weight:800;font-size:13px;color:${ORO};text-align:center;font-family:monospace">${i+1}</td>
+        <td style="padding:9px 12px;border-bottom:1px solid #f0ebed;font-size:13px;font-weight:700;color:#241019">${esc(e.razon)}${e.efos?` <span style="font-size:11px;color:${ROSA};font-weight:800">· EFOS</span>`:""}</td>
+        <td style="padding:9px 12px;border-bottom:1px solid #f0ebed;font-size:12px;color:#6B5560">${esc(e.aduana)}</td>
+        <td style="padding:9px 12px;border-bottom:1px solid #f0ebed;text-align:right;font-weight:800;font-size:13px;color:${G}">${pesos(e.accion)}</td>
+        <td style="padding:9px 12px 9px 0;border-bottom:1px solid #f0ebed;text-align:center">
+          <span style="background:${tBg};color:${tColor};font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;text-transform:uppercase">${t}</span>
+        </td>
+      </tr>`;
+    }).join("");
+
+    /* Acción recomendada: aduana con más casos */
+    const topAdu=m.aduanas[0]||{name:"—",casos:0,accion:0};
+    const topPctAdu=m.k.casos?Math.round(topAdu.casos/m.k.casos*100):0;
+    const accionRec=`${esc(topAdu.name)} concentra el <b>${topPctAdu}%</b> de los casos (`+
+      `${topAdu.casos} expedientes · ${pesos(topAdu.accion)} por recuperar). `+
+      `Se recomienda priorizar visitas de seguimiento en esta aduana antes del próximo corte.`;
+
+    const avance=ri.avance.toFixed(0);
+    const avanceBar=Math.max(2,ri.avance);
+
+    const st=`
+      *{box-sizing:border-box;margin:0;padding:0}
+      html{background:#eef2f5;padding:24px 10px;font-family:'Segoe UI',Arial,sans-serif}
+      body{max-width:820px;margin:0 auto;background:#fff;border-radius:4px;border:1px solid #d1d5db;
+        box-shadow:0 10px 25px -5px rgba(0,0,0,.1);overflow:hidden;color:#24101;overflow-y:auto;}
+      /* CABECERA */
+      .hdr{background:linear-gradient(120deg,#7a1a3c 0%,${G} 50%,${Gd} 100%);padding:28px 40px 24px;position:relative;overflow:hidden}
+      .hdr:after{content:"";position:absolute;right:-40px;top:-40px;width:200px;height:200px;border-radius:50%;
+        background:radial-gradient(circle,rgba(198,161,91,.2),transparent 70%);pointer-events:none}
+      .hdr-marca{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:${OROCL};font-weight:700;margin-bottom:8px}
+      .hdr-titulo{font-family:Georgia,'Times New Roman',serif;font-size:28px;font-weight:700;color:#fff;line-height:1.15}
+      .hdr-sub{font-size:13px;color:#F0DCC4;margin-top:4px}
+      .hdr-meta{display:flex;gap:20px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.15)}
+      .hdr-meta span{font-size:12px;color:#F0DCC4;font-weight:600}
+      .hdr-meta b{color:#fff}
+      .conf{position:absolute;top:28px;right:20px;background:rgba(0,0,0,.3);border:1px solid rgba(198,161,91,.4);
+        color:${OROCL};font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+        padding:4px 10px;border-radius:4px;display:right;}
+      /* CIFRAS GRANDES */
+      .kpis-wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:1px solid #ece4e7}
+      .kpi-box{padding:18px 20px;border-right:1px solid #ece4e7;text-align:center}
+      .kpi-box:last-child{border-right:none}
+      .kpi-lbl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#9A8A91;font-weight:700;margin-bottom:6px}
+      .kpi-val{font-size:26px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+      .kpi-sub{font-size:11px;color:#9A8A91;margin-top:5px;font-weight:600}
+      /* BARRA DE AVANCE */
+      .avance-wrap{padding:16px 40px;background:#faf7f8;border-bottom:1px solid #ece4e7;display:flex;align-items:center;gap:20px}
+      .avance-lbl{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#6B5560;font-weight:700;white-space:nowrap}
+      .avance-track{flex:1;height:10px;border-radius:6px;background:#ece4e7;overflow:hidden}
+      .avance-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,${ORO},${OROCL})}
+      .avance-pct{font-size:18px;font-weight:800;color:${ORO};white-space:nowrap;font-variant-numeric:tabular-nums}
+      /* SECCIONES */
+      .sec{padding:20px 40px 4px}
+      .sec-titulo{font-family:Georgia,'Times New Roman',serif;font-size:16px;color:${G};font-weight:700;
+        border-left:4px solid ${G};padding-left:10px;margin-bottom:12px;letter-spacing:.01em}
+      table{width:100%;border-collapse:collapse}
+      /* ACCIÓN */
+      .accion{margin:16px 40px 24px;background:#FDF8F9;border:1px solid #E8D5DB;border-left:5px solid ${G};
+        border-radius:0 4px 4px 0;padding:14px 18px}
+      .accion-lbl{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:${G};font-weight:800;margin-bottom:6px}
+      .accion-txt{font-size:13px;line-height:1.55;color:#241019}
+      /* PIE */
+      .foot{padding:14px 40px;border-top:1px solid #ece4e7;display:flex;justify-content:space-between;align-items:center;background:#faf7f8}
+      .foot-txt{font-size:10.5px;color:#9A8A91;line-height:1.5}
+      .foot-btn{background:${G};color:#fff;border:0;border-radius:6px;padding:9px 18px;
+        font:700 12px 'Segoe UI',Arial;cursor:pointer;white-space:nowrap}
+      @media print{
+        html{background:#fff;padding:0}
+        body{box-shadow:none;border:none;max-width:none}
+        .foot-btn,.foot-btn{display:none}
+        .conf{display:none !important}
+        .hdr{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+        .kpi-box,.avance-wrap,.accion{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+      }
+      @page{margin:12mm;size:letter}`;
+
+    return `<!doctype html><html lang="es-MX"><head><meta charset="utf-8">
+      <title>Informe Ejecutivo IMMEX · ${esc(m.corte)}</title>
+      <style>${st}</style></head><body>
+
+      <!-- CABECERA INSTITUCIONAL -->
+      <div class="hdr">
+        <div class="conf">Confidencial · Uso Interno</div>
+        <div class="hdr-marca">Gobierno del Estado de Tamaulipas · Secretaría de Finanzas</div>
+        <div class="hdr-titulo">Informe Ejecutivo de Fiscalización<br>Comercio Exterior · IMMEX</div>
+        <div class="hdr-sub">Dirección de Fiscalización de Comercio Exterior · Centro de Control IMMEX</div>
+        <div class="hdr-meta">
+          <span>Corte: <b>${esc(m.corte)}</b></span>
+          <span>Generado: <b>${nowTxt()}</b></span>
+          <span>Fuente: <b>PUBLIC.IMM_CENTRO</b></span>
+          <span>Empresas: <b>${cnt(k.empresas)}</b></span>
+        </div>
+      </div>
+
+      <!-- CIFRAS GRANDES -->
+      <div class="kpis-wrap">
+        <div class="kpi-box">
+          <div class="kpi-lbl">Impacto económico</div>
+          <div class="kpi-val" style="color:#241019">${pesos(k.impacto)}</div>
+          <div class="kpi-sub">${cnt(k.casos)} casos activos</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-lbl">Por recuperar</div>
+          <div class="kpi-val" style="color:${G}">${pesos(k.accion)}</div>
+          <div class="kpi-sub">monto accionable</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-lbl">Casos críticos</div>
+          <div class="kpi-val" style="color:${Gv}">${cnt(k.criticos)}</div>
+          <div class="kpi-sub">${pesos(k.critMonto)} en riesgo</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-lbl">Indicio EFOS</div>
+          <div class="kpi-val" style="color:${ROSA}">${cnt(k.efos)}</div>
+          <div class="kpi-sub">${pesos(k.efosMonto)} a comprobar</div>
+        </div>
+      </div>
+
+      <!-- BARRA DE AVANCE GENERAL -->
+      <div class="avance-wrap">
+        <span class="avance-lbl">Avance de recuperación</span>
+        <div class="avance-track"><div class="avance-fill" style="width:${avanceBar}%"></div></div>
+        <span class="avance-pct">${avance}%</span>
+        <span style="font-size:12px;color:#6B5560;white-space:nowrap"><b style="color:#241019">${pesos(ri.rec)}</b> recuperado de <b style="color:#241019">${pesos(ri.base)}</b> potencial</span>
+      </div>
+
+      <!-- SEMÁFORO POR ESCENARIO -->
+      <div class="sec">
+        <div class="sec-titulo">Estatus por escenario</div>
+        <table>
+          <thead><tr style="background:#faf7f8">
+            <th style="padding:8px 12px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#9A8A91;font-weight:700;text-align:left;border-bottom:2px solid #ece4e7">Escenario</th>
+            <th style="padding:8px 12px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#9A8A91;font-weight:700;text-align:right;border-bottom:2px solid #ece4e7">Impacto</th>
+            <th style="padding:8px 12px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#9A8A91;font-weight:700;text-align:right;border-bottom:2px solid #ece4e7">Por recuperar</th>
+            <th style="padding:8px 12px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#9A8A91;font-weight:700;border-bottom:2px solid #ece4e7">Avance</th>
+          </tr></thead>
+          <tbody>${escRows}</tbody>
+        </table>
+      </div>
+
+      <!-- TOP ADUANAS -->
+      <div class="sec" style="margin-top:10px">
+        <div class="sec-titulo">Concentración por aduana</div>
+        <table>
+          <thead><tr style="background:#faf7f8">
+            <th style="padding:8px 12px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#9A8A91;font-weight:700;border-bottom:2px solid #ece4e7;width:36px"></th>
+            <th style="padding:8px 12px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#9A8A91;font-weight:700;text-align:left;border-bottom:2px solid #ece4e7">Aduana</th>
+            <th style="padding:8px 12px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#9A8A91;font-weight:700;border-bottom:2px solid #ece4e7">Participación</th>
+            <th style="padding:8px 0 8px 12px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#9A8A91;font-weight:700;text-align:right;border-bottom:2px solid #ece4e7">Por recuperar</th>
+          </tr></thead>
+          <tbody>${aduRows}</tbody>
+        </table>
+      </div>
+
+      <!-- TOP EMPRESAS -->
+      <div class="sec" style="margin-top:10px">
+        <div class="sec-titulo">Empresas prioritarias</div>
+        <table>
+          <thead><tr style="background:#faf7f8">
+            <th style="padding:8px 12px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#9A8A91;font-weight:700;border-bottom:2px solid #ece4e7;width:36px">#</th>
+            <th style="padding:8px 12px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#9A8A91;font-weight:700;text-align:left;border-bottom:2px solid #ece4e7">Razón social</th>
+            <th style="padding:8px 12px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#9A8A91;font-weight:700;text-align:left;border-bottom:2px solid #ece4e7">Aduana</th>
+            <th style="padding:8px 12px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#9A8A91;font-weight:700;text-align:right;border-bottom:2px solid #ece4e7">Por recuperar</th>
+            <th style="padding:8px 0 8px 12px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#9A8A91;font-weight:700;border-bottom:2px solid #ece4e7">Prioridad</th>
+          </tr></thead>
+          <tbody>${empRows}</tbody>
+        </table>
+      </div>
+
+      <!-- ACCIÓN RECOMENDADA -->
+      <div class="accion">
+        <div class="accion-lbl">▶ Acción prioritaria recomendada</div>
+        <div class="accion-txt">${accionRec}</div>
+      </div>
+
+      <!-- PIE -->
+      <div class="foot">
+        <div class="foot-txt">
+          Documento generado por el Centro de Control IMMEX · Uso interno y confidencial<br>
+          Las cifras son preliminares y corresponden al último corte disponible · ${nowTxt()}
+        </div>
+        <button class="foot-btn" onclick="window.print()">Imprimir / PDF</button>
+      </div>
+
+    </body></html>`;
+  }
+
+  function downloadReport(){
+    if(!model){toast("Sin datos para el informe");return;}
+    try{
+      const blob=new Blob([reportHTML(model)],{type:"text/html;charset=utf-8"});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement("a");a.href=url;a.download="Informe_Ejecutivo_IMMEX_"+fileStamp()+".html";
+      document.body.appendChild(a);a.click();
+      setTimeout(()=>{try{URL.revokeObjectURL(url);a.remove();}catch(e){}},1500);
+      toast("Informe descargado");
+    }catch(e){try{const w=window.open("","_blank");if(w){w.document.write(reportHTML(model));w.document.close();toast("Informe abierto");}else toast("No se pudo generar");}catch(_){toast("No se pudo generar");}}
+  }
+  $("dl").addEventListener("click",downloadReport);
+
+
+function clock(){try{$("clock").textContent=new Date().toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit",hour12:false})}catch(e){}}
+clock();setInterval(clock,15000);
+
+
+  function payload(x){if(typeof x==="string"){try{x=JSON.parse(x)}catch(e){return null}}for(const p of [x,x&&x.data,x&&x.payload,x&&x.detail,x&&x.results,x&&x.resultData])if(p&&Array.isArray(p.columns)&&Array.isArray(p.data))return p;return null}
+  function apply(){model=build();renderAll();setView(state.view)}
+  function demo(){
+    const cn=["id_caso","id_empresa","razon_social","fecha_caso","periodo","escenario","escenario_desc","subescenario","subesc_desc","aduana","tipo_aduana","sector","municipio","severidad","severidad_ord","prioridad","prioridad_ord","nivel_certeza","valor_afect","mto_impacto","mto_accionable","mto_regularizado","mto_revision","multa_min","multa_max","flag_ieps","flag_efos","flag_clas_incor"];
+    cols=cn.map(n=>({name:n}));
+    const emp=[["E01","Mecanizados de Precisión Tamaulipecos"],["E02","Soluciones Aeroestructurales del Norte"],["E03","Terminal de Insumos del Golfo"],["E04","Refrigeración Industrial Fronteriza"],["E05","Empaques Industriales del Noreste"],["E06","Arneses y Sensores del Golfo"],["E07","Motores Eléctricos del Golfo"],["E08","Plásticos Técnicos de Reynosa"],["E09","Química Especializada Altamira"],["E10","Componentes Automotrices del Bravo"]];
+    const escs=[["NO_REG","No regularización"],["REG_ESP","Regularización espontánea"],["RET_SIM","Retornos simulados"],["CLAS_IEPS","Clasificación / IEPS"]];
+    const adu=["Nuevo Laredo","Matamoros","Reynosa","Altamira","Tampico","Ciudad Camargo"];
+    const mun=["Nuevo Laredo","Reynosa","Matamoros","Altamira","Tampico","Victoria","Río Bravo"];
+    const sec=["Autopartes","Textil","Metalúrgico","Químico","Electrónico"];
+    const pr=[["Crítica",4],["Alta",3],["Media",2],["Baja",1]];
+    const R=[];let s=7;function rnd(){s=(s*1103515245+12345)&0x7fffffff;return s/0x7fffffff}
+    for(let i=0;i<150;i++){const e=emp[Math.floor(rnd()*emp.length)];const es=escs[Math.floor(rnd()*escs.length)];const p=pr[Math.floor(rnd()*pr.length)];const imp=Math.round(3e6+rnd()*rnd()*9e8);
+      const a=new Array(28).fill(0);
+      a[0]="CAS-"+(1000+i);a[1]=e[0];a[2]=e[1];a[3]="2026-0"+(1+Math.floor(rnd()*6))+"-15";a[4]=202600;a[5]=es[0];a[6]=es[1];a[9]=adu[Math.floor(rnd()*adu.length)];a[11]=sec[Math.floor(rnd()*sec.length)];a[12]=mun[Math.floor(rnd()*mun.length)];a[15]=p[0];a[16]=p[1];a[18]=imp*1.4;a[19]=imp;a[20]=imp*0.62;a[21]=imp*(es[0]==="REG_ESP"?0.7:0.05);a[26]=rnd()<0.2?1:0;
+      R.push(a);}
+    rows=R;apply();
+  }
+  function receive(e){
+  const p=payload(e&&e.data);
+  if(!p)return;
+  cols=p.columns||[];
+  rows=p.data||[];
+  // AGREGA ESTO TEMPORALMENTE:
+  document.title = JSON.stringify(cols.map(c=>c.name||c.label||c.id));
+  apply()
+}
+
+  window.addEventListener("message",receive,false);window.onmessage=receive;
+  try{if(parent&&parent!==window){parent.postMessage({type:"ready"},"*");parent.postMessage("ready","*")}}catch(e){}
+  demo();
+
+  
+})();
+</script>
+</body>
+</html>

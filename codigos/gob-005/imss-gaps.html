@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Brecha económica por periodo - IMSS</title>
+
+<style>
+.gob005-imss-gaps {
+  --g5-blue-950:#081F3D; --g5-blue-900:#0B2E59; --g5-blue-300:#8DC2E8; --g5-blue-100:#EAF4FB;
+  --g5-surface:#FFFFFF; --g5-border:#D6E2ED; --g5-muted:#66788A; --g5-danger:#C84A4A;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; padding: 14px 16px; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Roboto,Arial,sans-serif; background: var(--g5-surface); height: 100vh; font-size: 13px; }
+.gob005-imss-gaps { height: 100%; display: flex; flex-direction: column; }
+.gob005-imss-gaps__title { font-size: 15px; font-weight: 800; color: var(--g5-blue-950); margin: 0 0 1px; }
+.gob005-imss-gaps__sub { color: var(--g5-muted); font-size: 11.5px; margin-bottom: 12px; }
+.gob005-imss-gaps__error { color: #b91c1c; font-size: 11px; display: none; white-space: pre-wrap; margin-bottom: 6px; }
+.gob005-imss-gaps__body { flex: 1 1 0; min-height: 0; }
+
+.period-gap-list { height: 100%; min-height: 0; display: flex; flex-direction: column; justify-content: space-around; gap: 8px; overflow: hidden; }
+.period-gap-row { display: grid; grid-template-columns: minmax(118px,27%) minmax(0,38%) minmax(96px,22%) minmax(42px,13%); gap: 8px; align-items: center; font-size: 12px; }
+.period-gap-name { font-weight: 800; color: var(--g5-blue-950); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.period-gap-track { height: 14px; display: block; position: relative; background: var(--g5-blue-100); border-radius: 999px; overflow: hidden; }
+.period-gap-est, .period-gap-decl { display: block; position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; }
+.period-gap-est { background: var(--g5-blue-300); opacity: .75; }
+.period-gap-decl { background: var(--g5-blue-900); }
+.period-gap-diff { font-weight: 900; color: var(--g5-danger); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.period-gap-pct { font-weight: 900; color: var(--g5-blue-900); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.callout { color: var(--g5-muted); font-size: 12px; text-align: center; padding: 20px 0; }
+</style>
+</head>
+<body>
+
+<div class="gob005-imss-gaps">
+  <div class="gob005-imss-gaps__title">Brecha económica por periodo</div>
+  <div class="gob005-imss-gaps__sub">Estimado IMSS contra declarado</div>
+  <div class="gob005-imss-gaps__error" id="error"></div>
+  <div class="gob005-imss-gaps__body" id="body"></div>
+</div>
+
+<script>
+/* ===== DATOS: mismo mapeo del tablero completo gob-005, fuente: CONCILIACION_EMPRESA_PERIODO_V2 =====
+   Nota: en el HTML combinado original esta lista ignoraba los datos entrantes y siempre mostraba
+   valores de muestra fijos (DEMO_IMSS). Aquí sí se calcula a partir de los datos reales de VA. */
+var PERIOD_SCOPE = { year: "2025", months: [10, 11, 12] };
+function periodLabelFromMonth(n) { return n === 10 ? "Octubre 2025" : n === 11 ? "Noviembre 2025" : n === 12 ? "Diciembre 2025" : "—"; }
+function mesNumOf(v) {
+  if (v == null || v === "") return 0;
+  var s = String(v).trim();
+  var sep = s.indexOf("-") >= 0 ? "-" : (s.indexOf("/") >= 0 ? "/" : "");
+  if (sep) { var p = s.split(sep); if (p.length >= 2 && p[0].length === 4) { var mo = parseInt(p[1], 10); if (mo >= 1 && mo <= 12) return mo; } }
+  if (s.length <= 2) { var n = parseInt(s, 10); if (n >= 1 && n <= 12) return n; }
+  var d = new Date(s); return isNaN(d) ? 0 : d.getMonth() + 1;
+}
+var MAP_DETAIL = {
+  anio: ["ano", "anio", "ejercicio"], periodo: ["periodo inicio", "periodo"],
+  isn_decl: ["impuesto causado declarado", "causado declarado"],
+  isn_imss: ["impuesto causado estimado", "causado estimado"]
+};
+function normalize(s) { return String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[\s._]+/g, " ").trim(); }
+function buildColIndex(columns, amap) {
+  var idx = {};
+  Object.keys(amap).forEach(function(f) {
+    for (var i = 0; i < columns.length; i++) {
+      var lbl = normalize(columns[i].label || columns[i].name || "");
+      if (amap[f].some(function(a) { var n = normalize(a); return lbl === n || lbl.includes(n); })) { idx[f] = i; break; }
+    }
+  });
+  return idx;
+}
+var toNum = function(v) { if (v == null || v === "") return undefined; var n = +String(v).replace(/[^0-9.\-]/g, ""); return isNaN(n) ? undefined : n; };
+
+function detailFromVA(msg) {
+  var cols = msg.columns || [], data = msg.data || [], idx = buildColIndex(cols, MAP_DETAIL);
+  var g = function(row, f) { return idx[f] != null ? row[idx[f]] : undefined; };
+  return data.map(function(row) {
+    var anio = g(row, "anio") != null ? String(g(row, "anio")) : "", pini = g(row, "periodo") != null ? String(g(row, "periodo")) : "";
+    var mnum = mesNumOf(pini) || mesNumOf(anio + "-" + pini);
+    var isn_imss = toNum(g(row, "isn_imss")) || 0;
+    return { mesNum: mnum, isn_decl: toNum(g(row, "isn_decl")) || 0, isn_imss: isn_imss };
+  }).filter(function(r) { return r.isn_imss > 0; });
+}
+function sum(arr, f) { return arr.reduce(function(s, x) { return s + (+f(x) || 0); }, 0); }
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function(c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+function fmtMXNfull(v) { return v == null || isNaN(v) ? "—" : v.toLocaleString("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }); }
+function fmtMXNmill(v) { return "$" + (Number(v || 0) / 1000000).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " M"; }
+function fmtPct(v) { return v == null || isNaN(v) ? "—" : v.toFixed(1) + "%"; }
+
+function imssPeriodGaps(host, rows) {
+  var pts = PERIOD_SCOPE.months.map(function(m) {
+    var r = rows.filter(function(x) { return x.mesNum === m; });
+    var decl = sum(r, function(x) { return x.isn_decl; }), est = sum(r, function(x) { return x.isn_imss; });
+    return { label: periodLabelFromMonth(m), decl: decl, est: est, gap: Math.max(0, est - decl), pct: est ? Math.min(100, decl / est * 100) : 100 };
+  });
+  var max = Math.max.apply(null, pts.map(function(p) { return p.est; })) || 1;
+  if (!pts.length) { host.innerHTML = '<div class="callout">Sin datos.</div>'; return; }
+  host.innerHTML = '<div class="period-gap-list">' + pts.map(function(p) {
+    return '<div class="period-gap-row" title="' + esc(p.label) + ' · Estimado: ' + fmtMXNfull(p.est) + ' · Declarado: ' + fmtMXNfull(p.decl) + ' · Brecha: ' + fmtMXNfull(p.gap) + ' · Cumplimiento: ' + fmtPct(p.pct) + '">' +
+      '<div class="period-gap-name">' + esc(p.label) + '</div>' +
+      '<div class="period-gap-track"><span class="period-gap-est" style="width:' + (p.est / max * 100).toFixed(1) + '%"></span><span class="period-gap-decl" style="width:' + (p.decl / max * 100).toFixed(1) + '%"></span></div>' +
+      '<div class="period-gap-diff">' + fmtMXNmill(p.gap) + '</div>' +
+      '<div class="period-gap-pct">' + fmtPct(p.pct) + '</div>' +
+    '</div>';
+  }).join("") + '</div>';
+}
+
+window.addEventListener('message', function(evt) {
+  var m = evt.data || {};
+  if (!m || typeof m !== 'object' || !Array.isArray(m.columns) || !Array.isArray(m.data)) return;
+  try {
+    imssPeriodGaps(document.getElementById('body'), detailFromVA(m));
+    document.getElementById('error').style.display = 'none';
+  } catch (e) {
+    document.getElementById('error').textContent = e.message;
+    document.getElementById('error').style.display = 'block';
+  }
+});
+
+try { if (window.parent) window.parent.postMessage({ type: 'ready', object: 'gob-005-imss-gaps' }, '*'); } catch (e) {}
+
+/* Datos de muestra para previsualización standalone (sin conexión a VA) */
+imssPeriodGaps(document.getElementById('body'), [
+  { mesNum: 10, isn_decl: 264650000, isn_imss: 395000000 },
+  { mesNum: 11, isn_decl: 282900000, isn_imss: 410000000 },
+  { mesNum: 12, isn_decl: 308670000, isn_imss: 435900000 }
+]);
+</script>
+
+</body>
+</html>

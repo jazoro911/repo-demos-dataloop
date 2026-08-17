@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Municipios con mayor discrepancia</title>
+
+<style>
+.gob005-zona-muni {
+  --g5-blue-950:#081F3D; --g5-blue-900:#0B2E59; --g5-blue-500:#2F80C3; --g5-blue-100:#EAF4FB;
+  --g5-surface:#FFFFFF; --g5-border:#D6E2ED; --g5-muted:#66788A;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; padding: 14px 16px; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Roboto,Arial,sans-serif; background: var(--g5-surface); height: 100vh; font-size: 13px; }
+.gob005-zona-muni { height: 100%; display: flex; flex-direction: column; }
+.gob005-zona-muni__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.gob005-zona-muni__title { font-size: 15px; font-weight: 800; color: var(--g5-blue-950); margin: 0 0 1px; }
+.gob005-zona-muni__sub { color: var(--g5-muted); font-size: 11.5px; }
+.gob005-zona-muni__error { color: #b91c1c; font-size: 11px; display: none; white-space: pre-wrap; margin-bottom: 6px; }
+.gob005-zona-muni__body { flex: 1 1 0; min-height: 0; }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; }
+.legend .lg { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--g5-blue-950); font-weight: 600; }
+.legend .sw { width: 11px; height: 11px; border-radius: 3px; }
+
+.muni-stack { height: 100%; display: flex; flex-direction: column; justify-content: space-around; gap: 4px; }
+.stack-row { display: grid; grid-template-columns: minmax(110px,1fr) minmax(180px,2fr) auto; gap: 9px; align-items: center; font-size: 12.5px; }
+.stack-name { font-weight: 750; color: var(--g5-blue-950); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stack-total { font-weight: 900; color: var(--g5-blue-900); font-variant-numeric: tabular-nums; text-align: right; }
+.stack-track { height: 12px; border-radius: 999px; background: var(--g5-blue-100); overflow: hidden; border: 1px solid var(--g5-border); display: flex; }
+.stack-track i { display: block; height: 100%; }
+.callout { color: var(--g5-muted); font-size: 12px; text-align: center; padding: 20px 0; }
+</style>
+</head>
+<body>
+
+<div class="gob005-zona-muni">
+  <div class="gob005-zona-muni__head">
+    <div>
+      <div class="gob005-zona-muni__title">Municipios con mayor discrepancia</div>
+      <div class="gob005-zona-muni__sub">Monto ($) — vs. mínimo y vs. IMSS</div>
+    </div>
+    <span class="legend">
+      <span class="lg"><span class="sw" style="background:#0B2E59"></span>vs. mínimo</span>
+      <span class="lg"><span class="sw" style="background:#2F80C3"></span>vs. IMSS</span>
+    </span>
+  </div>
+  <div class="gob005-zona-muni__error" id="error"></div>
+  <div class="gob005-zona-muni__body" id="body"></div>
+</div>
+
+<script>
+/* ===== DATOS: mismo mapeo del tablero completo gob-005, fuente: ZONIFICACION ===== */
+var MAP_ZONIF = {
+  municipio: ["municipio"],
+  disc_min: ["discrepancia vs minimo", "discrepancia min pos", "disc vs isn minimo", "discrepancia min"],
+  disc_imss: ["discrepancia vs imss", "discrepancia imss pos", "disc vs isn imss", "discrepancia imss"]
+};
+function normalize(s) { return String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[\s._]+/g, " ").trim(); }
+function buildColIndex(columns, amap) {
+  var idx = {};
+  Object.keys(amap).forEach(function(f) {
+    for (var i = 0; i < columns.length; i++) {
+      var lbl = normalize(columns[i].label || columns[i].name || "");
+      if (amap[f].some(function(a) { var n = normalize(a); return lbl === n || lbl.includes(n); })) { idx[f] = i; break; }
+    }
+  });
+  return idx;
+}
+var toNum = function(v) { if (v == null || v === "") return undefined; var n = +String(v).replace(/[^0-9.\-]/g, ""); return isNaN(n) ? undefined : n; };
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function(c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+function fmtMXN(v) {
+  if (v == null || isNaN(v)) return "—";
+  var a = Math.abs(v);
+  if (a >= 1e9) return "$" + (v / 1e9).toFixed(2) + " MMM";
+  if (a >= 1e6) return "$" + (v / 1e6).toFixed(2) + " M";
+  if (a >= 1e3) return "$" + (v / 1e3).toFixed(1) + " K";
+  return "$" + Math.round(v).toLocaleString("es-MX");
+}
+function fmtMXNfull(v) { return v == null || isNaN(v) ? "—" : v.toLocaleString("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }); }
+
+function zonifFromVA(msg) {
+  var cols = msg.columns || [], data = msg.data || [], idx = buildColIndex(cols, MAP_ZONIF);
+  var g = function(row, f) { return idx[f] != null ? row[idx[f]] : undefined; };
+  return data.map(function(row) { return { municipio: g(row, "municipio"), disc_min: toNum(g(row, "disc_min")) || 0, disc_imss: toNum(g(row, "disc_imss")) || 0 }; });
+}
+
+function stackedMunicipios(host, z) {
+  var mm = new Map();
+  z.forEach(function(x) {
+    var k = x.municipio || "—"; if (!mm.has(k)) mm.set(k, { municipio: k, dmin: 0, dimss: 0 });
+    var o = mm.get(k); o.dmin += (+x.disc_min || 0); o.dimss += (+x.disc_imss || 0);
+  });
+  var items = Array.from(mm.values()).sort(function(a, b) { return (b.dmin + b.dimss) - (a.dmin + a.dimss); }).slice(0, 6);
+  if (!items.length) { host.innerHTML = '<div class="callout">Sin datos.</div>'; return; }
+  var max = Math.max.apply(null, items.map(function(i) { return i.dmin + i.dimss; })) || 1;
+  host.innerHTML = '<div class="muni-stack">' + items.map(function(i) {
+    var total = i.dmin + i.dimss;
+    return '<div class="stack-row" title="' + esc(i.municipio) + ' · ' + fmtMXNfull(total) + '">' +
+      '<div class="stack-name">' + esc(i.municipio) + '</div>' +
+      '<div class="stack-track"><i style="width:' + (i.dmin / max * 100) + '%;background:#0B2E59"></i><i style="width:' + (i.dimss / max * 100) + '%;background:#2F80C3"></i></div>' +
+      '<div class="stack-total">' + fmtMXN(total) + '</div>' +
+    '</div>';
+  }).join("") + '</div>';
+}
+
+window.addEventListener('message', function(evt) {
+  var m = evt.data || {};
+  if (!m || typeof m !== 'object' || !Array.isArray(m.columns) || !Array.isArray(m.data)) return;
+  try {
+    stackedMunicipios(document.getElementById('body'), zonifFromVA(m));
+    document.getElementById('error').style.display = 'none';
+  } catch (e) {
+    document.getElementById('error').textContent = e.message;
+    document.getElementById('error').style.display = 'block';
+  }
+});
+
+try { if (window.parent) window.parent.postMessage({ type: 'ready', object: 'gob-005-zona-muni-chart' }, '*'); } catch (e) {}
+
+/* Datos de muestra para previsualización standalone (sin conexión a VA) */
+stackedMunicipios(document.getElementById('body'), [
+  { municipio: "Durango", disc_min: 165000000, disc_imss: 210000000 },
+  { municipio: "Gómez Palacio", disc_min: 98000000, disc_imss: 120000000 },
+  { municipio: "Lerdo", disc_min: 62000000, disc_imss: 74000000 },
+  { municipio: "Tlahualilo", disc_min: 40000000, disc_imss: 33000000 },
+  { municipio: "Santiago Papasquiaro", disc_min: 28000000, disc_imss: 21000000 },
+  { municipio: "Nazas", disc_min: 15000000, disc_imss: 12000000 }
+]);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dataloop - Brecha de Recaudación · Durango (gob-005)</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <!-- Aplica el tema guardado (claro/oscuro) antes de pintar la página, para evitar parpadeos -->
+    <script>
+        (function () {
+            var tema = localStorage.getItem('tema-dataloop') || 'claro';
+            document.documentElement.setAttribute('data-theme', tema);
+        })();
+    </script>
+    <style>
+        /* ══════════════════════════════════════════════════════════
+           "DENTRO DEL FOLDER" — mismo estilo/layout que gob-001/002/003/004.
+           Este código es HTML + SAS (brecha_recaudacion-durango.html es un
+           panel autocontenido con navegación interna que incluye un mapa
+           de SAS Visual Analytics embebido) — color de carpeta = demos SAS
+           que usan HTML como Data Driven Object/Content. Es un solo
+           archivo fuente, pero la preview se muestra como carrusel de 5
+           capturas (una por vista interna del panel). Igual que gob-004,
+           tiene carrito por consistencia con el resto del sitio (clic en
+           la imagen para agregarlo).
+           ══════════════════════════════════════════════════════════ */
+        :root {
+            --folder-color: #3BB273;
+        }
+
+        .zona-principal {
+            background: linear-gradient(180deg, color-mix(in srgb, var(--folder-color) 16%, var(--color-fondo)) 0px, var(--color-fondo) 260px);
+        }
+
+        .header {
+            background-color: color-mix(in srgb, var(--folder-color) 18%, var(--color-fondo-tarjeta));
+            border-bottom: 3px solid var(--folder-color);
+            flex-wrap: wrap;
+            row-gap: 10px;
+        }
+
+        .folder-tag {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 10px;
+            background: var(--folder-color);
+            color: #ffffff;
+            padding: 6px 14px;
+            border-radius: 999px;
+            box-shadow: 0 2px 6px rgba(0,0,0,.15);
+            max-width: 100%;
+        }
+
+        .folder-tag-icono {
+            font-size: 12px;
+        }
+
+        .folder-tag-fecha {
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .tarjeta {
+            border-left: 4px solid var(--folder-color);
+        }
+
+        /* Cliente, debajo del título */
+        .folder-cliente {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-texto-claro);
+            margin: 2px 0 16px 0;
+        }
+
+        /* Fila: carrusel de la demo a la izquierda, acciones (Código /
+           lupa / copiar) a la derecha. 60% para la demo, 40% para
+           la columna de acciones. */
+        .demo-preview-row {
+            display: grid;
+            grid-template-columns: 60fr 40fr;
+            align-items: stretch;
+            gap: 16px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .demo-preview-izquierda {
+            min-width: 0;
+        }
+
+        /* Carrusel de capturas — las 5 vistas del mismo panel
+           (Inicio, Empleados, Zonificación, ISN vs IMSS, ISN vs Mínimo).
+           Todas apuntan al mismo archivo de código, así que solo cambia
+           la imagen visible, no el visor de código. */
+        .carousel {
+            position: relative;
+            background: var(--color-fondo-tarjeta);
+            border: 1px solid var(--color-borde);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .carousel-slides {
+            position: relative;
+        }
+
+        .preview-container {
+            position: relative;
+        }
+
+        .carousel-slide {
+            display: none;
+            position: relative;
+        }
+
+        .carousel-slide.activo {
+            display: block;
+        }
+
+        .carousel-slide img {
+            width: 100%;
+            display: block;
+            object-fit: cover;
+            object-position: top;
+            max-height: 420px;
+        }
+
+        /* Hotspots — un recuadro por objeto separable, posicionado
+           encima de su zona en la captura de cada vista. Solo son
+           visibles/interactivos dentro del slide activo (heredan el
+           display:none/block del carousel-slide padre). */
+        .hotspot {
+            position: absolute;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            border-radius: 4px;
+        }
+
+        .hotspot:hover {
+            background: rgba(59, 178, 115, 0.15);
+            border-color: var(--folder-color);
+        }
+
+        .hotspot-tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .hotspot-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 4px solid transparent;
+            border-top-color: rgba(0, 0, 0, 0.9);
+        }
+
+        .hotspot:hover .hotspot-tooltip {
+            opacity: 1;
+        }
+
+        /* Variante para los objetos nativos de SAS Visual Analytics
+           (mapas embebidos vía sas-report-object): no tienen archivo
+           HTML propio, así que solo muestran el hover — no se pueden
+           agregar al carrito. */
+        .hotspot-va {
+            cursor: default;
+        }
+
+        .hotspot-va:hover {
+            background: rgba(4, 134, 194, 0.12);
+            border-color: #0486C2;
+        }
+
+        .carousel-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 16px;
+            background: var(--color-fondo-tarjeta);
+            border-top: 1px solid var(--color-borde);
+        }
+
+        .carousel-dots {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .carousel-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #c5d5e8;
+            cursor: pointer;
+            transition: all .2s;
+            border: none;
+            padding: 0;
+        }
+
+        .carousel-dot.activo {
+            width: 22px;
+            border-radius: 4px;
+            background: var(--folder-color);
+        }
+
+        .btn-nav {
+            background: var(--color-fondo-tarjeta);
+            border: 1px solid var(--color-borde);
+            color: var(--color-texto);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .btn-nav:disabled {
+            opacity: .35;
+            cursor: default;
+        }
+
+        .btn-nav:hover:not(:disabled) {
+            border-color: var(--folder-color);
+            color: var(--folder-color);
+        }
+
+        .carousel-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--color-texto-claro);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Sección de carrusel de objetos */
+        .seccion-carrusel-objetos {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid var(--color-borde);
+        }
+
+        .seccion-carrusel-objetos h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--color-texto);
+            margin-bottom: 10px;
+        }
+
+        /* ── Arco de objetos: carrusel curvo en movimiento continuo,
+           igual que en gob-001/002/003 — 21 objetos separables de las
+           5 vistas, se desvanecen en las orillas y se agrandan al
+           resaltarse (tarjeta o hotspot correspondiente). ── */
+        .arco-objetos {
+            position: relative;
+            height: 190px;
+            overflow: hidden;
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%);
+        }
+
+        .arco-objetos-pista {
+            position: absolute;
+            inset: 0;
+        }
+
+        .objeto-arco {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            will-change: transform;
+        }
+
+        .objeto-arco-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            width: 128px;
+            padding: 14px 10px;
+            border-radius: var(--radio-md);
+            background: var(--color-fondo-tarjeta);
+            border: 1px solid var(--color-borde);
+            box-shadow: 0 4px 10px rgba(0,0,0,.08);
+            text-align: center;
+            cursor: pointer;
+            box-sizing: border-box;
+            transform: translate(-50%, -50%) scale(1);
+            transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+        }
+
+        .objeto-arco-icono {
+            font-size: 22px;
+        }
+
+        .objeto-arco-nombre {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--color-texto);
+            line-height: 1.25;
+        }
+
+        .objeto-arco-tipo {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            color: #ffffff;
+            background: var(--folder-color);
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
+        .objeto-arco-card.seleccionado {
+            transform: translate(-50%, -50%) scale(1.32);
+            border-color: var(--folder-color);
+            box-shadow: 0 10px 24px rgba(0,0,0,.28);
+            z-index: 5;
+        }
+
+        .demo-preview-acciones {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 0;
+            min-height: 0;
+        }
+
+        .demo-preview-acciones .acciones-botones {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .accion-demo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: none;
+            text-decoration: none;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+            box-sizing: border-box;
+            cursor: pointer;
+            transition: background .15s, box-shadow .15s ease;
+        }
+
+        .accion-codigo {
+            background: linear-gradient(135deg, var(--folder-color) 0%, color-mix(in srgb, var(--folder-color) 65%, black) 100%);
+            color: #ffffff;
+            box-shadow: 0 2px 6px rgba(0,0,0,.15);
+        }
+
+        .accion-codigo:hover {
+            box-shadow: 0 4px 10px rgba(0,0,0,.2);
+        }
+
+        .accion-lupa {
+            background: var(--color-fondo-tarjeta);
+            border: 1px solid var(--color-borde);
+            color: var(--color-texto);
+            font-size: 16px;
+            width: 38px;
+            height: 38px;
+            padding: 0;
+        }
+
+        .accion-lupa:hover {
+            border-color: var(--folder-color);
+            color: var(--folder-color);
+        }
+
+        .fila-lupa-copiar {
+            display: flex;
+            gap: 10px;
+        }
+
+        .accion-copiar {
+            background: linear-gradient(135deg, #0486C2 0%, #035f8a 100%);
+            color: #ffffff;
+            font-size: 16px;
+            width: 38px;
+            height: 38px;
+            padding: 0;
+            box-shadow: 0 2px 6px rgba(4, 134, 194, .35);
+        }
+
+        .accion-copiar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(4, 134, 194, .45);
+        }
+
+        @media (max-width: 700px) {
+            .demo-preview-row {
+                grid-template-columns: 1fr;
+                overflow: visible;
+            }
+
+            .visor-codigo {
+                flex: none;
+                height: 320px !important;
+                margin-top: 10px;
+            }
+        }
+
+        /* Visor de código — se abre con la lupa 🔍, línea por línea.
+           Vive DENTRO de demo-preview-row: el renglón tiene una altura
+           fija (fijada por JS) y overflow:hidden, así que el visor
+           nunca la rebasa — crece como máximo hasta llenar el espacio
+           que le queda en la columna derecha, con scroll interno. */
+        .visor-codigo {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            min-width: 0;
+            width: 100%;
+            border-radius: var(--radio-md);
+            overflow: hidden;
+            border: 1px solid #334155;
+            box-sizing: border-box;
+        }
+
+        .visor-codigo.abierto {
+            display: flex;
+        }
+
+        .visor-codigo-barra {
+            background: linear-gradient(90deg, #072b40 0%, #0486C2 100%);
+            color: #e0f2fe;
+            padding: 10px 16px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .visor-codigo-cuerpo {
+            background: #1e293b;
+            flex: 1;
+            min-height: 0;
+            min-width: 0;
+            overflow-x: auto;
+            overflow-y: auto;
+        }
+
+        .visor-codigo-linea {
+            display: flex;
+            width: max-content;
+            min-width: 100%;
+            font-family: 'SF Mono', 'Fira Code', 'Courier New', Courier, monospace;
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        .visor-codigo-linea:hover {
+            background: rgba(255,255,255,.04);
+        }
+
+        .visor-codigo-numero {
+            flex-shrink: 0;
+            width: 46px;
+            text-align: right;
+            padding-right: 12px;
+            margin-right: 12px;
+            color: #475569;
+            user-select: none;
+            border-right: 1px solid #334155;
+        }
+
+        .visor-codigo-contenido {
+            white-space: pre;
+            color: #e2e8f0;
+            padding-right: 16px;
+        }
+
+        .visor-codigo-cargando,
+        .visor-codigo-error {
+            padding: 20px;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .visor-codigo-error {
+            color: #f87171;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            background: #22c55e;
+            color: white;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            z-index: 2000;
+        }
+
+        /* CARRITO */
+        .carrito-flotante {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #006341;
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 99, 65, 0.25);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .carrito-flotante:hover {
+            background: #005030;
+        }
+
+        .modal-carrito {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-carrito.activo {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #006341;
+            padding-bottom: 12px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 18px;
+            color: #1C334F;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6B8AAB;
+        }
+
+        .carrito-lista {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 16px 0;
+        }
+
+        .carrito-item {
+            background: #f8f9fa;
+            padding: 10px;
+            margin-bottom: 6px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid #006341;
+            font-size: 11px;
+        }
+
+        .carrito-item-nombre {
+            font-weight: 600;
+            color: #1C334F;
+        }
+
+        .carrito-item-btn {
+            background: #fee2e2;
+            color: #9b1c2e;
+            border: none;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 9px;
+            cursor: pointer;
+        }
+
+        .carrito-vacio {
+            text-align: center;
+            color: #6B8AAB;
+            padding: 16px;
+            font-size: 12px;
+        }
+
+        .modal-botones {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-modal {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #C5D5E8;
+            background: white;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .btn-modal.primary {
+            background: #006341;
+            color: white;
+            border-color: #006341;
+        }
+    </style>
+</head>
+
+<script src="../../global-search.js"></script>   <!-- desde codigos/gob-005/ -->
+<script src="../global-search.js"></script>        <!-- desde categorias/ -->
+<script src="global-search.js"></script>           <!-- desde raíz (index.html) -->
+
+<body>
+
+        <!-- ============================================
+         RIEL LATERAL (siempre visible)
+         ============================================ -->
+    <div class="sidebar-rail">
+        <button class="rail-boton rail-logo" id="btn-toggle-sidebar" onclick="toggleSidebar()" aria-label="Abrir navegación">
+            <img src="../../previews/icono_dataloop.svg" alt="Dataloop">
+        </button>
+        <button class="rail-boton rail-tema" id="btn-tema" onclick="toggleTema()" aria-label="Cambiar tema">
+            <span id="icono-tema">🌙</span>
+        </button>
+    </div>
+
+    <!-- Fondo oscuro detrás de la navegación cuando está abierta -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+    <nav class="sidebar" id="sidebar">
+
+        <button class="sidebar-cerrar" onclick="cerrarSidebar()" aria-label="Cerrar navegación">×</button>
+
+        <a href="../../index.html" class="sidebar-logo">
+            <img src="../../previews/icono_dataloop.svg" alt="Dataloop" class="sidebar-logo-img">
+            <span class="logo-texto">Dataloop</span>
+        </a>
+        <input type="text" class="sidebar-buscador" placeholder="🔍 Buscar código..." id="buscador-sidebar">
+        <a href="../../index.html" class="sidebar-link">
+            <span class="icono">📊</span> Dashboard
+        </a>
+        <div class="sidebar-seccion">Casos de Uso</div>
+        <a href="../../categorias/financial-crimes.html" class="sidebar-categoria">
+            <span class="icono">🔒</span> Financial Crimes
+        </a>
+        <a href="../../categorias/gobierno.html" class="sidebar-categoria activa">
+            <span class="icono">🏛️</span> Gobierno
+        </a>
+        <a href="../../categorias/retail.html" class="sidebar-categoria">
+            <span class="icono">🛒</span> Retail
+        </a>
+        <a href="../../categorias/analytics.html" class="sidebar-categoria">
+            <span class="icono">📈</span> Analytics
+        </a>
+        <div class="sidebar-footer">
+            <div class="avatar">R</div>
+            <div class="admin-info">
+                <div class="nombre">Repository Admin</div>
+                <div class="detalle">16 códigos disponibles</div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="zona-principal">
+
+    <div class="header">
+        <a href="../../index.html" class="logo">Repositorio de Códigos</a>
+        <div class="folder-tag">
+            <span class="folder-tag-icono">📁</span>
+            <span class="folder-tag-fecha">2026-08-05</span>
+        </div>
+    </div>
+
+    <div class="contenido">
+
+        <a href="../../categorias/gobierno.html" class="boton-volver">← Gobierno</a>
+
+        <div class="tarjeta">
+
+            <h1 class="tarjeta-titulo">Brecha de Recaudación</h1>
+
+            <p class="folder-cliente">Durango</p>
+
+            <!-- Carrusel de la demo a la izquierda, acciones a la derecha -->
+            <div class="demo-preview-row" id="demo-preview-row">
+                <div class="demo-preview-izquierda" id="demo-preview-izquierda">
+                    <div class="carousel">
+                        <div class="preview-container" id="preview-container">
+                            <div class="carousel-slides">
+                                <div class="carousel-slide activo">
+                                    <img src="../../previews/gob-005/inicio.png" alt="Brecha de Recaudación — Inicio" id="preview-image">
+
+                                    <div class="hotspot" onclick="agregarCarrito('kpis-inicio')" onmouseenter="resaltarObjetoArco('kpis-inicio', true)" onmouseleave="resaltarObjetoArco('kpis-inicio', false)" style="left: 13.6%; top: 20.8%; width: 84.3%; height: 11.2%;">
+                                        <div class="hotspot-tooltip">📊 KPIs — Panorama General</div>
+                                    </div>
+                                    <div class="hotspot" onclick="agregarCarrito('ranking-contribuyentes')" onmouseenter="resaltarObjetoArco('ranking-contribuyentes', true)" onmouseleave="resaltarObjetoArco('ranking-contribuyentes', false)" style="left: 13.6%; top: 33%; width: 35.15%; height: 36.7%;">
+                                        <div class="hotspot-tooltip">🏆 Contribuyentes Prioritarios</div>
+                                    </div>
+                                    <div class="hotspot" onclick="agregarCarrito('donut-hallazgos')" onmouseenter="resaltarObjetoArco('donut-hallazgos', true)" onmouseleave="resaltarObjetoArco('donut-hallazgos', false)" style="left: 13.6%; top: 70.7%; width: 35.15%; height: 26.7%;">
+                                        <div class="hotspot-tooltip">🍩 Distribución de Hallazgos</div>
+                                    </div>
+                                    <div class="hotspot hotspot-va" style="left: 49.5%; top: 33%; width: 48.4%; height: 64.4%;">
+                                        <div class="hotspot-tooltip">Objeto VA 9436</div>
+                                    </div>
+                                </div>
+                                <div class="carousel-slide">
+                                    <img src="../../previews/gob-005/ISNvsMINIMO.png" alt="Brecha de Recaudación — ISN vs Mínimo">
+
+                                    <div class="hotspot" onclick="agregarCarrito('min-filtros')" onmouseenter="resaltarObjetoArco('min-filtros', true)" onmouseleave="resaltarObjetoArco('min-filtros', false)" style="left: 13.65%; top: 19.9%; width: 84.2%; height: 2.3%;">
+                                        <div class="hotspot-tooltip">🔍 Filtros — ISN vs. Mínimo</div>
+                                    </div>
+                                    <div class="hotspot" onclick="agregarCarrito('min-kpis')" onmouseenter="resaltarObjetoArco('min-kpis', true)" onmouseleave="resaltarObjetoArco('min-kpis', false)" style="left: 13.65%; top: 24.3%; width: 84.2%; height: 10.8%;">
+                                        <div class="hotspot-tooltip">📊 KPIs — ISN vs. Mínimo</div>
+                                    </div>
+                                    <div class="hotspot" onclick="agregarCarrito('min-chart')" onmouseenter="resaltarObjetoArco('min-chart', true)" onmouseleave="resaltarObjetoArco('min-chart', false)" style="left: 13.65%; top: 36.1%; width: 84.2%; height: 30.1%;">
+                                        <div class="hotspot-tooltip">📈 Evolución Mensual vs. Mínimo</div>
+                                    </div>
+                                    <div class="hotspot" onclick="agregarCarrito('min-tabla')" onmouseenter="resaltarObjetoArco('min-tabla', true)" onmouseleave="resaltarObjetoArco('min-tabla', false)" style="left: 13.65%; top: 67.4%; width: 84.2%; height: 30%;">
+                                        <div class="hotspot-tooltip">📋 Tabla — Contribuyentes vs. Mínimo</div>
+                                    </div>
+                                </div>
+                                <div class="carousel-slide">
+                                    <img src="../../previews/gob-005/empleados.png" alt="Brecha de Recaudación — Empleados">
+
+                                    <div class="hotspot" onclick="agregarCarrito('emp-filtros')" onmouseenter="resaltarObjetoArco('emp-filtros', true)" onmouseleave="resaltarObjetoArco('emp-filtros', false)" style="left: 13.65%; top: 19.9%; width: 84.2%; height: 2.3%;">
+                                        <div class="hotspot-tooltip">🔍 Filtros — Empleados</div>
+                                    </div>
+                                    <div class="hotspot" onclick="agregarCarrito('emp-kpis')" onmouseenter="resaltarObjetoArco('emp-kpis', true)" onmouseleave="resaltarObjetoArco('emp-kpis', false)" style="left: 13.65%; top: 24.3%; width: 84.2%; height: 10.8%;">
+                                        <div class="hotspot-tooltip">📊 KPIs — Empleados</div>
+                                    </div>
+                                    <div class="hotspot" onclick="agregarCarrito('emp-chart')" onmouseenter="resaltarObjetoArco('emp-chart', true)" onmouseleave="resaltarObjetoArco('emp-chart', false)" style="left: 13.65%; top: 36.1%; width: 41.75%; height: 30.1%;">
+                                        <div class="hotspot-tooltip">📈 Evolución de Plantilla</div>
+                                    </div>
+                                    <div class="hotspot" onclick="agregarCarrito('emp-tree')" onmouseenter="resaltarObjetoArco('emp-tree', true)" onmouseleave="resaltarObjetoArco('emp-tree', false)" style="left: 56.2%; top: 36.1%; width: 41.65%; height: 30.1%;">
+                                        <div class="hotspot-tooltip">🌳 Mayor Plantilla No Declarada</div>
+                                    </div>
+                                    <div class="hotspot" onclick="agregarCarrito('emp-tabla')" onmouseenter="resaltarObjetoArco('emp-tabla', true)" onmouseleave="resaltarObjetoArco('emp-tabla', false)" style="left: 13.65%; top: 67.4%; width: 84.2%; height: 30%;">
+                                        <div class="hotspot-tooltip">📋 Tabla — Empleados</div>
+                                    </div>
+                                </div>
+                                <div class="carousel-slide">
+                                    <img src="../../previews/gob-005/ISNvsIMSS.png" alt="Brecha de Recaudación — ISN vs IMSS">
+
+                                    <div class="hotspot" onclick="agregarCarrito('imss-filtros')" onmouseenter="resaltarObjetoArco('imss-filtros', true)" onmouseleave="resaltarObjetoArco('imss-filtros', false)" style="left: 13.65%; top: 19.9%; width: 84.2%; height: 2.3%;">
+                                        <div class="hotspot-tooltip">🔍 Filtros — ISN vs. IMSS</div>
+                                    </div>
+                                    <div class="hotspot" onclick="agregarCarrito('imss-kpis')" onmouseenter="resaltarObjetoArco('imss-kpis', true)" onmouseleave="resaltarObjetoArco('imss-kpis', false)" style="left: 13.65%; top: 24.3%; width: 84.2%; height: 10.8%;">
+                                        <div class="hotspot-tooltip">📊 KPIs — ISN vs. IMSS</div>
+                                    </div>
+                                    <div class="hotspot" onclick="agregarCarrito('imss-chart')" onmouseenter="resaltarObjetoArco('imss-chart', true)" onmouseleave="resaltarObjetoArco('imss-chart', false)" style="left: 13.65%; top: 36.1%; width: 48.45%; height: 30.1%;">
+                                        <div class="hotspot-tooltip">📈 Evolución del Cumplimiento</div>
+                                    </div>
+                                    <div class="hotspot" onclick="agregarCarrito('imss-gaps')" onmouseenter="resaltarObjetoArco('imss-gaps', true)" onmouseleave="resaltarObjetoArco('imss-gaps', false)" style="left: 62.9%; top: 36.1%; width: 34.95%; height: 30.1%;">
+                                        <div class="hotspot-tooltip">💰 Brecha Económica por Periodo</div>
+                                    </div>
+                                    <div class="hotspot" onclick="agregarCarrito('imss-tabla')" onmouseenter="resaltarObjetoArco('imss-tabla', true)" onmouseleave="resaltarObjetoArco('imss-tabla', false)" style="left: 13.65%; top: 67.4%; width: 84.2%; height: 30%;">
+                                        <div class="hotspot-tooltip">📋 Tabla — ISN vs. IMSS</div>
+                                    </div>
+                                </div>
+                                <div class="carousel-slide">
+                                    <img src="../../previews/gob-005/zonificacion.png" alt="Brecha de Recaudación — Zonificación">
+
+                                    <div class="hotspot" onclick="agregarCarrito('zona-filtros')" onmouseenter="resaltarObjetoArco('zona-filtros', true)" onmouseleave="resaltarObjetoArco('zona-filtros', false)" style="left: 13.65%; top: 19.9%; width: 84.2%; height: 2.3%;">
+                                        <div class="hotspot-tooltip">🔍 Filtros — Zonificación</div>
+                                    </div>
+                                    <div class="hotspot" onclick="agregarCarrito('zona-kpis')" onmouseenter="resaltarObjetoArco('zona-kpis', true)" onmouseleave="resaltarObjetoArco('zona-kpis', false)" style="left: 13.65%; top: 24.3%; width: 84.2%; height: 10.8%;">
+                                        <div class="hotspot-tooltip">📊 KPIs — Zonificación</div>
+                                    </div>
+                                    <div class="hotspot hotspot-va" style="left: 13.65%; top: 36.1%; width: 45.1%; height: 31.4%;">
+                                        <div class="hotspot-tooltip">Objeto VA 8164</div>
+                                    </div>
+                                    <div class="hotspot" onclick="agregarCarrito('zona-muni-chart')" onmouseenter="resaltarObjetoArco('zona-muni-chart', true)" onmouseleave="resaltarObjetoArco('zona-muni-chart', false)" style="left: 59.55%; top: 36.1%; width: 38.3%; height: 31.4%;">
+                                        <div class="hotspot-tooltip">🏘️ Municipios con Mayor Discrepancia</div>
+                                    </div>
+                                    <div class="hotspot" onclick="agregarCarrito('zona-tabla')" onmouseenter="resaltarObjetoArco('zona-tabla', true)" onmouseleave="resaltarObjetoArco('zona-tabla', false)" style="left: 13.65%; top: 68.5%; width: 84.2%; height: 28.9%;">
+                                        <div class="hotspot-tooltip">📋 Tabla — Zonificación</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="carousel-nav">
+                            <button type="button" class="btn-nav" id="btnPrev" disabled aria-label="Vista anterior">‹</button>
+                            <div class="carousel-dots">
+                                <button type="button" class="carousel-dot activo" data-idx="0" aria-label="Inicio"></button>
+                                <button type="button" class="carousel-dot" data-idx="1" aria-label="ISN vs Mínimo"></button>
+                                <button type="button" class="carousel-dot" data-idx="2" aria-label="Empleados"></button>
+                                <button type="button" class="carousel-dot" data-idx="3" aria-label="ISN vs IMSS"></button>
+                                <button type="button" class="carousel-dot" data-idx="4" aria-label="Zonificación"></button>
+                            </div>
+                            <span class="carousel-label" id="carousel-label">Inicio</span>
+                            <button type="button" class="btn-nav" id="btnNext" aria-label="Vista siguiente">›</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="demo-preview-acciones">
+                    <div class="acciones-botones">
+                        <a href="brecha_recaudacion-durango.html" target="_blank" class="accion-demo accion-codigo">💻 Código</a>
+                        <div class="fila-lupa-copiar">
+                            <button type="button" class="accion-demo accion-lupa" onclick="toggleVisorCodigo()" title="Ver código línea por línea" aria-label="Ver código línea por línea">🔍</button>
+                            <button type="button" class="accion-demo accion-copiar" id="btn-copiar-codigo" onclick="copiarCodigoFuente()" title="Copiar código" aria-label="Copiar código" style="display:none;">📋</button>
+                        </div>
+                    </div>
+
+                    <!-- VISOR DE CÓDIGO — se abre con la lupa 🔍 -->
+                    <div class="visor-codigo" id="visor-codigo">
+                        <div class="visor-codigo-barra">
+                            <span>📝 brecha_recaudacion-durango.html</span>
+                        </div>
+                        <div class="visor-codigo-cuerpo" id="visor-codigo-cuerpo">
+                            <p class="visor-codigo-cargando">Cargando código…</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="tarjeta-descripcion" style="margin-top: 20px;">Panel de análisis de brecha de recaudación del Impuesto Sobre Nóminas (ISN) para el Gobierno del Estado de Durango — código HTML/CSS/JS autocontenido con un mapa de SAS Visual Analytics embebido, con navegación interna entre Inicio, Empleados, Zonificación y los comparativos ISN vs IMSS / ISN vs Salario Mínimo.</p>
+
+            <div class="info-meta">
+                <span><strong>Autor:</strong> mguerrero</span>
+                <span><strong>Fecha:</strong> 2026-08-05</span>
+                <span><strong>Ruta:</strong> /GED/DATALOOP/Brecha_recaudacion</span>
+            </div>
+
+            <!-- Carrusel en arco de los objetos separados de las 5 vistas
+                 (los 2 mapas nativos de SAS VA no tienen archivo propio,
+                 así que no se agregan aquí — solo tienen hover en la
+                 imagen). -->
+            <div class="seccion-carrusel-objetos">
+                <h3>Objetos</h3>
+                <div class="arco-objetos" id="arco-objetos">
+                    <div class="arco-objetos-pista" id="arco-objetos-pista"></div>
+                </div>
+            </div>
+
+            <div class="seccion-video">
+                <h2>🎬 Video Demo</h2>
+                <div class="video-container">
+                    <div class="video-wrapper">
+                        <div class="video-placeholder">
+                            <div class="placeholder-icono">🎥</div>
+                            <p>No hay video disponible para este código.</p>
+                            <p style="font-size: 12px; margin-top: 5px;">Agrega un video pegando un iframe de YouTube o un archivo .mp4</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="footer">
+        Dataloop · Repositorio Interno · 2025
+    </div>
+
+    </div>
+
+    <!-- CARRITO FLOTANTE -->
+    <button class="carrito-flotante" onclick="abrirCarrito()"><span>🛒</span><span id="carrito-count">0</span></button>
+
+    <!-- MODAL CARRITO -->
+    <div class="modal-carrito" id="modal-carrito" onclick="if(event.target===this)cerrarCarrito()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>🛒 Mi Carrito</h2>
+                <button class="modal-close" onclick="cerrarCarrito()">X</button>
+            </div>
+            <ul class="carrito-lista" id="carrito-lista"><div class="carrito-vacio">Tu carrito esta vacio</div></ul>
+            <div class="modal-botones">
+                <button class="btn-modal" onclick="limpiarCarrito()">Limpiar</button>
+                <button class="btn-modal primary" onclick="descargarCarrito()" id="btn-descargar" disabled>Descargar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var CODIGO_URL = 'brecha_recaudacion-durango.html';
+        var visorCodigoCargado = false;
+        var codigoFuenteTexto = '';
+
+        var carrito = [];
+        var OBJETOS = [
+            { id: 'kpis-inicio',            nombre: 'KPIs — Panorama General',              archivo: 'kpis-inicio.html', variables: [
+                'Requiere AMBAS fuentes a la vez (detectSchema detecta cuál es cuál por sus columnas)',
+                'CONCILIACION_EMPRESA_PERIODO_V2 (detail): impuesto causado, empleados declarados, empleados en el imss, disc vs isn minimo, disc vs isn imss, discrepancia de empleados, cumplimiento isn, periodo inicio',
+                'ZONIFICACION: regla rota / regla txt, regla id, latitud, longitud, clasificacion del inegi, ubicacion, domicilio, discrepancia min pos, discrepancia imss pos',
+                'Mensaje esperado: {columns, data} por cada fuente',
+                'Sin datos cae a KPIs fijos de muestra: $335,976 M / 128,540 / $384.68 M / 1,247'
+            ] },
+            { id: 'ranking-contribuyentes', nombre: 'Contribuyentes Prioritarios',           archivo: 'ranking-contribuyentes.html', variables: [
+                'Fuente: CONCILIACION_EMPRESA_PERIODO_V2',
+                'Columnas: rfc, razon social, disc vs isn minimo, disc vs isn imss',
+                'Mensaje esperado: {columns, data}',
+                'Sin datos cae a un top-10 de muestra fijo'
+            ] },
+            { id: 'donut-hallazgos',        nombre: 'Distribución de Hallazgos',             archivo: 'donut-hallazgos.html', variables: [
+                'Requiere AMBAS fuentes a la vez (mismo detectSchema que KPIs — Panorama General)',
+                'CONCILIACION_EMPRESA_PERIODO_V2 (detail): rfc, razon social, impuesto causado declarado, impuesto causado minimo, impuesto causado estimado',
+                'ZONIFICACION: regla id, regla rota / regla txt',
+                'Sin datos cae a muestra fija 812/265/170'
+            ] },
+
+            { id: 'min-filtros', nombre: 'Filtros — ISN vs. Mínimo',              archivo: 'min-filtros.html', variables: [
+                'Fuente: CONCILIACION_EMPRESA_PERIODO_V2',
+                'Columnas: rfc, razon social, actividad economica, ano/ejercicio, periodo inicio, periodicidad, impuesto causado declarado, impuesto causado minimo, disc vs isn minimo, flag decl cero',
+                'Filtra internamente por periodo fijo (2025, meses 10-12)',
+                'No filtra otros objetos automáticamente — solo emite postMessage({type:"filters-applied", scope:"min"}); la propagación depende de la config de acciones del reporte en SAS VA'
+            ] },
+            { id: 'min-kpis',    nombre: 'KPIs — ISN vs. Mínimo',                 archivo: 'min-kpis.html', variables: [
+                'Fuente: CONCILIACION_EMPRESA_PERIODO_V2',
+                'Columnas: rfc, razon social, impuesto causado declarado, impuesto causado minimo, disc vs isn minimo, flag decl cero'
+            ] },
+            { id: 'min-chart',   nombre: 'Evolución Mensual vs. Mínimo',          archivo: 'min-chart.html', variables: [
+                'Fuente: CONCILIACION_EMPRESA_PERIODO_V2',
+                'Columnas: ano/ejercicio, periodo inicio, impuesto causado declarado, impuesto causado minimo',
+                'Fijo a periodo 2025, meses 10-12'
+            ] },
+            { id: 'min-tabla',   nombre: 'Tabla — Contribuyentes vs. Mínimo',     archivo: 'min-tabla.html', variables: [
+                'Fuente: CONCILIACION_EMPRESA_PERIODO_V2',
+                'Columnas: rfc, razon social, ano/ejercicio, periodo inicio, impuesto causado declarado, impuesto causado minimo',
+                'disc vs isn minimo es opcional — se calcula si no viene',
+                'Sin datos cae a 5 filas de muestra fijas'
+            ] },
+
+            { id: 'emp-filtros', nombre: 'Filtros — Empleados',                  archivo: 'emp-filtros.html', variables: [
+                'Fuente: CONCILIACION_EMPRESA_PERIODO_V2',
+                'Columnas: rfc, razon social, actividad economica',
+                'Solo emite postMessage({type:"filters-applied", scope:"emp"}); no filtra automáticamente'
+            ] },
+            { id: 'emp-kpis',    nombre: 'KPIs — Empleados',                     archivo: 'emp-kpis.html', variables: [
+                'Fuente: CONCILIACION_EMPRESA_PERIODO_V2',
+                'Columnas: numero empleados declarados, numero empleados en el imss, discrepancia de empleados'
+            ] },
+            { id: 'emp-chart',   nombre: 'Evolución de Plantilla',               archivo: 'emp-chart.html', variables: [
+                'Fuente: CONCILIACION_EMPRESA_PERIODO_V2',
+                'Columnas: ano/ejercicio, periodo inicio, numero empleados declarados, numero empleados en el imss',
+                'Fijo a periodo 2025, meses 10-12'
+            ] },
+            { id: 'emp-tree',    nombre: 'Mayor Plantilla No Declarada',         archivo: 'emp-tree.html', variables: [
+                'Fuente: CONCILIACION_EMPRESA_PERIODO_V2',
+                'Columnas: rfc, razon social, numero empleados declarados, numero empleados en el imss'
+            ] },
+            { id: 'emp-tabla',   nombre: 'Tabla — Empleados',                    archivo: 'emp-tabla.html', variables: [
+                'Fuente: CONCILIACION_EMPRESA_PERIODO_V2',
+                'Dos pestañas (Total por contribuyente / Detalle por periodo)',
+                'Columnas: rfc, razon social, ano/ejercicio, periodo inicio, numero empleados declarados, numero empleados en el imss, discrepancia de empleados'
+            ] },
+
+            { id: 'imss-filtros', nombre: 'Filtros — ISN vs. IMSS',              archivo: 'imss-filtros.html', variables: [
+                'Fuente: CONCILIACION_EMPRESA_PERIODO_V2',
+                'Columnas: rfc, razon social, actividad economica',
+                'Solo emite postMessage({type:"filters-applied", scope:"imss"}); no filtra automáticamente'
+            ] },
+            { id: 'imss-kpis',    nombre: 'KPIs — ISN vs. IMSS',                 archivo: 'imss-kpis.html', variables: [
+                'Fuente: CONCILIACION_EMPRESA_PERIODO_V2',
+                'Columnas: rfc, razon social, impuesto causado declarado, impuesto causado estimado, disc vs isn imss',
+                'Solo considera filas con impuesto causado estimado > 0'
+            ] },
+            { id: 'imss-chart',   nombre: 'Evolución del Cumplimiento',          archivo: 'imss-chart.html', variables: [
+                'Fuente: CONCILIACION_EMPRESA_PERIODO_V2',
+                'Columnas: ano/ejercicio, periodo inicio, impuesto causado declarado, impuesto causado estimado',
+                'Fijo a periodo 2025, meses 10-12; solo filas con impuesto causado estimado > 0'
+            ] },
+            { id: 'imss-gaps',    nombre: 'Brecha Económica por Periodo',        archivo: 'imss-gaps.html', variables: [
+                'Fuente: CONCILIACION_EMPRESA_PERIODO_V2',
+                'Columnas: ano/ejercicio, periodo inicio, impuesto causado declarado, impuesto causado estimado',
+                'Fijo a periodo 2025, meses 10-12; solo filas con impuesto causado estimado > 0'
+            ] },
+            { id: 'imss-tabla',   nombre: 'Tabla — ISN vs. IMSS',                archivo: 'imss-tabla.html', variables: [
+                'Fuente: CONCILIACION_EMPRESA_PERIODO_V2',
+                'Solo filas con impuesto causado estimado > 0; pestañas Contribuyentes/Detalle',
+                'Columnas: rfc, razon social, ano/ejercicio, periodo inicio, impuesto causado declarado, impuesto causado estimado, disc vs isn imss'
+            ] },
+
+            { id: 'zona-filtros',     nombre: 'Filtros — Zonificación',              archivo: 'zona-filtros.html', variables: [
+                'Fuente: ZONIFICACION',
+                'Columnas: rfc, razon social, municipio, zona, clasificacion del inegi (tamaño/estrato), regla id, regla rota / regla txt',
+                'Solo emite postMessage({type:"filters-applied", scope:"zona"}); no filtra automáticamente'
+            ] },
+            { id: 'zona-kpis',        nombre: 'KPIs — Zonificación',                 archivo: 'zona-kpis.html', variables: [
+                'Fuente: ZONIFICACION',
+                'Columnas: discrepancia vs minimo (o disc vs isn minimo / discrepancia min pos), discrepancia vs imss (o disc vs isn imss / discrepancia imss pos), regla id, regla rota / regla txt',
+                'Usa regex /fuera/i sobre regla id + regla para "fuera del padrón"; /min/i y /imss/i sobre regla para las otras categorías'
+            ] },
+            { id: 'zona-muni-chart',  nombre: 'Municipios con Mayor Discrepancia',   archivo: 'zona-muni-chart.html', variables: [
+                'Fuente: ZONIFICACION',
+                'Columnas: municipio, discrepancia vs minimo, discrepancia vs imss'
+            ] },
+            { id: 'zona-tabla',       nombre: 'Tabla — Zonificación',                archivo: 'zona-tabla.html', variables: [
+                'Fuente: ZONIFICACION',
+                'Tres pestañas (Top 20 / Lista general / Fuera del padrón)',
+                'Columnas: rfc, razon social, ubicacion (cae a municipio si no viene), domicilio completo, municipio, clasificacion del inegi, discrepancia vs minimo, discrepancia vs imss, regla id, regla rota / regla txt',
+                'fuera_padron se determina vía regex /fuera/i'
+            ] }
+        ];
+
+        function cargarCarrito() {
+            carrito = JSON.parse(localStorage.getItem('carrito-gob-005') || '[]');
+            actualizarUI();
+        }
+
+        function guardarCarrito() {
+            localStorage.setItem('carrito-gob-005', JSON.stringify(carrito));
+            actualizarUI();
+        }
+
+        function agregarCarrito(id) {
+            if (carrito.includes(id)) {
+                carrito = carrito.filter(function (item) { return item !== id; });
+                mostrarToast('Removido del carrito');
+            } else {
+                carrito.push(id);
+                mostrarToast('Agregado al carrito');
+            }
+            guardarCarrito();
+        }
+
+        function actualizarUI() {
+            document.getElementById('carrito-count').textContent = carrito.length;
+            document.getElementById('btn-descargar').disabled = carrito.length === 0;
+        }
+
+        function abrirCarrito() {
+            var lista = document.getElementById('carrito-lista');
+            if (carrito.length === 0) {
+                lista.innerHTML = '<div class="carrito-vacio">Tu carrito esta vacio</div>';
+            } else {
+                var html = '';
+                for (var i = 0; i < carrito.length; i++) {
+                    var id = carrito[i];
+                    var obj = null;
+                    for (var j = 0; j < OBJETOS.length; j++) {
+                        if (OBJETOS[j].id === id) {
+                            obj = OBJETOS[j];
+                            break;
+                        }
+                    }
+                    if (obj) {
+                        html += '<li class="carrito-item"><span class="carrito-item-nombre">' + obj.nombre + '</span><button class="carrito-item-btn" onclick="agregarCarrito(' + "'" + id + "'" + '); abrirCarrito();">X</button></li>';
+                    }
+                }
+                lista.innerHTML = html;
+            }
+            document.getElementById('modal-carrito').classList.add('activo');
+        }
+
+        function cerrarCarrito() {
+            document.getElementById('modal-carrito').classList.remove('activo');
+        }
+
+        function limpiarCarrito() {
+            if (confirm('Limpiar carrito?')) {
+                carrito = [];
+                guardarCarrito();
+                cerrarCarrito();
+                mostrarToast('Carrito limpiado');
+            }
+        }
+
+        function descargarCarrito() {
+            if (carrito.length === 0) return;
+
+            var promesas = carrito.map(function (id) {
+                var obj = OBJETOS.find(function (o) { return o.id === id; });
+                var archivo = obj ? obj.archivo : null;
+
+                if (!archivo) {
+                    return Promise.resolve({ id: id, codigo: '<!-- Objeto nativo de SAS Visual Analytics, sin código HTML propio -->' });
+                }
+
+                return fetch(archivo)
+                    .then(function (r) { return r.text(); })
+                    .then(function (codigo) { return { id: id, codigo: codigo }; })
+                    .catch(function () { return { id: id, codigo: '<!-- ERROR: no se pudo cargar ' + id + ' -->' }; });
+            });
+
+            Promise.all(promesas).then(function (resultados) {
+                generarTextoCarrito(resultados);
+            });
+        }
+
+        // Arma un .txt con el código de cada objeto del carrito. El nombre
+        // va como comentario HTML (<!-- nombre -->) dentro del propio
+        // código, no como texto aparte, para que no interfiera al copiar
+        // y pegar directo en SAS. Se usa texto plano (no PDF) porque las
+        // fuentes estándar de jsPDF pierden caracteres Unicode especiales
+        // — un .txt siempre conserva el código exacto.
+        function bloqueVariables(id) {
+            var obj = OBJETOS.find(function (o) { return o.id === id; });
+            if (!obj || !obj.variables || !obj.variables.length) return '';
+            var lineas = obj.variables.map(function (v) { return '  - ' + v; });
+            return '<!--\n  Variables necesarias para que este objeto funcione:\n' + lineas.join('\n') + '\n-->\n';
+        }
+
+        function generarTextoCarrito(resultados) {
+            var partes = resultados.map(function (resultado) {
+                var obj = OBJETOS.find(function (o) { return o.id === resultado.id; });
+                var nombre = obj ? obj.nombre : resultado.id;
+                return '<!-- ' + nombre + ' -->\n' + bloqueVariables(resultado.id) + resultado.codigo;
+            });
+            descargarTexto(partes.join('\n\n'), 'gob-005-objetos.txt');
+        }
+
+        function descargarTexto(texto, nombreArchivo) {
+            var blob = new Blob([texto], { type: 'text/plain;charset=utf-8' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = nombreArchivo;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+            mostrarToast('Archivo descargado');
+        }
+
+        function toggleVisorCodigo() {
+            var visor = document.getElementById('visor-codigo');
+            var btnCopiar = document.getElementById('btn-copiar-codigo');
+            if (!visor) return;
+
+            var estaAbierto = visor.classList.contains('abierto');
+
+            if (estaAbierto) {
+                visor.classList.remove('abierto');
+                if (btnCopiar) btnCopiar.style.display = 'none';
+                return;
+            }
+
+            fijarAlturaDemoPreviewRow();
+            visor.classList.add('abierto');
+            if (btnCopiar) btnCopiar.style.display = 'flex';
+
+            if (!visorCodigoCargado) {
+                cargarCodigoFuente();
+            }
+        }
+
+        function copiarCodigoFuente() {
+            if (!codigoFuenteTexto) return;
+
+            // navigator.clipboard solo funciona en contexto seguro
+            // (https o localhost) — si la página se abre como archivo
+            // local (file://) o el navegador no lo soporta, usamos un
+            // textarea temporal + execCommand como respaldo.
+            if (window.isSecureContext && navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(codigoFuenteTexto)
+                    .then(function () { mostrarToast('Código copiado al portapapeles'); })
+                    .catch(function () { copiarConRespaldo(codigoFuenteTexto); });
+            } else {
+                copiarConRespaldo(codigoFuenteTexto);
+            }
+        }
+
+        function copiarConRespaldo(texto) {
+            var ta = document.createElement('textarea');
+            ta.value = texto;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            ta.setSelectionRange(0, texto.length);
+
+            var exito = false;
+            try { exito = document.execCommand('copy'); } catch (e) { exito = false; }
+            document.body.removeChild(ta);
+
+            mostrarToast(exito ? 'Código copiado al portapapeles' : 'No se pudo copiar automáticamente — selecciona el código manualmente');
+        }
+
+        /* ── Carrusel de capturas ── */
+        var slides = document.querySelectorAll('.carousel-slide');
+        var dots = document.querySelectorAll('.carousel-dot');
+        var btnPrev = document.getElementById('btnPrev');
+        var btnNext = document.getElementById('btnNext');
+        var etiquetasCarrusel = ['Inicio', 'ISN vs Mínimo', 'Empleados', 'ISN vs IMSS', 'Zonificación'];
+        var current = 0;
+
+        function irA(idx) {
+            slides[current].classList.remove('activo');
+            dots[current].classList.remove('activo');
+            current = idx;
+            slides[current].classList.add('activo');
+            dots[current].classList.add('activo');
+            btnPrev.disabled = current === 0;
+            btnNext.disabled = current === slides.length - 1;
+            document.getElementById('carousel-label').textContent = etiquetasCarrusel[current];
+            fijarAlturaDemoPreviewRow();
+        }
+
+        btnPrev.addEventListener('click', function (e) { e.stopPropagation(); if (current > 0) irA(current - 1); });
+        btnNext.addEventListener('click', function (e) { e.stopPropagation(); if (current < slides.length - 1) irA(current + 1); });
+        dots.forEach(function (dot) {
+            dot.addEventListener('click', function (e) {
+                e.stopPropagation();
+                irA(parseInt(this.getAttribute('data-idx')));
+            });
+        });
+
+        // El renglón demo-preview-row mantiene una altura fija (igual a la
+        // altura natural del carrusel, incluyendo su navegación). El visor
+        // de código vive dentro de ese renglón y nunca lo rebasa.
+        function fijarAlturaDemoPreviewRow() {
+            var row = document.getElementById('demo-preview-row');
+            var izquierda = document.getElementById('demo-preview-izquierda');
+            if (!row || !izquierda) return;
+
+            if (window.innerWidth <= 700) {
+                row.style.height = '';
+                return;
+            }
+
+            row.style.height = izquierda.offsetHeight + 'px';
+        }
+
+        (function () {
+            var imagenes = document.querySelectorAll('.carousel-slide img');
+            imagenes.forEach(function (img) {
+                if (!img.complete) {
+                    img.addEventListener('load', fijarAlturaDemoPreviewRow);
+                }
+            });
+            window.addEventListener('resize', fijarAlturaDemoPreviewRow);
+        })();
+
+        function cargarCodigoFuente() {
+            var cuerpo = document.getElementById('visor-codigo-cuerpo');
+            if (!cuerpo) return;
+
+            fetch(CODIGO_URL)
+                .then(function (respuesta) {
+                    if (!respuesta.ok) {
+                        throw new Error('No se pudo cargar el archivo (' + respuesta.status + ')');
+                    }
+                    return respuesta.text();
+                })
+                .then(function (texto) {
+                    cuerpo.innerHTML = renderizarCodigoConLineas(texto);
+                    codigoFuenteTexto = texto;
+                    visorCodigoCargado = true;
+                })
+                .catch(function (error) {
+                    cuerpo.innerHTML = '<p class="visor-codigo-error">⚠️ No se pudo cargar el código: '
+                        + escaparHtml(error.message) + '</p>';
+                });
+        }
+
+        function escaparHtml(texto) {
+            return texto
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function resaltarLineaHtml(linea) {
+            return linea.replace(
+                /(&lt;!--[\s\S]*?--&gt;)|(&lt;\/?[a-zA-Z][\w:-]*)|(&quot;[^&]*?&quot;)/g,
+                function (coincidencia, comentario, etiqueta, cadena) {
+                    if (comentario) return '<span class="comment">' + comentario + '</span>';
+                    if (etiqueta) return '<span class="keyword">' + etiqueta + '</span>';
+                    if (cadena) return '<span class="string">' + cadena + '</span>';
+                    return coincidencia;
+                }
+            );
+        }
+
+        function renderizarCodigoConLineas(texto) {
+            var lineas = escaparHtml(texto).split('\n');
+            var html = '';
+
+            for (var i = 0; i < lineas.length; i++) {
+                var numero = i + 1;
+                var contenido = resaltarLineaHtml(lineas[i]) || '&nbsp;';
+                html += '<div class="visor-codigo-linea">'
+                    + '<span class="visor-codigo-numero">' + numero + '</span>'
+                    + '<span class="visor-codigo-contenido">' + contenido + '</span>'
+                    + '</div>';
+            }
+
+            return html;
+        }
+
+        function mostrarToast(msg) {
+            var toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(function() { toast.remove(); }, 2000);
+        }
+
+        /* ══════════════════════════════════════════════
+           CARRUSEL EN ARCO — los 21 objetos separados de las 5 vistas.
+           Se mueven solos de izquierda a derecha siguiendo una curva,
+           se desvanecen en las orillas (mask en CSS) y se agrandan al
+           resaltarse: al pasar el mouse sobre la tarjeta misma, o sobre
+           su hotspot correspondiente en la vista activa del carrusel
+           de arriba (ver resaltarObjetoArco, expuesta globalmente).
+           ══════════════════════════════════════════════ */
+        (function () {
+            var OBJETOS_ARCO = [
+                { id: 'kpis-inicio',            icono: '📊', nombre: 'KPIs Inicio',                tipo: 'Inicio' },
+                { id: 'ranking-contribuyentes', icono: '🏆', nombre: 'Contribuyentes Prioritarios', tipo: 'Inicio' },
+                { id: 'donut-hallazgos',        icono: '🍩', nombre: 'Distribución Hallazgos',      tipo: 'Inicio' },
+
+                { id: 'min-filtros', icono: '🔍', nombre: 'Filtros',            tipo: 'Mínimo' },
+                { id: 'min-kpis',    icono: '📊', nombre: 'KPIs',               tipo: 'Mínimo' },
+                { id: 'min-chart',   icono: '📈', nombre: 'Evolución Mensual',  tipo: 'Mínimo' },
+                { id: 'min-tabla',   icono: '📋', nombre: 'Tabla Contribuyentes', tipo: 'Mínimo' },
+
+                { id: 'emp-filtros', icono: '🔍', nombre: 'Filtros',                tipo: 'Empleados' },
+                { id: 'emp-kpis',    icono: '📊', nombre: 'KPIs',                   tipo: 'Empleados' },
+                { id: 'emp-chart',   icono: '📈', nombre: 'Evolución Plantilla',    tipo: 'Empleados' },
+                { id: 'emp-tree',    icono: '🌳', nombre: 'Plantilla No Declarada', tipo: 'Empleados' },
+                { id: 'emp-tabla',   icono: '📋', nombre: 'Tabla Empleados',        tipo: 'Empleados' },
+
+                { id: 'imss-filtros', icono: '🔍', nombre: 'Filtros',           tipo: 'IMSS' },
+                { id: 'imss-kpis',    icono: '📊', nombre: 'KPIs',              tipo: 'IMSS' },
+                { id: 'imss-chart',   icono: '📈', nombre: 'Cumplimiento IMSS', tipo: 'IMSS' },
+                { id: 'imss-gaps',    icono: '💰', nombre: 'Brecha Económica',  tipo: 'IMSS' },
+                { id: 'imss-tabla',   icono: '📋', nombre: 'Tabla IMSS',        tipo: 'IMSS' },
+
+                { id: 'zona-filtros',    icono: '🔍', nombre: 'Filtros',              tipo: 'Zona' },
+                { id: 'zona-kpis',       icono: '📊', nombre: 'KPIs',                 tipo: 'Zona' },
+                { id: 'zona-muni-chart', icono: '🏘️', nombre: 'Municipios',           tipo: 'Zona' },
+                { id: 'zona-tabla',      icono: '📋', nombre: 'Tabla Zonificación',   tipo: 'Zona' }
+            ];
+
+            var ESPACIO = 150;  // separación horizontal entre tarjetas (px)
+            var VELOCIDAD = 30; // px por segundo
+            var ALTO_ARCO = 46; // qué tanto se eleva el centro del arco (px)
+
+            var contenedor = document.getElementById('arco-objetos');
+            var pista = document.getElementById('arco-objetos-pista');
+            if (!contenedor || !pista) return;
+
+            var tarjetas = [];
+            var anchoContenedor = 0;
+            var anchoTotal = 0;
+            var ultimoTick = null;
+
+            function construirPista() {
+                anchoContenedor = contenedor.offsetWidth;
+                if (anchoContenedor <= 0) return;
+
+                var vueltas = Math.ceil((anchoContenedor * 2) / (ESPACIO * OBJETOS_ARCO.length)) + 1;
+                var totalTarjetas = OBJETOS_ARCO.length * Math.max(vueltas, 2);
+
+                pista.innerHTML = '';
+                tarjetas = [];
+
+                for (var i = 0; i < totalTarjetas; i++) {
+                    var datos = OBJETOS_ARCO[i % OBJETOS_ARCO.length];
+
+                    var outer = document.createElement('div');
+                    outer.className = 'objeto-arco';
+                    outer.dataset.objeto = datos.id;
+
+                    var card = document.createElement('div');
+                    card.className = 'objeto-arco-card';
+                    card.innerHTML =
+                        '<span class="objeto-arco-icono">' + datos.icono + '</span>'
+                        + '<span class="objeto-arco-nombre">' + datos.nombre + '</span>'
+                        + '<span class="objeto-arco-tipo">' + datos.tipo + '</span>';
+
+                    (function (idObjeto) {
+                        card.addEventListener('mouseenter', function () { resaltarObjetoArco(idObjeto, true); });
+                        card.addEventListener('mouseleave', function () { resaltarObjetoArco(idObjeto, false); });
+                        card.addEventListener('click', function () { agregarCarrito(idObjeto); });
+                    })(datos.id);
+
+                    outer.appendChild(card);
+                    pista.appendChild(outer);
+
+                    tarjetas.push({ el: outer, x: i * ESPACIO });
+                }
+
+                anchoTotal = totalTarjetas * ESPACIO;
+            }
+
+            function animar(tiempo) {
+                if (ultimoTick === null) ultimoTick = tiempo;
+                var dt = (tiempo - ultimoTick) / 1000;
+                ultimoTick = tiempo;
+
+                var mitad = anchoContenedor / 2;
+
+                for (var i = 0; i < tarjetas.length; i++) {
+                    var t = tarjetas[i];
+                    t.x += VELOCIDAD * dt;
+                    if (t.x > anchoContenedor + ESPACIO) {
+                        t.x -= anchoTotal;
+                    }
+
+                    var posRelativa = mitad > 0 ? (t.x - mitad) / mitad : 0;
+                    posRelativa = Math.max(-1, Math.min(1, posRelativa));
+                    var y = -ALTO_ARCO * (1 - posRelativa * posRelativa);
+
+                    t.el.style.transform = 'translate(' + t.x + 'px,' + y + 'px)';
+                }
+
+                requestAnimationFrame(animar);
+            }
+
+            window.resaltarObjetoArco = function (idObjeto, activar) {
+                var seleccionados = pista.querySelectorAll('.objeto-arco[data-objeto="' + idObjeto + '"] .objeto-arco-card');
+                for (var i = 0; i < seleccionados.length; i++) {
+                    seleccionados[i].classList.toggle('seleccionado', activar);
+                }
+            };
+
+            construirPista();
+            requestAnimationFrame(animar);
+
+            var reconstruyendoTimeout;
+            window.addEventListener('resize', function () {
+                clearTimeout(reconstruyendoTimeout);
+                reconstruyendoTimeout = setTimeout(construirPista, 200);
+            });
+        })();
+
+        cargarCarrito();
+    </script>
+
+</body>
+</html>

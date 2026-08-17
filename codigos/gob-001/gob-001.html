@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dataloop - Análisis de Potencial de Recaudación (gob-001)</title>
     <link rel="stylesheet" href="../../styles.css">
-    <!-- jsPDF: genera el PDF del carrito de objetos para descargar -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <!-- Aplica el tema guardado (claro/oscuro) antes de pintar la página, para evitar parpadeos -->
     <script>
         (function () {
@@ -699,7 +697,7 @@
          ============================================ -->
     <div class="sidebar-rail">
         <button class="rail-boton rail-logo" id="btn-toggle-sidebar" onclick="toggleSidebar()" aria-label="Abrir navegación">
-            <img src="../../previews/icono_dataloop.svg" alt="Dataloop">
+            <img src="../../../previews/icono_dataloop.svg" alt="Dataloop">
         </button>
         <button class="rail-boton rail-tema" id="btn-tema" onclick="toggleTema()" aria-label="Cambiar tema">
             <span id="icono-tema">🌙</span>
@@ -714,7 +712,7 @@
         <button class="sidebar-cerrar" onclick="cerrarSidebar()" aria-label="Cerrar navegación">×</button>
 
         <a href="../index.html" class="sidebar-logo">
-            <img src="../previews/icono_dataloop.svg" alt="Dataloop" class="sidebar-logo-img">
+            <img src="../../../previews/icono_dataloop.svg" alt="Dataloop" class="sidebar-logo-img">
             <span class="logo-texto">Dataloop</span>
         </a>
         <input type="text" class="sidebar-buscador" placeholder="🔍 Buscar código..." id="buscador-sidebar">
@@ -884,10 +882,26 @@
         var CODIGO_URL = 'pagina-inicial-recaudacion.html';
         var carrito = [];
         var OBJETOS = [
-            {id: 'kpi-recaudacion', nombre: 'KPI - Recaudacion Potencial'},
-            {id: 'kpi-contribuyentes', nombre: 'KPI - Contribuyentes en Alerta'},
-            {id: 'kpi-brecha', nombre: 'KPI - Brecha de Recaudacion'},
-            {id: 'chart-waterfall', nombre: 'Chart - Waterfall Analisis de Brecha'}
+            {id: 'kpi-recaudacion', nombre: 'KPI - Recaudacion Potencial', variables: [
+                'Mensaje esperado: rankingColumns/columns + rankingData/data',
+                'Busca 1 columna cuyo label/name contenga "RECAUDACION" o "POTENCIAL" (matching por substring, sin mapa de sinonimos)',
+                'Suma los valores numericos de esa columna y los formatea como moneda MXN'
+            ]},
+            {id: 'kpi-contribuyentes', nombre: 'KPI - Contribuyentes en Alerta', variables: [
+                'Mensaje esperado: rankingColumns/columns + rankingData/data',
+                'Busca 1 columna cuyo label/name contenga "CONTRIBUYENTE" o "ALERTA" (matching por substring)',
+                'Suma los valores numericos y los muestra como entero con formato es-MX'
+            ]},
+            {id: 'kpi-brecha', nombre: 'KPI - Brecha de Recaudacion', variables: [
+                'Mensaje esperado: rankingColumns/columns + rankingData/data',
+                'Busca 1 columna cuyo label/name contenga "BRECHA" o "GAP" (matching por substring)',
+                'Espera el valor como fraccion (0-1), no como % ya calculado — lo multiplica por 100 al mostrarlo'
+            ]},
+            {id: 'chart-waterfall', nombre: 'Chart - Waterfall Analisis de Brecha', variables: [
+                'Mensaje esperado: rankingColumns/columns + rankingData/data (solo valida que no vengan vacias)',
+                'OJO: actualmente NO mapea ninguna columna especifica por nombre — siempre renderiza los 5 valores fijos de "defaultData" (Potencial, Impuestos, Aduanas, Otros, Evasion), sin importar los datos reales que lleguen',
+                'Para que funcione con datos reales de SAS VA hay que agregarle la logica de mapeo de columnas'
+            ]}
         ];
         
         function cargarCarrito() {
@@ -967,6 +981,7 @@
                             .then(function(codigo) {
                                 var obj = OBJETOS.find(function(o) { return o.id === id; });
                                 return {
+                                    id: id,
                                     nombre: obj.nombre,
                                     codigo: codigo
                                 };
@@ -982,58 +997,45 @@
             }
             
             Promise.all(promesas).then(function(resultados) {
-                generarPdfCarrito(resultados);
+                generarTextoCarrito(resultados);
             });
         }
 
-        // Arma un PDF con el código de cada objeto del carrito, uno debajo
+        // Arma un .txt con el código de cada objeto del carrito, uno debajo
         // del otro. El nombre de cada objeto va como comentario HTML
         // (<!-- nombre -->) dentro del propio código, no como texto aparte,
-        // para que no interfiera al copiar y pegar directo en SAS.
-        function generarPdfCarrito(resultados) {
-            if (!window.jspdf || !window.jspdf.jsPDF) {
-                mostrarToast('No se pudo generar el PDF');
-                return;
-            }
+        // para que no interfiera al copiar y pegar directo en SAS. Se usa
+        // texto plano (no PDF) porque las fuentes estándar de jsPDF pierden
+        // caracteres Unicode especiales (p. ej. acentos combinados en
+        // regex) — un .txt siempre conserva el código exacto.
+        // Arma, por objeto, un comentario con las variables/columnas que
+        // necesita para funcionar (lo que se le pasa vía postMessage
+        // desde SAS VA), justo antes de su código.
+        function bloqueVariables(id) {
+            var obj = OBJETOS.find(function (o) { return o.id === id; });
+            if (!obj || !obj.variables || !obj.variables.length) return '';
+            var lineas = obj.variables.map(function (v) { return '  - ' + v; });
+            return '<!--\n  Variables necesarias para que este objeto funcione:\n' + lineas.join('\n') + '\n-->\n';
+        }
 
-            var jsPDF = window.jspdf.jsPDF;
-            var doc = new jsPDF({ unit: 'pt', format: 'letter' });
+        function generarTextoCarrito(resultados) {
+            var partes = resultados.map(function (resultado) {
+                return '<!-- ' + resultado.nombre + ' -->\n' + bloqueVariables(resultado.id) + resultado.codigo;
+            });
+            descargarTexto(partes.join('\n\n'), 'gob-001-objetos.txt');
+        }
 
-            var margen = 40;
-            var anchoUtil = doc.internal.pageSize.getWidth() - margen * 2;
-            var altoPagina = doc.internal.pageSize.getHeight();
-            var alturaLinea = 11;
-            var y = margen;
-
-            doc.setFont('courier', 'normal');
-            doc.setFontSize(8);
-
-            for (var i = 0; i < resultados.length; i++) {
-                var resultado = resultados[i];
-
-                if (y > altoPagina - margen - 30) {
-                    doc.addPage();
-                    y = margen;
-                }
-
-                var lineas = ('<!-- ' + resultado.nombre + ' -->\n' + resultado.codigo).split('\n');
-                for (var j = 0; j < lineas.length; j++) {
-                    var envueltas = doc.splitTextToSize(lineas[j] || ' ', anchoUtil);
-                    for (var k = 0; k < envueltas.length; k++) {
-                        if (y > altoPagina - margen) {
-                            doc.addPage();
-                            y = margen;
-                        }
-                        doc.text(envueltas[k], margen, y);
-                        y += alturaLinea;
-                    }
-                }
-
-                y += 16; // espacio entre objetos
-            }
-
-            doc.save('gob-001-objetos.pdf');
-            mostrarToast('PDF descargado');
+        function descargarTexto(texto, nombreArchivo) {
+            var blob = new Blob([texto], { type: 'text/plain;charset=utf-8' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = nombreArchivo;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+            mostrarToast('Archivo descargado');
         }
         
         function limpiarCarrito() {
@@ -1085,9 +1087,35 @@
         function copiarCodigoFuente() {
             if (!codigoFuenteTexto) return;
 
-            navigator.clipboard.writeText(codigoFuenteTexto).then(function () {
-                mostrarToast('Código copiado al portapapeles');
-            });
+            // navigator.clipboard solo funciona en contexto seguro
+            // (https o localhost) — si la página se abre como archivo
+            // local (file://) o el navegador no lo soporta, usamos un
+            // textarea temporal + execCommand como respaldo.
+            if (window.isSecureContext && navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(codigoFuenteTexto)
+                    .then(function () { mostrarToast('Código copiado al portapapeles'); })
+                    .catch(function () { copiarConRespaldo(codigoFuenteTexto); });
+            } else {
+                copiarConRespaldo(codigoFuenteTexto);
+            }
+        }
+
+        function copiarConRespaldo(texto) {
+            var ta = document.createElement('textarea');
+            ta.value = texto;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            ta.setSelectionRange(0, texto.length);
+
+            var exito = false;
+            try { exito = document.execCommand('copy'); } catch (e) { exito = false; }
+            document.body.removeChild(ta);
+
+            mostrarToast(exito ? 'Código copiado al portapapeles' : 'No se pudo copiar automáticamente — selecciona el código manualmente');
         }
 
         // El renglón demo-preview-row mantiene una altura fija (igual a la

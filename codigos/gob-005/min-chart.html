@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Gráfica - Evolución mensual vs. mínimo legal</title>
+
+<style>
+.gob005-chart-min {
+  --g5-blue-950:#081F3D; --g5-blue-900:#0B2E59; --g5-blue-700:#1D629D; --g5-blue-100:#EAF4FB;
+  --g5-surface:#FFFFFF; --g5-border:#D6E2ED; --g5-muted:#66788A; --g5-line-2:#E4EDF4;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body { margin: 0; padding: 14px 16px; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Roboto,Arial,sans-serif; background: var(--g5-surface); height: 100vh; font-size: 13px; }
+
+.gob005-chart-min { height: 100%; display: flex; flex-direction: column; }
+.gob005-chart-min__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.gob005-chart-min__title { font-size: 15px; font-weight: 800; color: var(--g5-blue-950); margin: 0 0 1px; }
+.gob005-chart-min__sub { color: var(--g5-muted); font-size: 11.5px; }
+.gob005-chart-min__error { color: #b91c1c; font-size: 11px; display: none; white-space: pre-wrap; margin-bottom: 6px; }
+.gob005-chart-min__body { flex: 1 1 0; min-height: 0; position: relative; }
+
+.legend { display: flex; gap: 12px; flex-wrap: wrap; }
+.legend .lg { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--g5-blue-950); font-weight: 600; }
+.legend .sw { width: 11px; height: 11px; border-radius: 3px; }
+
+.axis-txt { fill: var(--g5-muted); font-size: 11px; font-family: inherit; }
+.grid-line { stroke: var(--g5-line-2); stroke-width: 1; }
+</style>
+</head>
+<body>
+
+<div class="gob005-chart-min">
+  <div class="gob005-chart-min__head">
+    <div>
+      <div class="gob005-chart-min__title">Evolución mensual frente al mínimo legal</div>
+      <div class="gob005-chart-min__sub">Octubre, noviembre y diciembre de 2025</div>
+    </div>
+    <span class="legend">
+      <span class="lg"><span class="sw" style="background:#0B2E59"></span>Declarado</span>
+      <span class="lg"><span class="sw" style="background:#1D629D"></span>Mínimo</span>
+    </span>
+  </div>
+  <div class="gob005-chart-min__error" id="error"></div>
+  <div class="gob005-chart-min__body" id="chart"></div>
+</div>
+
+<script>
+/* ===== DATOS: mismo mapeo del tablero completo gob-005, fuente: CONCILIACION_EMPRESA_PERIODO_V2 ===== */
+var PERIOD_SCOPE = { year: "2025", months: [10, 11, 12] };
+function periodLabelFromMonth(n) { return n === 10 ? "Octubre 2025" : n === 11 ? "Noviembre 2025" : n === 12 ? "Diciembre 2025" : "—"; }
+function mesNumOf(v) {
+  if (v == null || v === "") return 0;
+  var s = String(v).trim();
+  var sep = s.indexOf("-") >= 0 ? "-" : (s.indexOf("/") >= 0 ? "/" : "");
+  if (sep) { var p = s.split(sep); if (p.length >= 2 && p[0].length === 4) { var mo = parseInt(p[1], 10); if (mo >= 1 && mo <= 12) return mo; } }
+  if (s.length <= 2) { var n = parseInt(s, 10); if (n >= 1 && n <= 12) return n; }
+  var d = new Date(s); return isNaN(d) ? 0 : d.getMonth() + 1;
+}
+
+var MAP_DETAIL = {
+  anio: ["ano", "anio", "ejercicio"], periodo: ["periodo inicio", "periodo"],
+  isn_decl: ["impuesto causado declarado", "causado declarado"],
+  isn_min: ["impuesto causado minimo", "causado minimo"]
+};
+function normalize(s) { return String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[\s._]+/g, " ").trim(); }
+function buildColIndex(columns, amap) {
+  var idx = {};
+  Object.keys(amap).forEach(function(f) {
+    for (var i = 0; i < columns.length; i++) {
+      var lbl = normalize(columns[i].label || columns[i].name || "");
+      if (amap[f].some(function(a) { var n = normalize(a); return lbl === n || lbl.includes(n); })) { idx[f] = i; break; }
+    }
+  });
+  return idx;
+}
+var toNum = function(v) { if (v == null || v === "") return undefined; var n = +String(v).replace(/[^0-9.\-]/g, ""); return isNaN(n) ? undefined : n; };
+
+function detailFromVA(msg) {
+  var cols = msg.columns || [], data = msg.data || [], idx = buildColIndex(cols, MAP_DETAIL);
+  var g = function(row, f) { return idx[f] != null ? row[idx[f]] : undefined; };
+  return data.map(function(row) {
+    var anio = g(row, "anio") != null ? String(g(row, "anio")) : "", pini = g(row, "periodo") != null ? String(g(row, "periodo")) : "";
+    var mnum = mesNumOf(pini) || mesNumOf(anio + "-" + pini);
+    return { mesNum: mnum, isn_decl: toNum(g(row, "isn_decl")) || 0, isn_min: toNum(g(row, "isn_min")) || 0 };
+  });
+}
+
+function sum(arr, f) { return arr.reduce(function(s, x) { return s + (+f(x) || 0); }, 0); }
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function(c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+function fmtMXNfull(v) { return v == null || isNaN(v) ? "—" : v.toLocaleString("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }); }
+function money(v) { return "$" + (v / 1000000).toLocaleString("es-MX", { maximumFractionDigits: v >= 100000000 ? 0 : 1 }) + " M"; }
+
+function monthlyComparison(host, rows) {
+  var pts = PERIOD_SCOPE.months.map(function(m) {
+    var r = rows.filter(function(x) { return x.mesNum === m; });
+    var decl = sum(r, function(x) { return x.isn_decl; }), est = sum(r, function(x) { return x.isn_min; });
+    var gap = Math.max(0, est - decl);
+    return { m: m, label: periodLabelFromMonth(m), decl: decl, est: est, gap: gap, cum: est ? Math.min(100, decl / est * 100) : 100 };
+  });
+  var W = Math.max(320, host.clientWidth || 620), H = Math.max(180, host.clientHeight || 260);
+  var mL = 64, mR = 20, mT = 20, mB = 34, plotW = Math.max(1, W - mL - mR), plotH = Math.max(1, H - mT - mB);
+  var maxV = Math.max.apply(null, pts.map(function(p) { return Math.max(p.decl, p.est); })) * 1.15 || 1;
+  var X = function(i) { return mL + (pts.length <= 1 ? plotW / 2 : plotW * i / (pts.length - 1)); };
+  var Y = function(v) { return mT + plotH - plotH * v / maxV; };
+  var line = function(key) { return pts.map(function(p, i) { return (i ? "L" : "M") + X(i).toFixed(1) + "," + Y(p[key]).toFixed(1); }).join(" "); };
+  var area = "M" + X(0).toFixed(1) + "," + Y(0) + " " + pts.map(function(p, i) { return "L" + X(i).toFixed(1) + "," + Y(p.decl).toFixed(1); }).join(" ") + " L" + X(pts.length - 1).toFixed(1) + "," + Y(0) + " Z";
+  var svg = "";
+  for (var t = 0; t <= 4; t++) {
+    var v = maxV * t / 4, y = mT + plotH - plotH * t / 4;
+    svg += '<line class="grid-line" x1="' + mL + '" y1="' + y + '" x2="' + (mL + plotW) + '" y2="' + y + '"></line>' +
+      '<text class="axis-txt" x="' + (mL - 8) + '" y="' + (y + 4) + '" text-anchor="end">' + money(v) + '</text>';
+  }
+  svg += '<path d="' + area + '" fill="#EAF4FB" fill-opacity=".7"></path>' +
+    '<path d="' + line("est") + '" fill="none" stroke="#1D629D" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>' +
+    '<path d="' + line("decl") + '" fill="none" stroke="#0B2E59" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>';
+  pts.forEach(function(p, i) {
+    var x = X(i), anchor = i === 0 ? "start" : i === pts.length - 1 ? "end" : "middle", dx = i === 0 ? 4 : i === pts.length - 1 ? -4 : 0;
+    var ttEst = esc(p.label) + " · Mínimo estimado: " + fmtMXNfull(p.est) + " · Declarado: " + fmtMXNfull(p.decl) + " · Brecha: " + fmtMXNfull(p.gap) + " · Cumplimiento: " + p.cum.toFixed(1) + "%";
+    svg += '<text x="' + (x + dx) + '" y="' + (Y(p.est) - 8) + '" text-anchor="' + anchor + '" font-size="11.2" font-weight="800" fill="#1D629D">' + money(p.est) + '</text>' +
+      '<text x="' + (x + dx) + '" y="' + (Y(p.decl) + 16) + '" text-anchor="' + anchor + '" font-size="11.2" font-weight="800" fill="#0B2E59">' + money(p.decl) + '</text>' +
+      '<circle cx="' + x + '" cy="' + Y(p.est) + '" r="5" fill="#1D629D" stroke="#fff" stroke-width="1.5"><title>' + ttEst + '</title></circle>' +
+      '<circle cx="' + x + '" cy="' + Y(p.decl) + '" r="5" fill="#0B2E59" stroke="#fff" stroke-width="1.5"><title>' + ttEst + '</title></circle>' +
+      '<text class="axis-txt" x="' + x + '" y="' + (H - 11) + '" text-anchor="middle">' + esc(p.label.slice(0, 3)) + '</text>';
+  });
+  host.innerHTML = '<svg width="100%" height="100%" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">' + svg + '</svg>';
+}
+
+window.addEventListener('message', function(evt) {
+  var m = evt.data || {};
+  if (!m || typeof m !== 'object' || !Array.isArray(m.columns) || !Array.isArray(m.data)) return;
+  try {
+    window.__lastRows = detailFromVA(m);
+    monthlyComparison(document.getElementById('chart'), window.__lastRows);
+    document.getElementById('error').style.display = 'none';
+  } catch (e) {
+    document.getElementById('error').textContent = e.message;
+    document.getElementById('error').style.display = 'block';
+  }
+});
+window.addEventListener('resize', function() {
+  if (window.__lastRows) monthlyComparison(document.getElementById('chart'), window.__lastRows);
+});
+
+try {
+  if (window.parent) window.parent.postMessage({ type: 'ready', object: 'gob-005-min-chart' }, '*');
+} catch (e) {}
+
+/* Datos de muestra para previsualización standalone (sin conexión a VA) */
+window.__lastRows = [
+  { mesNum: 10, isn_decl: 264650000, isn_min: 395000000 },
+  { mesNum: 11, isn_decl: 282900000, isn_min: 410000000 },
+  { mesNum: 12, isn_decl: 308670000, isn_min: 435900000 }
+];
+monthlyComparison(document.getElementById('chart'), window.__lastRows);
+</script>
+
+</body>
+</html>

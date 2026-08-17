@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brecha de Recaudación · ISN — Gobierno del Estado de Durango</title>
+<style>
+  :root{
+    --blue-950:#081F3D; --blue-900:#0B2E59; --blue-800:#144A7A; --blue-700:#1D629D;
+    --blue-500:#2F80C3; --blue-300:#8DC2E8; --blue-100:#EAF4FB;
+    --surface:#FFFFFF; --background:#F3F6FA; --border:#D6E2ED; --text:#172536; --muted:#66788A; --danger:#C84A4A;
+    --bg:var(--background); --paper:var(--surface); --paper-2:#F6FAFD; --paper-3:var(--blue-100);
+    --ink:var(--text); --ink-2:var(--blue-950); --faint:#8AA0B4;
+    --line:var(--border); --line-2:#E4EDF4;
+    --c-decl:var(--blue-900); --c-min:var(--blue-700); --c-imss:var(--blue-500);
+    --c-decl-2:#DCECF7; --c-min-2:#EAF4FB; --c-imss-2:#D9EDF9;
+    --neg:var(--danger); --neg-2:#F8EAEA; --pos:var(--blue-700); --pos-2:#EAF4FB; --warn:var(--blue-500);
+    --brand:var(--blue-950); --brand-2:var(--blue-800); --brand-ink:#ffffff; --brand-accent:var(--blue-300);
+    --gv:var(--blue-700); --gv2:var(--blue-100);
+    --shadow:0 1px 2px rgba(8,31,61,.04),0 4px 14px rgba(8,31,61,.055);
+    --shadow-lg:0 8px 30px rgba(8,31,61,.12);
+    --radius:12px;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Roboto,Arial,sans-serif;
+    --serif:var(--sans);
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;height:100%;overflow:hidden}
+  body{font-family:var(--sans);color:var(--ink);background:var(--bg);font-size:14px;line-height:1.4;-webkit-font-smoothing:antialiased}
+  .app{width:100%;height:100%;display:grid;grid-template-columns:210px 1fr;grid-template-rows:clamp(74px,8.2vh,82px) 1fr;overflow:hidden}
+
+  .topbar{grid-column:1/3;position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto auto minmax(160px,310px);align-items:center;gap:12px;padding:9px 20px 12px;
+    background:linear-gradient(90deg,var(--blue-950) 0%,var(--blue-800) 58%,var(--blue-300) 100%);color:var(--brand-ink);
+    box-shadow:0 8px 24px rgba(8,31,61,.16);overflow:hidden}
+  .topbar:after{content:"";position:absolute;right:-9%;bottom:-28px;width:58%;height:52px;border-radius:999px 0 0 0;background:rgba(188,229,240,.22);box-shadow:-34px -8px 0 rgba(19,166,209,.10);pointer-events:none}
+  .brand-txt{position:relative;z-index:1;display:flex;flex-direction:column;line-height:1.12;min-width:0}
+  .brand-txt b{font-family:var(--sans);font-size:clamp(19px,1.55vw,24px);font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .brand-txt small{font-size:clamp(11.5px,.9vw,13px);color:var(--blue-100);opacity:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .topbar .spacer{flex:1}
+  .period-chip{position:relative;z-index:1;white-space:nowrap;font-size:11.5px;font-weight:800;color:#fff;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.34);border-radius:999px;padding:6px 11px}
+  .tech-deco{position:relative;z-index:1;justify-self:end;width:min(100%,330px);height:clamp(44px,6vh,52px);opacity:.78}
+  .tech-deco svg{display:block;width:100%;height:100%}
+  .tech-deco line{stroke:#BCE5F0;stroke-width:1.15;opacity:.58}
+  .tech-deco circle{fill:#BCE5F0;opacity:.78}
+  .tech-deco .pulse{fill:#13A6D1;opacity:.95}
+  .badge-src{position:relative;z-index:1;display:inline-flex;justify-self:end;width:max-content;align-items:center;gap:7px;font-size:10.5px;font-weight:700;letter-spacing:.4px;
+    padding:6px 11px;border-radius:999px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.35)}
+  .badge-src .dot{width:8px;height:8px;border-radius:50%;background:var(--warn)}
+  .badge-src.live .dot{background:#BCE5F0;box-shadow:0 0 0 3px rgba(188,229,240,.25)}
+
+  .side{background:var(--paper);border-right:1px solid var(--line);padding:13px 9px;display:flex;flex-direction:column;gap:3px;overflow:hidden}
+  .side .sec-lbl{font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--faint);text-transform:uppercase;margin:8px 10px 3px}
+  .nav-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:9px;cursor:pointer;color:var(--ink-2);font-weight:700;font-size:12.5px;border:1px solid transparent}
+  .nav-item .ni-ic{width:20px;height:20px;display:grid;place-items:center;color:var(--muted)}
+  .nav-item svg{width:17px;height:17px;stroke:currentColor;stroke-width:2;fill:none}
+  .nav-item:hover{background:var(--paper-3)}
+  .nav-item.active{background:var(--gv2);color:var(--gv);border-color:color-mix(in srgb,var(--gv) 30%,transparent)}
+  .nav-item.active .ni-ic{color:var(--gv)}
+  .side .foot{margin-top:auto;padding:10px 10px 2px;border-top:1px solid var(--line-2);color:var(--faint);font-size:11px;line-height:1.35}
+  .side .foot b{color:var(--muted)}
+
+  .main{padding:14px 18px;overflow:hidden;min-width:0;min-height:0}
+  .page{display:none;height:100%;min-width:0;min-height:0;gap:12px}
+  .page.active{display:flex;flex-direction:column}
+  .page-head{flex:0 0 auto}
+  .page-head h1{margin:1px 0 0;font-family:var(--sans);font-size:clamp(22px,1.55vw,26px);font-weight:800;letter-spacing:-.01em}
+  .page-head .sub{color:var(--muted);font-size:12.5px;margin-top:2px;max-width:90ch}
+  .eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--gv)}
+
+  .filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:9px 12px;flex:0 0 auto}
+  .filters .fl-lbl{font-size:10.5px;font-weight:700;color:var(--faint);letter-spacing:.5px;text-transform:uppercase}
+  .filters select,.filters input{font-family:var(--sans);font-size:12.5px;color:var(--ink);background:var(--paper-2);border:1px solid var(--line);border-radius:7px;padding:6px 9px;min-width:110px}
+  .filters input::placeholder{color:var(--faint)}
+  .filters .chip{margin-left:auto;font-size:11.5px;color:var(--blue-800);font-weight:800;background:var(--blue-100);border:1px solid var(--line);border-radius:999px;padding:5px 10px}
+  .btn-clear{border:1px solid var(--line);background:var(--paper-2);color:var(--ink-2);border-radius:7px;padding:6px 11px;font-size:12px;font-weight:600;cursor:pointer}
+  .btn-clear:hover{background:var(--paper-3)}
+
+  .page-content,.analysis-section,.visual-card,.visual-body,.table-section{min-width:0;min-height:0}
+  .kpis{display:grid;gap:12px;grid-template-columns:repeat(4,1fr);flex:0 0 auto;min-width:0;min-height:0}
+  .fill{flex:1 1 0;min-width:0;min-height:0;display:grid;gap:12px}
+  .g-2{grid-template-columns:1fr 1fr} .g-32{grid-template-columns:3fr 2fr} .g-23{grid-template-columns:2fr 3fr}
+  #page-home .g-2{grid-template-columns:42fr 58fr}
+  .rows-2{grid-template-rows:1fr 1fr}
+
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+  .card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px;flex:0 0 auto;min-width:0}
+  .card-head h3{margin:0;font-family:var(--sans);font-size:15px;font-weight:800}
+  .card-head .card-sub{color:var(--muted);font-size:11.5px;margin-top:1px}
+  .card-body{flex:1 1 0;min-width:0;min-height:0;display:flex;flex-direction:column}
+  .tag{font-size:10px;font-weight:700;letter-spacing:.3px;padding:3px 8px;border-radius:999px;text-transform:uppercase;white-space:nowrap}
+  .tag.red{background:var(--neg-2);color:var(--neg)} .tag.green,.tag.blue{background:var(--gv2);color:var(--gv)}
+
+  .kpi{position:relative;overflow:hidden;padding:12px 14px 12px 18px;justify-content:center}
+  .kpi .k-ic{position:absolute;top:11px;right:12px;width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-size:13px}
+  .kpi .k-ic svg{width:17px;height:17px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .kpi .k-lbl{font-size:clamp(13px,.78vw,14px);color:var(--muted);font-weight:700;padding-right:34px;min-height:2.3em;display:flex;align-items:flex-start}
+  .kpi .k-val{font-size:clamp(25px,2vw,34px);font-weight:900;letter-spacing:-.5px;margin:4px 0 1px;font-variant-numeric:tabular-nums;color:var(--blue-900)}
+  .kpi .k-foot{font-size:12.5px;color:var(--faint)}
+  .kpi .accent{position:absolute;left:0;top:0;bottom:0;width:4px}
+  .kpi.blue .accent{background:var(--c-decl)} .kpi.blue .k-ic{background:var(--c-decl-2);color:var(--c-decl)}
+  .kpi.amber .accent{background:var(--c-min)} .kpi.amber .k-ic{background:var(--c-min-2);color:var(--c-min)}
+  .kpi.green .accent{background:var(--c-imss)} .kpi.green .k-ic{background:var(--c-imss-2);color:var(--c-imss)}
+  .kpi.red .accent{background:var(--danger)} .kpi.red .k-ic{background:var(--neg-2);color:var(--neg)} .kpi.red .k-val{color:var(--danger)}
+
+  .legend{display:flex;flex-wrap:wrap;gap:12px}
+  .legend .lg{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-2);font-weight:600}
+  .legend .sw{width:11px;height:11px;border-radius:3px}
+
+  .chart-wrap{flex:1 1 0;min-width:0;min-height:0;position:relative;overflow:hidden}
+  svg.chart{display:block}
+  svg .grid-line{stroke:var(--line-2);stroke-width:1}
+  svg .axis-txt{fill:var(--muted);font-size:11px;font-family:var(--sans)}
+  svg .bar{cursor:pointer;transition:opacity .12s} svg .bar:hover{opacity:.82}
+  .tm-tile{cursor:pointer;transition:opacity .12s} .tm-tile:hover{opacity:.85}
+
+  .tt{position:fixed;z-index:60;pointer-events:none;background:var(--ink);color:#fff;font-size:12px;line-height:1.4;padding:8px 10px;border-radius:8px;box-shadow:var(--shadow-lg);opacity:0;transition:opacity .1s;max-width:260px}
+  .tt .row{display:flex;align-items:center;gap:7px;margin-top:3px}.tt .sw{width:9px;height:9px;border-radius:2px}
+
+  .tbl-scroll{flex:1 1 0;min-width:0;min-height:0;overflow:auto;border-radius:8px;border:1px solid var(--line-2)}
+  table.dt{width:100%;border-collapse:collapse;font-size:12.5px;table-layout:fixed}
+  table.dt th,table.dt td{padding:7px 11px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  table.dt thead th{position:sticky;top:0;background:var(--blue-950);color:#fff;font-weight:800;font-size:11px;letter-spacing:.3px;text-transform:uppercase;border-bottom:1px solid var(--line);z-index:1}
+  table.dt tbody tr{border-bottom:1px solid var(--line-2)}
+  table.dt tbody tr:nth-child(even){background:#F3F7FB}
+  table.dt tbody tr:hover{background:#D9EFF7}
+  table.dt td.num{text-align:right;font-variant-numeric:tabular-nums}
+  table.dt th:first-child,table.dt td:first-child{width:34%}
+  .company-name{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;white-space:normal;overflow:hidden;line-height:1.15}
+  table.dt td.neg{color:#087FA3;font-weight:700} table.dt td.strong{font-weight:700;color:var(--ink)}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:700}
+  .pill.min{background:var(--c-min-2);color:var(--c-min)} .pill.imss{background:var(--c-imss-2);color:var(--c-imss)}
+  .pill.zero{background:var(--neg-2);color:var(--neg)} .pill.padron{background:var(--paper-3);color:var(--muted)}
+
+  .tabs{display:flex;gap:4px;margin-bottom:8px;flex:0 0 auto}
+  .tab{font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:7px;cursor:pointer;color:var(--muted);border:1px solid transparent}
+  .tab.active{background:var(--gv2);color:var(--gv)}
+  .tabpane{display:none;flex:1 1 0;min-height:0;flex-direction:column}.tabpane.active{display:flex}
+
+  .rank{flex:1 1 0;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:8px;padding:0 3px 8px 0;scrollbar-width:thin;scrollbar-color:var(--blue-300) var(--blue-100)}
+  .rank::-webkit-scrollbar{width:7px}.rank::-webkit-scrollbar-track{background:var(--blue-100);border-radius:999px}.rank::-webkit-scrollbar-thumb{background:var(--blue-300);border-radius:999px}
+  .priority-row{display:grid;grid-template-columns:24px minmax(0,1fr) minmax(82px,auto);grid-template-rows:auto 7px;gap:4px 10px;align-items:center;flex:0 0 auto;min-height:40px}
+  .priority-row .idx{width:22px;height:22px;border-radius:7px;background:var(--blue-100);color:var(--blue-800);display:grid;place-items:center;font-size:11px;font-weight:900}
+  .priority-name{min-width:0;word-break:normal;overflow-wrap:normal;hyphens:none;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-size:12.5px;font-weight:750;line-height:1.12;color:var(--ink-2)}
+  .priority-value{font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;color:var(--blue-900)}
+  .priority-track{grid-column:2/4;height:7px;border-radius:4px;background:var(--paper-3);overflow:hidden}
+  .priority-track i{display:block;height:100%;border-radius:4px}
+  .segbar{display:flex;height:20px;border-radius:999px;overflow:hidden;background:var(--blue-100);border:1px solid var(--line)}
+  .segbar i{display:block;height:100%}
+  .seg-legend{display:grid;gap:8px;margin-top:12px}
+  .seg-row{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:8px;align-items:center;font-size:12.5px}
+  .seg-row .sw{width:11px;height:11px;border-radius:3px}.seg-row b{font-variant-numeric:tabular-nums}
+  .comparison-card,.compliance-card,.gap-card{display:grid;grid-template-rows:auto minmax(0,1fr)}
+  .comparison-card .card-body,.compliance-card .card-body,.gap-card .card-body{min-height:0;height:100%}
+  .metric-line{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;font-size:11.5px;color:var(--muted);line-height:1.08}.metric-line b{color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .bullet{height:8px;border-radius:999px;background:var(--blue-100);overflow:hidden;border:1px solid var(--line);margin-top:1px}.bullet i{display:block;height:100%;border-radius:999px;background:var(--blue-900)}
+  .slope-wrap,.imss-wrap,.muni-stack{height:100%;min-width:0;min-height:0}
+  .imss-wrap{display:grid;grid-template-columns:58fr 42fr;gap:12px;min-height:0}
+  .employee-gap-list,.period-gap-list{height:100%;min-height:0;display:flex;flex-direction:column;justify-content:space-around;gap:8px;overflow:hidden}
+  .employee-gap-row{display:grid;grid-template-columns:minmax(0,42%) minmax(0,37%) minmax(128px,21%);gap:10px;align-items:center;min-height:0}
+  .employee-gap-name{font-size:12px;font-weight:750;line-height:1.12;color:var(--blue-950);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;white-space:normal;overflow:hidden;overflow-wrap:normal;word-break:normal;hyphens:none}
+  .employee-gap-track,.period-gap-track{height:12px;border-radius:999px;background:var(--blue-100);overflow:hidden;border:1px solid var(--line);position:relative}
+  .employee-gap-track i{display:block;height:100%;border-radius:999px;background:var(--blue-700)}
+  .employee-gap-value{text-align:right;font-size:11.5px;font-weight:900;color:var(--blue-900);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .period-gap-row{display:grid;grid-template-columns:minmax(118px,27%) minmax(0,38%) minmax(96px,22%) minmax(42px,13%);gap:8px;align-items:center;font-size:12px}
+  .period-gap-name{font-weight:800;color:var(--blue-950);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .period-gap-track{height:14px;display:block;position:relative}
+  .period-gap-est,.period-gap-decl{display:block;position:absolute;left:0;top:0;bottom:0;border-radius:999px}
+  .period-gap-est{background:var(--blue-300);opacity:.75}
+  .period-gap-decl{background:var(--blue-900)}
+  .period-gap-diff{font-weight:900;color:var(--danger);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+  .period-gap-pct{font-weight:900;color:var(--blue-900);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+  .stack-row{display:grid;grid-template-columns:minmax(110px,1fr) minmax(180px,2fr) auto;gap:9px;align-items:center;font-size:12.5px}
+  .stack-name{font-weight:750;color:var(--blue-950);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stack-total{font-weight:900;color:var(--blue-900);font-variant-numeric:tabular-nums;text-align:right}
+  .stack-track{height:12px;border-radius:999px;background:var(--blue-100);overflow:hidden;border:1px solid var(--line);display:flex}.stack-track i{display:block;height:100%}
+
+  .callout{background:var(--paper-2);border:1px dashed var(--line);border-radius:8px;padding:12px;color:var(--muted);font-size:12px;display:flex;align-items:center;justify-content:center;text-align:center;height:100%}
+  .muted{color:var(--muted)}
+  .va-map{position:relative;flex:1 1 0;min-height:0;border-radius:8px;overflow:hidden;background:var(--paper-2);border:1px solid var(--line-2)}
+  .va-map sas-report-object{width:100%!important;height:100%!important;display:block!important;border:none!important}
+  .va-map .callout{border:none}
+
+  @media(max-width:1100px){.topbar{grid-template-columns:minmax(0,1fr) auto auto}.tech-deco{display:none}}
+  @media(max-width:980px){.tech-deco{width:170px;opacity:.5}.period-chip{display:none}}
+  @media(max-width:720px){.topbar{grid-template-columns:minmax(0,1fr);padding:9px 16px 13px}.tech-deco{display:none}.brand-txt b{font-size:17px}.brand-txt small{font-size:10.5px}}
+  @media(max-width:900px){
+    html,body{overflow:hidden}
+    .app{height:100%;min-height:0;grid-template-columns:1fr;grid-template-rows:clamp(76px,8.5vh,86px) auto minmax(0,1fr)}
+    .topbar{grid-column:1}
+    .side{grid-column:1;flex-direction:row;gap:6px;overflow-x:auto;border-right:none;border-bottom:1px solid var(--line);padding:7px 10px;white-space:nowrap}
+    .side .sec-lbl,.side .foot{display:none}.nav-item{flex:0 0 auto}
+    .main{overflow:hidden}.page{height:100%;min-height:0}
+    .fill{grid-template-columns:1fr!important;grid-template-rows:none!important}
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .chart-wrap,.va-map{min-height:240px}.tbl-scroll{max-height:340px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand-txt">
+      <b>Brecha de Recaudación · ISN</b>
+      <small>Conciliación de declaraciones, plantilla e información del IMSS</small>
+    </div>
+    <div class="period-chip">Periodo · Oct–Dic 2025</div>
+    <div class="tech-deco" aria-hidden="true">
+      <svg viewBox="0 0 330 58" preserveAspectRatio="none">
+        <line x1="16" y1="40" x2="74" y2="18"></line>
+        <line x1="74" y1="18" x2="132" y2="34"></line>
+        <line x1="132" y1="34" x2="198" y2="12"></line>
+        <line x1="198" y1="12" x2="266" y2="30"></line>
+        <line x1="84" y1="47" x2="150" y2="26"></line>
+        <line x1="150" y1="26" x2="232" y2="47"></line>
+        <circle cx="16" cy="40" r="3"></circle>
+        <circle cx="74" cy="18" r="3.6" class="pulse"></circle>
+        <circle cx="132" cy="34" r="3"></circle>
+        <circle cx="198" cy="12" r="3.4"></circle>
+        <circle cx="266" cy="30" r="3.8" class="pulse"></circle>
+        <circle cx="84" cy="47" r="2.8"></circle>
+        <circle cx="150" cy="26" r="3"></circle>
+        <circle cx="232" cy="47" r="3"></circle>
+        <circle cx="305" cy="18" r="2.4"></circle>
+      </svg>
+    </div>
+    <div class="badge-src" id="srcBadge"><span class="dot"></span><span id="srcTxt">DATOS DE MUESTRA</span></div>
+  </header>
+
+  <nav class="side">
+    <div class="sec-lbl">Tablero</div>
+    <div class="nav-item active" data-page="home"><span class="ni-ic"><svg viewBox="0 0 24 24"><path d="M4 13h7V4H4v9Z"/><path d="M13 20h7V4h-7v16Z"/><path d="M4 20h7v-5H4v5Z"/></svg></span> Inicio</div>
+    <div class="sec-lbl">Discrepancias</div>
+    <div class="nav-item" data-page="min"><span class="ni-ic"><svg viewBox="0 0 24 24"><path d="M4 18h16"/><path d="M7 15V8"/><path d="M12 15V5"/><path d="M17 15v-4"/></svg></span> ISN vs. mínimo</div>
+    <div class="nav-item" data-page="emp"><span class="ni-ic"><svg viewBox="0 0 24 24"><path d="M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M3 20c.6-3 2.4-5 5-5s4.4 2 5 5"/><path d="M11 20c.6-3 2.4-5 5-5s4.4 2 5 5"/></svg></span> Empleados</div>
+    <div class="nav-item" data-page="imss"><span class="ni-ic"><svg viewBox="0 0 24 24"><path d="M4 18h16"/><path d="M6 15l4-5 4 3 4-7"/><path d="M18 6h-4"/></svg></span> ISN vs. IMSS</div>
+    <div class="sec-lbl">Territorio</div>
+    <div class="nav-item" data-page="zona"><span class="ni-ic"><svg viewBox="0 0 24 24"><path d="M12 21s7-5.1 7-11A7 7 0 1 0 5 10c0 5.9 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></span> Zonificación</div>
+    <div class="foot"><b>Periodo analizado</b><br>Octubre–diciembre 2025
+      <div id="ddcDiag" style="display:none"></div></div>
+  </nav>
+
+  <main class="main">
+    <!-- INICIO -->
+    <section class="page active" id="page-home">
+      <div class="page-head">
+        <div class="eyebrow">Panorama general</div>
+        <h1>Brecha potencial del ISN</h1>
+        <div class="sub">Diferencia entre el ISN declarado y el impuesto estimado a partir del salario mínimo y de los registros del IMSS.</div>
+      </div>
+      <div class="kpis" id="home-kpis"></div>
+      <div class="fill g-2">
+        <div style="display:grid;grid-template-rows:1.35fr 1fr;gap:12px;min-height:0">
+          <div class="card">
+            <div class="card-head"><div><h3>Contribuyentes prioritarios</h3><div class="card-sub">Suma vs. mínimo + vs. IMSS</div></div><span class="tag blue">Prioridad</span></div>
+            <div class="card-body"><div id="home-rank" class="rank"></div></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div><h3>Distribución de hallazgos</h3><div class="card-sub">RFC detectados por tipo de discrepancia</div></div></div>
+            <div class="card-body" id="home-donut" style="justify-content:center"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div><h3>Zonificación de contribuyentes</h3><div class="card-sub">Mapa geográfico · SAS Visual Analytics</div></div></div>
+          <div class="card-body va-map" id="home-map"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ISN vs MÍNIMO -->
+    <section class="page" id="page-min">
+      <div class="page-head"><div class="eyebrow">Discrepancias salariales</div>
+        <h1>ISN declarado vs. mínimo legal</h1></div>
+      <div class="filters" data-scope="min"></div>
+      <div class="kpis" id="min-kpis"></div>
+      <div class="fill" style="grid-template-rows:minmax(0,1fr) minmax(0,1fr)">
+        <div class="card comparison-card visual-card">
+            <div class="card-head"><div><h3>Evolución mensual frente al mínimo legal</h3><div class="card-sub">Octubre, noviembre y diciembre de 2025</div></div><span id="min-legend"></span></div>
+            <div class="card-body chart-wrap" id="min-chart"></div>
+        </div>
+        <div class="card" data-tablepanel="min"></div>
+      </div>
+    </section>
+
+    <!-- EMPLEADOS -->
+    <section class="page" id="page-emp">
+      <div class="page-head"><div class="eyebrow">Discrepancias de empleados</div>
+        <h1>Plantilla declarada vs. registros del IMSS</h1></div>
+      <div class="filters" data-scope="emp"></div>
+      <div class="kpis" id="emp-kpis"></div>
+      <div class="fill" style="grid-template-rows:minmax(0,1fr) minmax(0,1fr)">
+        <div class="g-2" style="display:grid;gap:12px;min-height:0">
+          <div class="card visual-card">
+            <div class="card-head"><div><h3>Evolución de plantilla · Oct–Dic 2025</h3><div class="card-sub">Declarados vs. registrados en IMSS</div></div><span id="emp-legend"></span></div>
+            <div class="card-body chart-wrap" id="emp-chart"></div>
+          </div>
+          <div class="card visual-card">
+            <div class="card-head"><div><h3>Contribuyentes con mayor plantilla no declarada</h3><div class="card-sub">Empleados registrados en IMSS no declarados</div></div></div>
+            <div class="card-body chart-wrap" id="emp-tree"></div>
+          </div>
+        </div>
+        <div class="card" data-tablepanel="emp"></div>
+      </div>
+    </section>
+
+    <!-- ISN vs IMSS -->
+    <section class="page" id="page-imss">
+      <div class="page-head"><div class="eyebrow">Discrepancias salariales</div>
+        <h1>ISN declarado vs. estimación del IMSS</h1></div>
+      <div class="filters" data-scope="imss"></div>
+      <div class="kpis" id="imss-kpis"></div>
+      <div class="fill" style="grid-template-rows:minmax(0,1fr) minmax(0,1fr)">
+        <div class="imss-wrap">
+          <div class="card compliance-card visual-card">
+            <div class="card-head"><div><h3>Evolución del cumplimiento frente al IMSS</h3><div class="card-sub">Declarado / estimado IMSS</div></div><span id="imss-legend"></span></div>
+            <div class="card-body chart-wrap" id="imss-chart"></div>
+          </div>
+          <div class="card gap-card visual-card">
+            <div class="card-head"><div><h3>Brecha económica por periodo</h3><div class="card-sub">Estimado IMSS contra declarado</div></div></div>
+            <div class="card-body chart-wrap" id="imss-period-gaps"></div>
+          </div>
+        </div>
+        <div class="card" data-tablepanel="imss"></div>
+      </div>
+    </section>
+
+    <!-- ZONIFICACIÓN -->
+    <section class="page" id="page-zona">
+      <div class="page-head"><div class="eyebrow">Territorio</div>
+        <h1>Concentración territorial de discrepancias</h1></div>
+      <div class="filters" data-scope="zona"></div>
+      <div class="kpis" id="zona-kpis"></div>
+      <div class="fill" style="grid-template-rows:1.05fr .95fr">
+        <div style="display:grid;grid-template-columns:54fr 46fr;gap:12px;min-height:0">
+          <div class="card">
+            <div class="card-head"><div><h3>Mapa de contribuyentes</h3><div class="card-sub">Corte de análisis · Oct–Dic 2025</div></div></div>
+            <div class="card-body va-map" id="zona-map"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div><h3>Municipios con mayor discrepancia</h3><div class="card-sub">Monto ($) — vs. mínimo y vs. IMSS</div></div><span id="zona-munilegend"></span></div>
+            <div class="card-body chart-wrap" id="zona-muni-chart"></div>
+          </div>
+        </div>
+        <div class="card" data-tablepanel="zona"></div>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="tt" id="tt"></div>
+
+<script>
+"use strict";
+/* BRECHA DE RECAUDACIÓN · ISN — HTML mejorado alimentado por Data-Driven Content
+   + mapa nativo de VA (objeto ve9436) incrustado con el SDK sas-report-components.
+   Fuentes CAS: CONCILIACION_EMPRESA_PERIODO_V2 · ZONIFICACION */
+
+/* ---- formato ---- */
+const fmtMXN=(v)=>{if(v==null||isNaN(v))return "—";const a=Math.abs(v);
+  if(a>=1e9)return "$"+(v/1e9).toFixed(2)+" MMM"; if(a>=1e6)return "$"+(v/1e6).toFixed(2)+" M";
+  if(a>=1e3)return "$"+(v/1e3).toFixed(1)+" K"; return "$"+Math.round(v).toLocaleString("es-MX");};
+const fmtMXNfull=(v)=>v==null||isNaN(v)?"—":v.toLocaleString("es-MX",{style:"currency",currency:"MXN",maximumFractionDigits:0});
+const fmtMXNmill=(v)=>"$"+(Number(v||0)/1000000).toLocaleString("es-MX",{minimumFractionDigits:2,maximumFractionDigits:2})+" M";
+const fmtNum=(v)=>v==null||isNaN(v)?"—":Math.round(v).toLocaleString("es-MX");
+const fmtPct=(v)=>v==null||isNaN(v)?"—":v.toFixed(1)+"%";
+const esc=(s)=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const sum=(a,f)=>a.reduce((s,x)=>s+(+f(x)||0),0);
+const MESES=["","01 - Enero","02 - Febrero","03 - Marzo","04 - Abril","05 - Mayo","06 - Junio","07 - Julio","08 - Agosto","09 - Septiembre","10 - Octubre","11 - Noviembre","12 - Diciembre"];
+const PERIOD_SCOPE={
+  year:"2025",
+  months:[10,11,12]
+};
+const DEMO_IMSS={
+  estimatedTotal:1240900000,
+  declaredTotal:856220000,
+  gapTotal:384680000,
+  compliance:69.0,
+  months:[
+    {year:2025,month:10,label:"Octubre 2025",estimated:395000000,declared:264650000,gap:130350000,compliance:67.0},
+    {year:2025,month:11,label:"Noviembre 2025",estimated:410000000,declared:282900000,gap:127100000,compliance:69.0},
+    {year:2025,month:12,label:"Diciembre 2025",estimated:435900000,declared:308670000,gap:127230000,compliance:70.8}
+  ]
+};
+function mesNumOf(v){if(v==null||v==="")return 0;var s=String(v).trim();
+  var sep=s.indexOf("-")>=0?"-":(s.indexOf("/")>=0?"/":"");
+  if(sep){var p=s.split(sep);if(p.length>=2&&p[0].length===4){var mo=parseInt(p[1],10);if(mo>=1&&mo<=12)return mo;}}
+  var ns=normalize(s),names={enero:1,febrero:2,marzo:3,abril:4,mayo:5,junio:6,julio:7,agosto:8,septiembre:9,setiembre:9,octubre:10,noviembre:11,diciembre:12};
+  for(const k in names){if(ns.includes(k))return names[k];}
+  if(s.length<=2){var n=parseInt(s,10);if(n>=1&&n<=12)return n;}
+  var d=new Date(s);return isNaN(d)?0:d.getMonth()+1;}
+function yearOfRow(row){
+  const vals=[row.anio,row.periodo,row.periodicidad].map(v=>String(v||""));
+  for(const v of vals){const m=v.match(/20\d{2}/);if(m)return m[0];}
+  return "";
+}
+function isInPeriodScope(row){
+  const y=yearOfRow(row)||PERIOD_SCOPE.year;
+  const m=monthOfRow(row);
+  return String(y)===PERIOD_SCOPE.year&&PERIOD_SCOPE.months.includes(Number(m));
+}
+function monthOfRow(row){return Number(row&&(row.mesNum||mesNumOf(row.periodo)||mesNumOf(row.mes)||mesNumOf(row.anio)))||0;}
+function hasPeriodSignal(row){
+  return !!(row&&(monthOfRow(row)||yearOfRow(row)));
+}
+function keepIfScopedOrUndated(row){
+  if(!hasPeriodSignal(row))return true;
+  const m=monthOfRow(row),y=yearOfRow(row);
+  if(!m)return String(y)===PERIOD_SCOPE.year;
+  return isInPeriodScope(row);
+}
+function periodLabelFromMonth(n){
+  return n===10?"Octubre 2025":n===11?"Noviembre 2025":n===12?"Diciembre 2025":(MESES[n]||"—");
+}
+function shortPeriodLabel(n){return n===10?"Oct":n===11?"Nov":n===12?"Dic":String(n||"—");}
+
+/* ===== MAPEO DE VARIABLES (nombre físico Y etiqueta amigable; VA envía la etiqueta) ===== */
+const MAP_DETAIL={
+  rfc:["rfc"], razon:["razon social","razon","razón"], actividad:["actividad economica","actividad","_ae"],
+  anio:["ano","anio","ejercicio"], periodo:["periodo inicio","periodo"], periodicidad:["periodicidad"],
+  emp_decl:["num empleados declarados","numero empleados decl","empleados declarados"],
+  emp_imss:["num empleados en el imss","empleados en el imss","empleados imss"],
+  disc_emp:["discrepancia de empleados"],
+  isn_decl:["impuesto causado declarado","causado declarado"],
+  isn_min:["impuesto causado minimo","causado minimo"],
+  isn_imss:["impuesto causado estimado","causado estimado"],
+  disc_min:["disc vs isn minimo","discrepancia vs minimo","disc vs minimo"],
+  disc_imss:["disc vs isn imss","discrepancia vs imss"],
+  cum_min:["porc cumplimiento isn minimo","cumplimiento isn minimo","cumplimiento minimo"],
+  cum_imss:["porc cumplimiento isn estimado","cumplimiento isn estimado","cumplimiento estimado"],
+  fdecl_cero:["flag decl cero","declaracion en cero","decl cero"]
+};
+const MAP_ZONIF={
+  rfc:["rfc"], razon:["razon social","razon","razón"], ubicacion:["ubicacion"],
+  domicilio:["domicilio completo","domicilio"], municipio:["municipio"], zona:["zona"],
+  tamano:["clasificacion del inegi","clasificacion","tamano","tamaño","estrato"],
+  anio:["ano","anio","ejercicio"], periodo:["periodo inicio","periodo"], mes:["mes"],
+  disc_min:["discrepancia vs minimo","discrepancia min pos","disc vs isn minimo","discrepancia min"],
+  disc_imss:["discrepancia vs imss","discrepancia imss pos","disc vs isn imss","discrepancia imss"],
+  lat:["latitud"], lon:["longitud"], regla_id:["regla id","regla_id"], regla:["regla rota","regla txt"]
+};
+function normalize(s){return String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[\s._]+/g," ").trim();}
+function buildColIndex(columns,amap){const idx={};
+  Object.keys(amap).forEach(f=>{for(let i=0;i<columns.length;i++){const lbl=normalize(columns[i].label||columns[i].name||"");
+    if(amap[f].some(a=>{const n=normalize(a);return lbl===n||lbl.includes(n);})){idx[f]=i;break;}}});return idx;}
+function detectSchema(columns){const labels=columns.map(c=>normalize(c.label||c.name||""));
+  const any=(...ks)=>labels.some(l=>ks.some(k=>l.includes(k)));
+  if(any("regla","latitud","longitud","clasificacion del inegi","ubicacion","domicilio","discrepancia min pos","discrepancia imss pos"))return "zonif";
+  if(any("impuesto causado","empleados declarados","empleados en el imss","disc vs isn","discrepancia de empleados","cumplimiento isn","periodo inicio"))return "detail";
+  return null;}
+const toNum=(v)=>{if(v==null||v==="")return undefined;const n=+String(v).replace(/[^0-9.\-]/g,"");return isNaN(n)?undefined:n;};
+const truthy=(v)=>{const s=String(v==null?"":v).toLowerCase();return s==="1"||s==="s"||s==="si"||s==="sí"||s==="true"||s==="y";};
+function detailFromVA(msg){const cols=msg.columns||[],data=msg.data||[],idx=buildColIndex(cols,MAP_DETAIL);
+  const g=(row,f)=>idx[f]!=null?row[idx[f]]:undefined;
+  return data.map(row=>{const emp_decl=toNum(g(row,"emp_decl"))??0,emp_imss=toNum(g(row,"emp_imss"))??0;
+    const isn_decl=toNum(g(row,"isn_decl"))??0,isn_min=toNum(g(row,"isn_min"))??0,isn_imss=toNum(g(row,"isn_imss"))??0;
+    let cum_min=toNum(g(row,"cum_min")),cum_imss=toNum(g(row,"cum_imss"));
+    if(cum_min!=null&&cum_min<=1.5)cum_min*=100; if(cum_imss!=null&&cum_imss<=1.5)cum_imss*=100;
+    const anio=g(row,"anio")!=null?String(g(row,"anio")):"", pini=g(row,"periodo")!=null?String(g(row,"periodo")):"";
+    const mnum=mesNumOf(pini)||mesNumOf(anio+"-"+pini);
+    return {rfc:g(row,"rfc"),razon:g(row,"razon"),actividad:g(row,"actividad"),anio,
+      periodo:mnum?periodLabelFromMonth(mnum):((anio&&pini)?anio+"-"+String(pini).padStart(2,"0"):(pini||anio)),
+      mes:mnum?MESES[mnum]:(pini||"—"),mesNum:mnum,periodicidad:g(row,"periodicidad"),
+      emp_decl,emp_imss,disc_emp:toNum(g(row,"disc_emp"))??Math.max(0,emp_imss-emp_decl),
+      isn_decl,isn_min,isn_imss,disc_min:toNum(g(row,"disc_min"))??Math.max(0,isn_min-isn_decl),
+      disc_imss:toNum(g(row,"disc_imss"))??Math.max(0,isn_imss-isn_decl),
+      cum_min:cum_min??(isn_min?isn_decl/isn_min*100:null),cum_imss:cum_imss??(isn_imss?isn_decl/isn_imss*100:null),
+      declara_cero:truthy(g(row,"fdecl_cero"))||isn_decl===0?1:0};});}
+function zonifFromVA(msg){const cols=msg.columns||[],data=msg.data||[],idx=buildColIndex(cols,MAP_ZONIF);
+  const g=(row,f)=>idx[f]!=null?row[idx[f]]:undefined;
+  return data.map(row=>{const rid=String(g(row,"regla_id")||"");
+    const anio=g(row,"anio")!=null?String(g(row,"anio")):"",pini=g(row,"periodo")!=null?String(g(row,"periodo")):"",mes=g(row,"mes")!=null?String(g(row,"mes")):"";
+    const mnum=mesNumOf(pini)||mesNumOf(mes)||mesNumOf(anio+"-"+pini);
+    return {rfc:g(row,"rfc"),razon:g(row,"razon"),ubicacion:g(row,"ubicacion"),domicilio:g(row,"domicilio"),
+      municipio:g(row,"municipio"),zona:g(row,"zona"),tamano:g(row,"tamano"),
+      anio,periodo:mnum?periodLabelFromMonth(mnum):(pini||anio),mes:mnum?MESES[mnum]:mes,mesNum:mnum,
+      disc_min:toNum(g(row,"disc_min"))??0,disc_imss:toNum(g(row,"disc_imss"))??0,
+      lat:toNum(g(row,"lat")),lon:toNum(g(row,"lon")),regla_id:rid,regla:g(row,"regla")||rid,
+      fuera_padron:/fuera/i.test(rid+(g(row,"regla")||""))?1:0};});}
+
+/* ===== DATOS DE MUESTRA ===== */
+function makeSample(){
+  const razones=[
+    ["MADERAS DEL GUADIANA SA DE CV","MDG980412AB1","Industria manufacturera","Durango","Centro","Grande"],
+    ["MINERA CERRO DEL MERCADO SA","MCM010203C45","Minería","Durango","Norte","Grande"],
+    ["TRANSPORTES LERDO SA DE CV","TLE950817HJ2","Transporte y logística","Gómez Palacio","Centro","Mediana"],
+    ["AGROINDUSTRIAS NAZAS SPR","ANA070621KP9","Agroindustria","Nazas","Rural","Mediana"],
+    ["CONSTRUCTORA VICTORIA DE DGO","CVD991110RT3","Construcción","Durango","Oriente","Mediana"],
+    ["COMERCIAL EL SALTO SA","CES880505LM7","Comercio al por mayor","Pueblo Nuevo","Sur","Pequeña"],
+    ["SERVICIOS MÉDICOS DEL NORTE","SMN020909QW1","Servicios de salud","Gómez Palacio","Norte","Mediana"],
+    ["HOTELERA GUADIANA SA DE CV","HGU140714ZX8","Servicios de alojamiento","Durango","Centro","Pequeña"],
+    ["EMBOTELLADORA LAGUNA SA","ELA000101PL4","Industria alimentaria","Lerdo","Poniente","Grande"],
+    ["TEXTILES DEL BOLSÓN SA","TBO060218NM6","Textil","Mapimí","Rural","Pequeña"],
+    ["DISTRIBUIDORA CANATLÁN SA","DCA110330VB2","Comercio al por menor","Canatlán","Rural","Pequeña"],
+    ["FORESTAL SIERRA MADRE SPR","FSM090812CC0","Silvicultura","Santiago Papasquiaro","Sierra","Mediana"],
+    ["AUTOPARTES DEL GUADIANA SA","AGU070707DF5","Industria manufacturera","Durango","Oriente","Mediana"],
+    ["LOGÍSTICA DEL DESIERTO SA","LDD130505GH7","Transporte y logística","Tlahualilo","Norte","Pequeña"],
+    ["ALIMENTOS PROCESADOS DGO","APD040404JK8","Industria alimentaria","Durango","Poniente","Grande"],
+    ["CONSULTORÍA FISCAL VICTORIA","CFV160909LL2","Servicios profesionales","Durango","Centro","Pequeña"],
+    ["ACEROS DE LERDO SA DE CV","ALE980606MN3","Metalurgia","Lerdo","Poniente","Mediana"],
+    ["FARMACIAS DEL GUADIANA SA","FGU120202PQ9","Comercio al por menor","Durango","Sur","Mediana"],
+    ["GANADERA EL MEZQUITAL SPR","GEM080808RS4","Ganadería","Mezquital","Sierra","Pequeña"],
+    ["TECNOLOGÍA APLICADA DGO SA","TAD170303TU6","Servicios de TI","Durango","Centro","Pequeña"]];
+  const SM=278.80,rows=[];let seed=42;const rnd=()=>{seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff;};
+  razones.forEach((r,ri)=>{const [rz,rfc,act,mun,zona,tam]=r;
+    const base=tam==="Grande"?180+Math.floor(rnd()*260):tam==="Mediana"?45+Math.floor(rnd()*90):8+Math.floor(rnd()*30);
+    const cero=rnd()<0.14,hasSDI=ri%4===1;
+    for(let mm=10;mm<=12;mm++){const empIMSS=Math.max(1,Math.round(base*(1+(rnd()-.5)*0.12)));
+      const empDecl=cero?0:Math.max(0,Math.round(empIMSS*(0.15+rnd()*0.45)));
+      const sdi=SM*(1.9+rnd()*3.4),t=0.03,isnMin=empIMSS*SM*30*t;
+      const isnDecl=cero?0:isnMin*(0.06+rnd()*0.30),isnIMSS=hasSDI?empIMSS*sdi*30*t:0;
+      rows.push({rfc,razon:rz,actividad:act,municipio:mun,zona,tamano:tam,periodo:periodLabelFromMonth(mm),anio:"2025",periodicidad:"Mensual",mes:MESES[mm],mesNum:mm,
+        emp_decl:empDecl,emp_imss:empIMSS,disc_emp:empIMSS-empDecl,isn_decl:isnDecl,isn_min:isnMin,isn_imss:isnIMSS,
+        disc_min:isnMin-isnDecl,disc_imss:hasSDI?isnIMSS-isnDecl:0,
+        cum_min:isnMin?Math.min(100,isnDecl/isnMin*100):100,cum_imss:hasSDI&&isnIMSS?Math.min(100,isnDecl/isnIMSS*100):null,declara_cero:cero?1:0});}});
+  const zon=razones.map((r,ri)=>{const [rz,rfc,act,mun,zona,tam]=r;const cr=rows.filter(x=>x.rfc===rfc);
+    const fuera=ri%7===3,regla_id=fuera?"FUERA_PADRON":(ri%4===1?"DEBAJO_IMSS":"MINIMO");
+    const regla={FUERA_PADRON:"Fuera del padrón IMSS",MINIMO:"Debajo del mínimo",DEBAJO_IMSS:"Debajo del estimado IMSS"}[regla_id];
+    return {rfc,razon:rz,ubicacion:`${mun}, Zona ${zona}`,municipio:mun,zona,tamano:tam,
+      domicilio:`Calle ${100+ri*7} No. ${ri*3+11}, Col. Centro, ${mun}, Dgo.`,
+      disc_min:sum(cr,x=>x.disc_min),disc_imss:sum(cr,x=>x.disc_imss),regla_id,regla,fuera_padron:fuera?1:0,
+      lat:24.02+(ri%5)*0.05-(ri%3)*0.03,lon:-104.66+(ri%4)*0.07-(ri%2)*0.05};});
+  return {detail:rows,zonif:zon,live:false};}
+
+/* ---- estado ---- */
+let RAW={detail:[],zonif:[]},liveMode=false,ACTIVE="home";
+function updateBadge(){const b=document.getElementById("srcBadge"),t=document.getElementById("srcTxt");
+  if(liveMode){b.classList.add("live");t.textContent="DATOS EN VIVO (SAS VA)";}else{b.classList.remove("live");t.textContent="DATOS DE MUESTRA";}}
+function setData(pkg){RAW.detail=(pkg.detail||[]).filter(isInPeriodScope);RAW.zonif=(pkg.zonif||[]).filter(keepIfScopedOrUndated);liveMode=!!pkg.live;updateBadge();initFilters();renderPage(ACTIVE);}
+function setDetail(rows){RAW.detail=(rows||[]).filter(isInPeriodScope);liveMode=true;updateBadge();initFilters();renderPage(ACTIVE);}
+function setZonif(rows){RAW.zonif=(rows||[]).filter(keepIfScopedOrUndated);liveMode=true;updateBadge();initFilters();renderPage(ACTIVE);}
+function diag(msg){console.log("[DDC]",msg);}
+function installVAListener(){
+  window.addEventListener("message",function(ev){let d=ev.data;if(typeof d==="string"){try{d=JSON.parse(d);}catch(e){return;}}
+    if(!d||typeof d!=="object")return;
+    if(!Array.isArray(d.data)||!Array.isArray(d.columns)){
+      // mensaje recibido pero sin la forma esperada -> mostramos sus llaves para diagnosticar
+      const keys=Object.keys(d);
+      if(keys.length===1&&keys[0]==="resultName")return;   // es nuestro propio acuse, ignorar
+      const k=keys.slice(0,6).join(",");
+      if(k) diag("mensaje sin data/columns · llaves: "+k);
+      return;
+    }
+    const labels=d.columns.map(c=>c.label||c.name||"?");
+    try{const schema=detectSchema(d.columns);
+      if(schema==="detail"){const r=detailFromVA(d);if(r.length){setDetail(r);diag(`OK detalle · ${d.columns.length} cols · ${r.length} filas`);}}
+      else if(schema==="zonif"){const r=zonifFromVA(d);if(r.length){setZonif(r);diag(`OK zonificación · ${d.columns.length} cols · ${r.length} filas`);}}
+      else diag("no reconocido · columnas: "+labels.slice(0,8).join(", "));
+      try{if(ev.source&&ev.source.postMessage)ev.source.postMessage({resultName:d.resultName},"*");}catch(e){}
+    }catch(e){diag("error al procesar: "+e.message);}});
+  try{if(window.parent&&window.parent!==window)window.parent.postMessage({},"*");}catch(e){}}
+
+/* ===== MAPA NATIVO DE VA (objeto ve9436) ===== */
+const VA_REPORT_URI="/reports/reports/283f078f-c2bc-4b50-b92c-d77069be48f3";
+const VA_MAP_OBJECT="ve9436";
+const VA_ORIGIN=window.location.origin;   // si el HTML NO se sirve desde el servidor SAS, cambia a "https://sas.dataloop.mx"
+let VA_SDK_LOADING=false,VA_INIT_DONE=false;
+function loadVASDK(){if(VA_SDK_LOADING||(window.customElements&&customElements.get&&customElements.get("sas-report-object")))return;
+  VA_SDK_LOADING=true;const add=(src)=>new Promise(res=>{const s=document.createElement("script");s.src=src;s.onload=res;s.onerror=res;document.head.appendChild(s);});
+  add("/SASJobExecution/resources/sap/ui/thirdparty/jquery.js").then(()=>add("/SASJobExecution/resources/dynamic.min.js"))
+    .then(()=>add("https://cdn.developer.sas.com/packages/va-report-components/latest/dist/umd/va-report-components.js"));}
+async function ensureVAInit(){if(VA_INIT_DONE)return;VA_INIT_DONE=true;
+  try{if(window.SASDynamic&&SASDynamic.init)SASDynamic.init();}catch(e){}
+  try{await fetch("/authorization/",{method:"GET",credentials:"include",headers:{"X-CSRF-TOKEN":"Fetch"}});}catch(e){}}
+function embedVAMap(host,objectName){if(!host||host.dataset.vaDone)return;host.dataset.vaDone="1";
+  objectName=objectName||VA_MAP_OBJECT;
+  host.innerHTML=`<div class="callout">Cargando mapa…</div>`;
+  const insertLive=async()=>{await ensureVAInit();host.innerHTML="";
+    const el=document.createElement("sas-report-object");
+    el.setAttribute("url",VA_ORIGIN);el.setAttribute("reportUri",VA_REPORT_URI);
+    el.setAttribute("objectName",objectName);el.setAttribute("authenticationType","credentials");host.appendChild(el);};
+  if(window.customElements&&customElements.get&&customElements.get("sas-report-object")){insertLive();return;}
+  loadVASDK();let settled=false;
+  if(window.customElements&&customElements.whenDefined)customElements.whenDefined("sas-report-object").then(()=>{if(!settled){settled=true;insertLive();}});
+  setTimeout(()=>{if(!settled){settled=true;host.innerHTML=`<div class="callout">Mapa geográfico de VA.<br>Se muestra al abrir el tablero dentro de SAS Visual Analytics.</div>`;}},7000);}
+
+/* ===== FILTROS ===== */
+const FILTER_DEFS={min:[["actividad","Actividad"]],
+  emp:[["actividad","Actividad"]],
+  imss:[["actividad","Actividad"]],
+  zona:[["municipio","Municipio"],["zona","Zona"],["tamano","Tamaño"],["regla","Regla rota"]]};
+const filterState={min:{},emp:{},imss:{},zona:{}};
+const uniq=(a)=>[...new Set(a.filter(v=>v!=null&&v!==""))].sort();
+function initFilters(){Object.keys(FILTER_DEFS).forEach(scope=>{
+  const host=document.querySelector(`.filters[data-scope="${scope}"]`);if(!host)return;
+  host.innerHTML=`<span class="fl-lbl">Filtros</span><span class="chip" style="margin-left:0">Periodo analizado · Oct–Dic 2025</span>`;const src=scope==="zona"?RAW.zonif:RAW.detail;
+  const q=document.createElement("input");q.type="search";q.placeholder="Buscar razón social o RFC…";q.style.minWidth="210px";q.value=filterState[scope]._q||"";
+  q.oninput=()=>{filterState[scope]._q=q.value||undefined;renderPage(scope);};host.appendChild(q);
+  FILTER_DEFS[scope].forEach(([field,label])=>{const vals=uniq(src.map(r=>r[field]));const sel=document.createElement("select");
+    sel.innerHTML=`<option value="">${label}: Todos</option>`+vals.map(v=>`<option>${esc(v)}</option>`).join("");sel.value=filterState[scope][field]||"";
+    sel.onchange=()=>{filterState[scope][field]=sel.value||undefined;renderPage(scope);};host.appendChild(sel);});
+  const clr=document.createElement("button");clr.className="btn-clear";clr.textContent="Limpiar";
+  clr.onclick=()=>{filterState[scope]={};host.querySelectorAll("select,input").forEach(s=>s.value="");renderPage(scope);};host.appendChild(clr);
+  const chip=document.createElement("span");chip.className="chip";chip.dataset.chip=scope;host.appendChild(chip);});}
+function applyFilters(rows,scope){const st=filterState[scope]||{},q=(st._q||"").toLowerCase().trim();
+  const out=rows.filter(r=>{if(!Object.entries(st).every(([f,v])=>f==="_q"||v==null||String(r[f])===String(v)))return false;
+    if(q){if(!((r.razon||"")+" "+(r.rfc||"")).toLowerCase().includes(q))return false;}return true;});
+  const chip=document.querySelector(`[data-chip="${scope}"]`);if(chip)chip.textContent=`${fmtNum(out.length)} de ${fmtNum(rows.length)} registros`;return out;}
+
+/* ===== GRÁFICAS ===== */
+const TT=document.getElementById("tt");
+const tip=(h)=>{TT.innerHTML=h;TT.style.opacity="1";};const tipHide=()=>{TT.style.opacity="0";};
+function tipMove(e){const p=12;let x=e.clientX+p,y=e.clientY+p;const r=TT.getBoundingClientRect();
+  if(x+r.width>innerWidth-8)x=e.clientX-r.width-p;if(y+r.height>innerHeight-8)y=e.clientY-r.height-p;TT.style.left=x+"px";TT.style.top=y+"px";}
+const cvar=(n)=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const boxH=(h,fb)=>Math.max(140,h.clientHeight||fb||220),boxW=(h,fb)=>Math.max(320,h.clientWidth||fb||560);
+function groupedBar(host,cats,{fmt=fmtMXN}={}){if(!cats.length){host.innerHTML=`<div class="callout">Sin datos para el filtro seleccionado.</div>`;return;}
+  const H=boxH(host,240),avail=boxW(host,600),nS=cats[0].values.length,W=Math.max(avail,cats.length*Math.max(56,30*nS));
+  const mL=60,mR=12,mT=12,mB=40,plotW=W-mL-mR,plotH=H-mT-mB,maxV=Math.max(1,...cats.flatMap(c=>c.values.map(v=>v.val)));
+  const gStep=plotW/cats.length,bPad=gStep*0.16,bW=(gStep-bPad*2)/nS;let grid="",axis="",bars="",xlab="";
+  for(let t=0;t<=4;t++){const yv=maxV*t/4,y=mT+plotH-plotH*t/4;grid+=`<line class="grid-line" x1="${mL}" y1="${y}" x2="${mL+plotW}" y2="${y}"/>`;
+    axis+=`<text class="axis-txt" x="${mL-8}" y="${y+3}" text-anchor="end">${fmt(yv)}</text>`;}
+  cats.forEach((c,ci)=>{const gx=mL+gStep*ci+bPad;c.values.forEach((v,si)=>{const h=Math.max(1,plotH*v.val/maxV),x=gx+bW*si,y=mT+plotH-h;
+    bars+=`<rect class="bar" x="${x}" y="${y}" width="${Math.max(1,bW-3)}" height="${h}" rx="4" fill="${v.color}" data-tt="${esc(c.label)}||${esc(v.name)}||${esc(fmt(v.val))}||${v.color}"></rect>`;});
+    xlab+=`<text class="axis-txt" x="${gx+(gStep-bPad*2)/2}" y="${mT+plotH+16}" text-anchor="middle">${esc(c.label)}</text>`;});
+  host.innerHTML=`<div style="height:100%;overflow-x:auto;overflow-y:hidden"><svg class="chart" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${grid}${axis}${bars}${xlab}</svg></div>`;
+  host.querySelectorAll("rect.bar").forEach(r=>{r.addEventListener("mousemove",e=>{const[c,s,v,col]=r.dataset.tt.split("||");
+    tip(`<b>${c}</b><div class="row"><span class="sw" style="background:${col}"></span>${s}: <b>${v}</b></div>`);tipMove(e);});r.addEventListener("mouseleave",tipHide);});}
+const legendHTML=(items)=>`<span class="legend">`+items.map(i=>`<span class="lg"><span class="sw" style="background:${i.color}"></span>${i.name}</span>`).join("")+`</span>`;
+function treemap(host,items,{fmt=fmtMXN,maxTiles=9}={}){items=items.filter(i=>i.val>0).sort((a,b)=>b.val-a.val);
+  if(!items.length){host.innerHTML=`<div class="callout">Sin datos.</div>`;return;}
+  if(items.length>maxTiles){const head=items.slice(0,maxTiles-1),tail=items.slice(maxTiles-1);head.push({name:`Otras (${tail.length})`,val:sum(tail,t=>t.val)});items=head;}
+  const W=boxW(host,560),H=boxH(host,240),total=sum(items,i=>i.val),area=W*H;
+  const pal=[cvar("--c-decl"),cvar("--c-imss"),cvar("--c-min"),cvar("--neg"),"#65C2DC","#BCE5F0","#07577B","#D9EFF7"];
+  const scaled=items.map(it=>({...it,a:it.val/total*area})),worst=(r,w)=>{const s=sum(r,z=>z.a),h=s/w;let mx=1;r.forEach(z=>{const rw=z.a/h;mx=Math.max(mx,Math.max(rw/h,h/rw));});return mx;};
+  let x=0,y=0,i=0,tiles=[];while(i<scaled.length){const remW=W-x;let row=[scaled[i]],j=i+1;
+    while(j<scaled.length){const cand=row.concat(scaled[j]);if(worst(cand,remW)<=worst(row,remW)){row=cand;j++;}else break;}
+    const rowH=sum(row,z=>z.a)/remW;let cx=x;row.forEach(z=>{const w=z.a/rowH;tiles.push({...z,x:cx,y,w,h:rowH,c:pal[tiles.length%pal.length]});cx+=w;});y+=rowH;i=j;x=0;if(y>=H-0.5)break;}
+  let svg="";tiles.forEach(t=>{const big=t.w>66&&t.h>30;svg+=`<g class="tm-tile" data-tt="${esc(t.name)}||${esc(fmt(t.val))}||${t.c}">
+    <rect x="${t.x+1}" y="${t.y+1}" width="${Math.max(0,t.w-2)}" height="${Math.max(0,t.h-2)}" rx="4" fill="${t.c}"></rect>
+    ${big?`<text x="${t.x+7}" y="${t.y+16}" fill="#fff" font-size="11" font-weight="700" font-family="var(--sans)">${esc((t.name||"").slice(0,Math.floor(t.w/7)))}</text>
+    <text x="${t.x+7}" y="${t.y+30}" fill="rgba(255,255,255,.9)" font-size="10.5" font-family="var(--sans)">${esc(fmt(t.val))}</text>`:""}</g>`;});
+  host.innerHTML=`<svg class="chart" width="100%" height="${H}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${svg}</svg>`;
+  host.querySelectorAll(".tm-tile").forEach(g=>{g.addEventListener("mousemove",e=>{const[n,v,c]=g.dataset.tt.split("||");tip(`<div class="row"><span class="sw" style="background:${c}"></span><b>${n}</b></div>${v}`);tipMove(e);});g.addEventListener("mouseleave",tipHide);});}
+function donut(host,parts,{fmt=fmtMXN}={}){const total=sum(parts,p=>p.val)||1;const R=62,r=39,cx=76,cy=76;let a0=-Math.PI/2,paths="";
+  parts.forEach(p=>{const fr=p.val/total,a1=a0+fr*Math.PI*2,lg=fr>0.5?1:0;
+    const x0=cx+R*Math.cos(a0),y0=cy+R*Math.sin(a0),x1=cx+R*Math.cos(a1),y1=cy+R*Math.sin(a1);
+    const xi0=cx+r*Math.cos(a1),yi0=cy+r*Math.sin(a1),xi1=cx+r*Math.cos(a0),yi1=cy+r*Math.sin(a0);
+    paths+=`<path d="M${x0} ${y0} A${R} ${R} 0 ${lg} 1 ${x1} ${y1} L${xi0} ${yi0} A${r} ${r} 0 ${lg} 0 ${xi1} ${yi1} Z" fill="${p.color}" class="tm-tile" data-tt="${esc(p.name)}||${esc(fmt(p.val))}||${p.color}||${(fr*100).toFixed(1)}"></path>`;a0=a1;});
+  const rows=parts.map(p=>`<div style="display:flex;align-items:center;gap:8px;font-size:12px;margin-top:6px"><span class="sw" style="width:11px;height:11px;border-radius:3px;background:${p.color}"></span>
+    <span style="flex:1;color:var(--ink-2)">${p.name}</span><b>${fmt(p.val)}</b><span class="muted">${(p.val/total*100).toFixed(0)}%</span></div>`).join("");
+  host.innerHTML=`<div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;width:100%"><svg width="152" height="152" viewBox="0 0 152 152" style="flex:0 0 auto">${paths}
+    <text x="76" y="72" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="var(--sans)">Total</text>
+    <text x="76" y="90" text-anchor="middle" font-size="14" font-weight="800" fill="var(--ink)" font-family="var(--sans)">${fmt(total)}</text></svg>
+    <div style="flex:1;min-width:180px">${rows}</div></div>`;
+  host.querySelectorAll(".tm-tile").forEach(g=>{g.addEventListener("mousemove",e=>{const[n,v,c,pc]=g.dataset.tt.split("||");tip(`<div class="row"><span class="sw" style="background:${c}"></span><b>${n}</b></div>${v} · ${pc}%`);tipMove(e);});g.addEventListener("mouseleave",tipHide);});}
+function lineArea(host,pts,series,{fmt=fmtMXN}={}){if(!pts.length){host.innerHTML=`<div class="callout">Sin datos.</div>`;return;}
+  const H=boxH(host,240),W=boxW(host,600),mL=60,mR=14,mT=14,mB=40,plotW=W-mL-mR,plotH=H-mT-mB;
+  const maxV=Math.max(1,...pts.flatMap(p=>series.map(s=>+p[s.key]||0)));
+  const n=pts.length,X=(i)=>mL+(n<=1?plotW/2:plotW*i/(n-1)),Y=(v)=>mT+plotH-plotH*v/maxV;
+  let grid="",axis="",xlab="";
+  for(let t=0;t<=4;t++){const yv=maxV*t/4,y=mT+plotH-plotH*t/4;grid+=`<line class="grid-line" x1="${mL}" y1="${y}" x2="${mL+plotW}" y2="${y}"/>`;
+    axis+=`<text class="axis-txt" x="${mL-8}" y="${y+3}" text-anchor="end">${fmt(yv)}</text>`;}
+  pts.forEach((p,i)=>{xlab+=`<text class="axis-txt" x="${X(i)}" y="${mT+plotH+16}" text-anchor="middle">${esc(p.label)}</text>`;});
+  let paths="",dots="";
+  series.forEach(s=>{const line=pts.map((p,i)=>`${i?'L':'M'}${X(i).toFixed(1)},${Y(+p[s.key]||0).toFixed(1)}`).join("");
+    const areaP=`M${X(0).toFixed(1)},${Y(0)} `+pts.map((p,i)=>`L${X(i).toFixed(1)},${Y(+p[s.key]||0).toFixed(1)}`).join(" ")+` L${X(n-1).toFixed(1)},${Y(0)} Z`;
+    paths+=`<path d="${areaP}" fill="${s.color}" fill-opacity="0.13"/><path d="${line}" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linejoin="round"/>`;
+    pts.forEach((p,i)=>{dots+=`<circle class="tm-tile" cx="${X(i).toFixed(1)}" cy="${Y(+p[s.key]||0).toFixed(1)}" r="4.5" fill="${s.color}" stroke="var(--paper)" stroke-width="1.5" data-tt="${esc(p.label)}||${esc(s.name)}||${esc(fmt(+p[s.key]||0))}||${s.color}"></circle>`;});});
+  host.innerHTML=`<div style="height:100%;overflow-x:auto;overflow-y:hidden"><svg class="chart" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${grid}${axis}${paths}${dots}${xlab}</svg></div>`;
+  host.querySelectorAll(".tm-tile").forEach(g=>{g.addEventListener("mousemove",e=>{const[l,s,v,c]=g.dataset.tt.split("||");tip(`<b>${l}</b><div class="row"><span class="sw" style="background:${c}"></span>${s}: <b>${v}</b></div>`);tipMove(e);});g.addEventListener("mouseleave",tipHide);});}
+/* KPIs de demostración (montos inflados y coherentes entre páginas) */
+const DEMO_KPI={
+  home:["$335,976 M","128,540","$384.68 M","1,247"],
+  min:["$335,976 M","8,432","41.2%","3,158"],
+  emp:["128,540","486,200","357,660","26.4%"],
+  imss:["$384.68 M","$1,240.90 M","69.0%","5,214"],
+  zona:["$792,450 M","$335,976 M","$412,318 M","$44,156 M"]};
+function svgIcon(icon){
+  const paths={
+    money:'<path d="M12 3v18"/><path d="M17 7.5c-.8-1.2-2.4-2-4.4-2-2.3 0-4.1 1.1-4.1 2.8 0 4.1 9 1.8 9 6.5 0 1.9-1.9 3.2-4.5 3.2-2.2 0-4-.8-5-2.1"/>',
+    people:'<path d="M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M17 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/><path d="M3.5 20c.7-3.3 2.7-5 5.5-5s4.8 1.7 5.5 5"/><path d="M14.5 16.2c2.6.2 4.4 1.4 5 3.8"/>',
+    chart:'<path d="M4 19h16"/><path d="M7 16V9"/><path d="M12 16V5"/><path d="M17 16v-4"/>',
+    check:'<path d="M20 6 9 17l-5-5"/>',
+    zero:'<circle cx="12" cy="12" r="7"/><path d="M8 16 16 8"/>',
+    percent:'<path d="M19 5 5 19"/><circle cx="7.5" cy="7.5" r="2"/><circle cx="16.5" cy="16.5" r="2"/>',
+    sigma:'<path d="M18 5H7l6 7-6 7h11"/>',
+    alert:'<circle cx="12" cy="12" r="8"/><path d="M12 8v5"/><path d="M12 16h.01"/>',
+    grid:'<path d="M4 4h7v7H4z"/><path d="M13 4h7v7h-7z"/><path d="M4 13h7v7H4z"/><path d="M13 13h7v7h-7z"/>'
+  };
+  const key=icon==="▲"?"money":icon==="◫"?"people":icon==="▤"?"chart":icon==="✓"?"check":icon==="◯"?"zero":icon==="%"?"percent":icon==="Σ"?"sigma":icon==="◉"?"alert":icon==="▦"?"grid":"chart";
+  return `<svg viewBox="0 0 24 24" aria-hidden="true">${paths[key]}</svg>`;
+}
+const kpiCard=({tone,icon,label,val,foot})=>`<div class="card kpi ${tone}"><div class="accent"></div><div class="k-ic">${svgIcon(icon)}</div><div class="k-lbl">${label}</div><div class="k-val">${val}</div><div class="k-foot">${foot||""}</div></div>`;
+function tableHTML(cols,rows,{max=400}={}){const head=cols.map(c=>`<th${c.num?' style="text-align:right"':""}>${esc(c.label)}</th>`).join("");
+  const body=rows.slice(0,max).map(r=>"<tr>"+cols.map(c=>{let v=c.get(r),cls=c.num?"num":"";if(c.cls)cls+=" "+c.cls(r);
+    if(c.label==="Razón social")return `<td class="${cls}" title="${esc(v)}"><span class="company-name">${esc(v)}</span></td>`;
+    return `<td class="${cls}">${c.html?v:esc(v)}</td>`;}).join("")+"</tr>").join("");
+  return `<div class="tbl-scroll"><table class="dt"><thead><tr>${head}</tr></thead><tbody>${body||`<tr><td colspan="${cols.length}" class="muted" style="padding:16px">Sin registros.</td></tr>`}</tbody></table></div>`;}
+function rankList(host,items,{fmt=fmtMXN,color=null,maxItems=6}={}){
+  items=items.slice(0,maxItems);
+  if(!items.length){host.innerHTML=`<div class="callout">Sin datos.</div>`;return;}
+  const max=Math.max(1,...items.map(i=>i.val));
+  const pal=[cvar("--c-decl"),cvar("--c-imss"),cvar("--c-min"),cvar("--blue-500"),cvar("--blue-300"),cvar("--blue-800")];
+  host.innerHTML=items.map((it,i)=>`<div class="priority-row" title="${esc(it.name)} · ${esc(fmt(it.val))}">
+    <div class="idx">${i+1}</div>
+    <div class="priority-name">${esc(it.name)}</div>
+    <div class="priority-value">${fmt(it.val)}</div>
+    <div class="priority-track"><i style="width:${(it.val/max*100).toFixed(1)}%;background:${color||pal[i%pal.length]}"></i></div>
+  </div>`).join("");
+}
+function findingsDistribution(host,parts){
+  const total=sum(parts,p=>p.val)||1;
+  const segs=parts.map(p=>`<i title="${esc(p.name)}" style="width:${Math.max(2,p.val/total*100)}%;background:${p.color}"></i>`).join("");
+  const rows=parts.map(p=>`<div class="seg-row"><span class="sw" style="background:${p.color}"></span><span>${esc(p.name)}</span><b>${fmtNum(p.val)} RFC · ${(p.val/total*100).toFixed(0)}%</b></div>`).join("");
+  host.innerHTML=`<div><div class="segbar">${segs}</div><div class="seg-legend">${rows}</div></div>`;
+}
+function monthlyComparison(host,rows,{declF,estF,gapF,estName}){
+  const pts=PERIOD_SCOPE.months.map(m=>{
+    const r=rows.filter(x=>x.mesNum===m);
+    const decl=sum(r,x=>x[declF]),est=sum(r,x=>x[estF]),gap=gapF?sum(r,x=>x[gapF]):Math.max(0,est-decl);
+    return {m,label:periodLabelFromMonth(m),decl,est,gap,cum:est?Math.min(100,decl/est*100):100};
+  });
+  const W=Math.max(320,host.clientWidth||620),H=Math.max(180,host.clientHeight||260);
+  const mL=64,mR=90,mT=20,mB=34,plotW=Math.max(1,W-mL-mR),plotH=Math.max(1,H-mT-mB);
+  const maxV=Math.max(1,...pts.flatMap(p=>[p.decl,p.est]))*1.12;
+  const X=i=>mL+(pts.length<=1?plotW/2:plotW*i/(pts.length-1));
+  const Y=v=>mT+plotH-plotH*v/maxV;
+  const money=v=>"$"+(v/1000000).toLocaleString("es-MX",{maximumFractionDigits:v>=100000000?0:1})+" M";
+  const line=(key)=>pts.map((p,i)=>`${i?"L":"M"}${X(i).toFixed(1)},${Y(p[key]).toFixed(1)}`).join(" ");
+  const area=`M${X(0).toFixed(1)},${Y(pts[0].decl).toFixed(1)} `+
+    pts.map((p,i)=>`L${X(i).toFixed(1)},${Y(p.decl).toFixed(1)}`).join(" ")+
+    " "+pts.slice().reverse().map((p,i)=>`L${X(pts.length-1-i).toFixed(1)},${Y(p.est).toFixed(1)}`).join(" ")+" Z";
+  let svg="";
+  for(let t=0;t<=4;t++){const v=maxV*t/4,y=mT+plotH-plotH*t/4;svg+=`<line class="grid-line" x1="${mL}" y1="${y}" x2="${mL+plotW}" y2="${y}"></line><text class="axis-txt" x="${mL-8}" y="${y+4}" text-anchor="end">${money(v)}</text>`;}
+  svg+=`<path d="${area}" fill="${cvar("--blue-100")}" fill-opacity=".58"></path>
+    <path d="${line("est")}" fill="none" stroke="${C_MIN()}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
+    <path d="${line("decl")}" fill="none" stroke="${C_DECL()}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>`;
+  pts.forEach((p,i)=>{
+    const x=X(i),anchor=i===0?"start":i===pts.length-1?"end":"middle",dx=i===0?4:i===pts.length-1?-4:0;
+    svg+=`<text x="${x+dx}" y="${Y(p.est)-8}" text-anchor="${anchor}" font-size="11.2" font-weight="800" fill="${C_MIN()}" font-family="var(--sans)">${money(p.est)}</text>
+      <text x="${x+dx}" y="${Y(p.decl)+16}" text-anchor="${anchor}" font-size="11.2" font-weight="800" fill="${C_DECL()}" font-family="var(--sans)">${money(p.decl)}</text>
+      <circle class="tm-tile" cx="${x}" cy="${Y(p.est)}" r="5" fill="${C_MIN()}" stroke="var(--paper)" stroke-width="1.5" data-tt="${esc(p.label)}||${esc(estName)}: ${esc(fmtMXNfull(p.est))}<br>Declarado: ${esc(fmtMXNfull(p.decl))}<br>Brecha: ${esc(fmtMXNfull(p.gap))}<br>Cumplimiento: ${esc(fmtPct(p.cum))}||${C_MIN()}"></circle>
+      <circle class="tm-tile" cx="${x}" cy="${Y(p.decl)}" r="5" fill="${C_DECL()}" stroke="var(--paper)" stroke-width="1.5" data-tt="${esc(p.label)}||Declarado: ${esc(fmtMXNfull(p.decl))}<br>${esc(estName)}: ${esc(fmtMXNfull(p.est))}<br>Brecha: ${esc(fmtMXNfull(p.gap))}<br>Cumplimiento: ${esc(fmtPct(p.cum))}||${C_DECL()}"></circle>
+      <text class="axis-txt" x="${x}" y="${H-11}" text-anchor="middle">${shortPeriodLabel(p.m)}</text>`;
+  });
+  host.innerHTML=`<svg class="chart" width="100%" height="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${svg}</svg>`;
+  host.querySelectorAll(".tm-tile").forEach(g=>{g.addEventListener("mousemove",e=>{const[l,v,c]=g.dataset.tt.split("||");tip(`<div class="row"><span class="sw" style="background:${c}"></span><b>${l}</b></div>${v}`);tipMove(e);});g.addEventListener("mouseleave",tipHide);});
+}
+function employeeSlope(host,rows){
+  const pts=PERIOD_SCOPE.months.map(m=>({m,label:periodLabelFromMonth(m),short:shortPeriodLabel(m),decl:sum(rows.filter(r=>r.mesNum===m),r=>r.emp_decl),imss:sum(rows.filter(r=>r.mesNum===m),r=>r.emp_imss)}));
+  const W=boxW(host,520),H=boxH(host,220),mL=126,mR=72,mT=18,mB=38,maxV=Math.max(1,...pts.flatMap(p=>[p.decl,p.imss]));
+  const plotW=W-mL-mR,X=i=>mL+(pts.length<=1?plotW/2:plotW*i/(pts.length-1)),Y=v=>mT+(H-mT-mB)-(H-mT-mB)*v/maxV;
+  const series=[{key:"decl",name:"Declarados",color:C_DECL()},{key:"imss",name:"IMSS",color:C_IMSS()}];
+  let svg=`<line class="grid-line" x1="${mL}" y1="${H-mB}" x2="${W-mR}" y2="${H-mB}"/>`;
+  series.forEach(s=>{
+    const line=pts.map((p,i)=>`${i?"L":"M"}${X(i).toFixed(1)} ${Y(p[s.key]).toFixed(1)}`).join(" ");
+    svg+=`<path d="${line}" fill="none" stroke="${s.color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+    pts.forEach((p,i)=>{svg+=`<circle cx="${X(i).toFixed(1)}" cy="${Y(p[s.key]).toFixed(1)}" r="5" fill="${s.color}"/>`;});
+    const first=pts[0],last=pts[pts.length-1];
+    svg+=`<text x="${X(0)-10}" y="${Y(first[s.key])+4}" text-anchor="end" fill="${s.color}" font-size="11.2" font-weight="800" font-family="var(--sans)">${s.name}: ${fmtNum(first[s.key])}</text>
+      <text x="${X(pts.length-1)+10}" y="${Y(last[s.key])+4}" fill="${s.color}" font-size="11.2" font-weight="800" font-family="var(--sans)">${fmtNum(last[s.key])}</text>`;
+  });
+  pts.forEach((p,i)=>{svg+=`<text class="axis-txt" x="${X(i).toFixed(1)}" y="${H-10}" text-anchor="middle">${esc(p.label)}</text>`;});
+  host.innerHTML=`<svg class="chart" width="100%" height="100%" viewBox="0 0 ${W} ${H}">${svg}</svg>`;
+}
+function employeeGapBars(host,items){
+  const h=host.getBoundingClientRect().height||210;
+  const maxRows=Math.max(4,Math.min(6,Math.floor((h-8)/35)));
+  items=items.map(i=>({...i,gap:Math.max((+i.imss||0)-(+i.decl||0),0)})).filter(i=>i.gap>0).sort((a,b)=>b.gap-a.gap).slice(0,maxRows);
+  if(!items.length){host.innerHTML=`<div class="callout">Sin datos.</div>`;return;}
+  const maxV=Math.max(1,...items.map(i=>i.gap));
+  host.innerHTML=`<div class="employee-gap-list">`+items.map(it=>{
+    const pct=it.imss?it.gap/it.imss*100:0;
+    return `<div class="employee-gap-row" title="${esc(it.name)} · Declarados: ${fmtNum(it.decl)} · IMSS: ${fmtNum(it.imss)} · No declarados: ${fmtNum(it.gap)} · ${fmtPct(pct)}">
+      <div class="employee-gap-name">${esc(it.name)}</div>
+      <div class="employee-gap-track"><i style="width:${(it.gap/maxV*100).toFixed(1)}%"></i></div>
+      <div class="employee-gap-value">${fmtNum(it.gap)} no declarados</div>
+    </div>`;
+  }).join("")+`</div>`;
+}
+function imssGauge(host,rows){
+  const pts=DEMO_IMSS.months.map(p=>({...p,short:shortPeriodLabel(p.month),pct:p.compliance,decl:p.declared,est:p.estimated}));
+  const W=Math.max(320,host.clientWidth||560),H=Math.max(180,host.clientHeight||250);
+  const mL=48,mR=82,mT=18,mB=34,plotW=Math.max(1,W-mL-mR),plotH=Math.max(1,H-mT-mB);
+  const X=i=>mL+(pts.length<=1?plotW/2:plotW*i/(pts.length-1));
+  const Y=v=>mT+plotH-plotH*Math.max(0,Math.min(100,v))/100;
+  const avg=DEMO_IMSS.compliance;
+  const line=pts.map((p,i)=>`${i?"L":"M"}${X(i).toFixed(1)},${Y(p.pct).toFixed(1)}`).join(" ");
+  const area=`M${X(0).toFixed(1)},${Y(0)} `+pts.map((p,i)=>`L${X(i).toFixed(1)},${Y(p.pct).toFixed(1)}`).join(" ")+` L${X(pts.length-1).toFixed(1)},${Y(0)} Z`;
+  let svg="";
+  [0,25,50,75,100].forEach(v=>{const y=Y(v);svg+=`<line class="grid-line" x1="${mL}" y1="${y}" x2="${mL+plotW}" y2="${y}"></line><text class="axis-txt" x="${mL-8}" y="${y+4}" text-anchor="end">${v}%</text>`;});
+  const yAvg=Y(avg);
+  svg+=`<path d="${area}" fill="${cvar("--blue-100")}" fill-opacity=".7"></path>
+    <line x1="${mL}" y1="${yAvg}" x2="${mL+plotW}" y2="${yAvg}" stroke="${cvar("--blue-500")}" stroke-dasharray="5 5" stroke-width="1.6"></line>
+    <text x="${mL+plotW-4}" y="${yAvg-6}" text-anchor="end" font-size="10.8" font-weight="800" fill="${cvar("--blue-700")}" font-family="var(--sans)">Cumplimiento promedio</text>
+    <path d="${line}" fill="none" stroke="${C_DECL()}" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"></path>`;
+  const showLabel=(p,i)=>{
+    if(pts.length<=12)return true;
+    if(pts.length<=24)return p.month===1||p.month===4||p.month===7||p.month===10||i===0||i===pts.length-1;
+    const prev=pts[i-1];
+    return i===0||i===pts.length-1||(prev&&prev.year!==p.year)||p.month===4||p.month===7||p.month===10;
+  };
+  pts.forEach((p,i)=>{
+    const showMarker=pts.length<=12;
+    svg+=`${showMarker?`<circle class="tm-tile" cx="${X(i)}" cy="${Y(p.pct)}" r="5" fill="${C_DECL()}" stroke="var(--paper)" stroke-width="1.6" data-tt="${esc(p.label)}||Declarado: ${esc(fmtMXNfull(p.decl))}<br>Estimado IMSS: ${esc(fmtMXNfull(p.est))}<br>Brecha: ${esc(fmtMXNfull(p.gap))}<br>Cumplimiento: ${esc(fmtPct(p.pct))}||${C_DECL()}"></circle>`:`<circle class="tm-tile" cx="${X(i)}" cy="${Y(p.pct)}" r="8" fill="transparent" data-tt="${esc(p.label)}||Declarado: ${esc(fmtMXNfull(p.decl))}<br>Estimado IMSS: ${esc(fmtMXNfull(p.est))}<br>Brecha: ${esc(fmtMXNfull(p.gap))}<br>Cumplimiento: ${esc(fmtPct(p.pct))}||${C_DECL()}"></circle>`}
+      ${pts.length<=12?`<text x="${X(i)}" y="${Y(p.pct)-10}" text-anchor="middle" font-size="11.2" font-weight="850" fill="${C_DECL()}" font-family="var(--sans)">${fmtPct(p.pct)}</text>`:""}
+      ${showLabel(p,i)?`<text class="axis-txt" x="${X(i)}" y="${H-11}" text-anchor="middle">${esc(pts.length>24&&p.month===1?String(p.year):p.short)}</text>`:""}`;
+  });
+  host.innerHTML=`<svg class="chart" width="100%" height="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${svg}</svg>`;
+  host.querySelectorAll(".tm-tile").forEach(g=>{g.addEventListener("mousemove",e=>{const[l,v,c]=g.dataset.tt.split("||");tip(`<div class="row"><span class="sw" style="background:${c}"></span><b>${l}</b></div>${v}`);tipMove(e);});g.addEventListener("mouseleave",tipHide);});
+}
+function imssPeriodGaps(host,rows){
+  let pts=DEMO_IMSS.months.map(p=>({label:p.label,year:p.year,decl:p.declared,est:p.estimated,gap:p.gap,pct:p.compliance}));
+  if(pts.length>12){
+    const byYear=new Map();
+    pts.forEach(p=>{if(!byYear.has(p.year))byYear.set(p.year,{label:String(p.year),decl:0,est:0,gap:0});
+      const o=byYear.get(p.year);o.decl+=p.decl;o.est+=p.est;o.gap+=p.gap;});
+    pts=[...byYear.values()].map(p=>({...p,pct:p.est?p.decl/p.est*100:0})).sort((a,b)=>String(a.label).localeCompare(String(b.label))).slice(0,4);
+  }
+  const max=Math.max(1,...pts.map(p=>p.est));
+  host.innerHTML=`<div class="period-gap-list">`+pts.map(p=>`<div class="period-gap-row" title="${esc(p.label)} · Estimado: ${fmtMXNfull(p.est)} · Declarado: ${fmtMXNfull(p.decl)} · Brecha: ${fmtMXNfull(p.gap)} · Cumplimiento: ${fmtPct(p.pct)}">
+    <div class="period-gap-name">${esc(p.label)}</div>
+    <div class="period-gap-track"><span class="period-gap-est" style="width:${(p.est/max*100).toFixed(1)}%"></span><span class="period-gap-decl" style="width:${(p.decl/max*100).toFixed(1)}%"></span></div>
+    <div class="period-gap-diff">${fmtMXNmill(p.gap)}</div>
+    <div class="period-gap-pct">${fmtPct(p.pct)}</div>
+  </div>`).join("")+`</div>`;
+}
+function stackedMunicipios(host,items){
+  const rect=host.getBoundingClientRect();
+  const maxRows=Math.max(3,Math.min(6,Math.floor(((rect.height||160)-4)/24)));
+  items=items.sort((a,b)=>(b.dmin+b.dimss)-(a.dmin+a.dimss)).slice(0,maxRows);
+  if(!items.length){host.innerHTML=`<div class="callout">Sin datos.</div>`;return;}
+  const max=Math.max(1,...items.map(i=>i.dmin+i.dimss));
+  host.innerHTML=`<div class="muni-stack" style="display:flex;flex-direction:column;justify-content:space-around;gap:4px">`+items.map(i=>{const total=i.dmin+i.dimss;return `<div class="stack-row" title="${esc(i.municipio)} · ${fmtMXNfull(total)}"><div class="stack-name">${esc(i.municipio)}</div><div class="stack-track"><i style="width:${i.dmin/max*100}%;background:${C_DECL()}"></i><i style="width:${i.dimss/max*100}%;background:${C_IMSS()}"></i></div><div class="stack-total">${fmtMXN(total)}</div></div>`;}).join("")+`</div>`;
+}
+function tablePanel(scope,tabs){const host=document.querySelector(`.card[data-tablepanel="${scope}"]`);const cur=host.dataset.tab||tabs[0].id;
+  host.innerHTML=`<div class="card-head" style="margin-bottom:6px"><div class="tabs">`+tabs.map(t=>`<span class="tab ${t.id===cur?'active':''}" data-tab="${t.id}">${t.label}</span>`).join("")+`</div></div>`+
+    `<div class="card-body">`+tabs.map(t=>`<div class="tabpane ${t.id===cur?'active':''}" data-pane="${t.id}">${t.html}</div>`).join("")+`</div>`;
+  host.querySelectorAll(".tab").forEach(tb=>tb.onclick=()=>{host.dataset.tab=tb.dataset.tab;
+    host.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===tb));host.querySelectorAll(".tabpane").forEach(p=>p.classList.toggle("active",p.dataset.pane===tb.dataset.tab));});}
+
+/* ===== AGREGACIONES ===== */
+function periodAgg(rows,measures){const m=new Map();rows.forEach(r=>{const k=r.mes||"—",num=r.mesNum||99;if(!m.has(k))m.set(k,{periodo:k,mesNum:num});const o=m.get(k);measures.forEach(f=>o[f]=(o[f]||0)+(+r[f]||0));});return [...m.values()].sort((a,b)=>a.mesNum-b.mesNum);}
+function contribAgg(rows){const m=new Map();rows.forEach(r=>{const k=r.rfc||r.razon;if(!k)return;if(!m.has(k))m.set(k,{rfc:r.rfc,razon:r.razon,actividad:r.actividad,emp_decl:0,emp_imss:0,disc_emp:0,isn_decl:0,isn_min:0,isn_imss:0,disc_min:0,disc_imss:0,n:0});
+  const o=m.get(k);["emp_decl","emp_imss","disc_emp","isn_decl","isn_min","isn_imss","disc_min","disc_imss"].forEach(f=>o[f]+=(+r[f]||0));o.n++;});
+  return [...m.values()].map(o=>({...o,cum_min:o.isn_min?o.isn_decl/o.isn_min*100:100,cum_imss:o.isn_imss?o.isn_decl/o.isn_imss*100:100}));}
+function avgCumCapped(rows,dF,eF){const v=rows.filter(r=>+r[eF]>0);if(!v.length)return null;return sum(v,r=>Math.min(100,(+r[dF]||0)/(+r[eF])*100))/v.length;}
+function countBelow(rows,dF,eF){const m=new Map();rows.forEach(r=>{const k=r.rfc||r.razon;if(!k)return;if(!m.has(k))m.set(k,{d:0,e:0});const o=m.get(k);o.d+=(+r[dF]||0);o.e+=(+r[eF]||0);});return [...m.values()].filter(o=>o.e>0&&o.d<o.e*0.999).length;}
+const C_DECL=()=>cvar("--c-decl"),C_MIN=()=>cvar("--c-min"),C_IMSS=()=>cvar("--c-imss"),C_NEG=()=>cvar("--neg");
+
+/* ===== RENDER ===== */
+function renderHome(){const d=RAW.detail,z=RAW.zonif;
+  const totMin=sum(d,r=>r.disc_min),totImss=sum(d,r=>r.disc_imss),totEmp=sum(d,r=>r.disc_emp),fuera=z.filter(x=>x.fuera_padron).length;
+  const K=DEMO_KPI.home;
+  document.getElementById("home-kpis").innerHTML=[
+    kpiCard({tone:"blue",icon:"▲",label:"Monto de discrepancias ISN causado V.S ISN mínimo",val:K[0],foot:"ISN declarado por debajo del mínimo legal"}),
+    kpiCard({tone:"amber",icon:"◫",label:"Suma de discrepancia de empleados",val:K[1],foot:"Empleados IMSS − declarados"}),
+    kpiCard({tone:"green",icon:"▲",label:"Monto de discrepancias ISN causado V.S ISN estimado IMSS",val:K[2],foot:"Contra el SDI registrado en IMSS"}),
+    kpiCard({tone:"red",icon:"◉",label:"Fuera del padrón IMSS",val:K[3],foot:"contribuyentes zonificados"})].join("");
+  rankList(document.getElementById("home-rank"),contribAgg(d).map(c=>({name:c.razon,val:c.disc_min+c.disc_imss})).sort((a,b)=>b.val-a.val),{fmt:fmtMXN,maxItems:10});
+  findingsDistribution(document.getElementById("home-donut"),[
+    {name:"Debajo del mínimo",val:countBelow(d,"isn_decl","isn_min"),color:C_DECL()},
+    {name:"Debajo del estimado IMSS",val:countBelow(d.filter(r=>+r.isn_imss>0),"isn_decl","isn_imss"),color:C_IMSS()},
+    {name:"Fuera del padrón",val:fuera,color:C_NEG()}
+  ]);
+  embedVAMap(document.getElementById("home-map"),"ve9436");}
+function renderMin(){const d=applyFilters(RAW.detail,"min");
+  const tot=sum(d,r=>r.disc_min),zeros=d.filter(r=>r.declara_cero).length,cum=avgCumCapped(d,"isn_decl","isn_min"),below=countBelow(d,"isn_decl","isn_min");
+  document.getElementById("min-kpis").innerHTML=[
+    kpiCard({tone:"amber",icon:"▲",label:"Discrepancia total vs. mínimo",val:fmtMXN(tot),foot:"ISN no enterado bajo el mínimo"}),
+    kpiCard({tone:"blue",icon:"▤",label:"Contribuyentes bajo el mínimo",val:fmtNum(below),foot:"con declaración por debajo"}),
+    kpiCard({tone:"green",icon:"✓",label:"Cumplimiento promedio",val:fmtPct(cum),foot:"Declarado / mínimo"}),
+    kpiCard({tone:"blue",icon:"◯",label:"Declaraciones en $0",val:fmtNum(zeros),foot:"Periodos declarados en cero"})].join("");
+  document.getElementById("min-legend").innerHTML=legendHTML([{name:"Declarado",color:C_DECL()},{name:"Mínimo",color:C_MIN()}]);
+  monthlyComparison(document.getElementById("min-chart"),d,{declF:"isn_decl",estF:"isn_min",gapF:"disc_min",estName:"ISN mínimo estimado"});
+  const ca=contribAgg(d).sort((a,b)=>b.disc_min-a.disc_min);
+  tablePanel("min",[{id:"c",label:"Contribuyentes",html:tableHTML([{label:"Razón social",get:r=>r.razon,cls:()=>"strong"},{label:"RFC",get:r=>r.rfc},{label:"Disc. mínimo",get:r=>fmtMXNfull(r.disc_min),num:true,cls:()=>"neg"},{label:"Cumpl.",get:r=>fmtPct(r.cum_min),num:true},{label:"Per.",get:r=>fmtNum(r.n),num:true}],ca)},
+    {id:"d",label:"Detalle",html:tableHTML([{label:"Razón social",get:r=>r.razon,cls:()=>"strong"},{label:"Periodo",get:r=>r.periodo},{label:"Declarado",get:r=>fmtMXNfull(r.isn_decl),num:true},{label:"Mínimo",get:r=>fmtMXNfull(r.isn_min),num:true},{label:"Disc.",get:r=>fmtMXNfull(r.disc_min),num:true,cls:()=>"neg"}],[...d].sort((a,b)=>b.disc_min-a.disc_min))}]);}
+function renderEmp(){const d=applyFilters(RAW.detail,"emp");
+  const totEmp=sum(d,r=>r.disc_emp),decl=sum(d,r=>r.emp_decl),imss=sum(d,r=>r.emp_imss),pct=imss?totEmp/imss*100:0;
+  document.getElementById("emp-kpis").innerHTML=[
+    kpiCard({tone:"blue",icon:"◫",label:"Empleados no declarados",val:fmtNum(totEmp),foot:"IMSS − declarados"}),
+    kpiCard({tone:"green",icon:"◫",label:"Empleados en IMSS",val:fmtNum(imss),foot:"Registro patronal"}),
+    kpiCard({tone:"amber",icon:"◫",label:"Empleados declarados",val:fmtNum(decl),foot:"En declaración ISN"}),
+    kpiCard({tone:"blue",icon:"%",label:"Brecha de plantilla",val:fmtPct(pct),foot:"No declarados / IMSS"})].join("");
+  document.getElementById("emp-legend").innerHTML=legendHTML([{name:"Declarados",color:C_DECL()},{name:"IMSS",color:C_IMSS()}]);
+  const ca=contribAgg(d).sort((a,b)=>b.disc_emp-a.disc_emp);
+  employeeSlope(document.getElementById("emp-chart"),d);
+  employeeGapBars(document.getElementById("emp-tree"),ca.map(c=>({name:c.razon,decl:c.emp_decl,imss:c.emp_imss,gap:c.disc_emp})));
+  tablePanel("emp",[{id:"c",label:"Total por contribuyente",html:tableHTML([{label:"Razón social",get:r=>r.razon,cls:()=>"strong"},{label:"Decl.",get:r=>fmtNum(r.emp_decl),num:true},{label:"IMSS",get:r=>fmtNum(r.emp_imss),num:true},{label:"Disc.",get:r=>fmtNum(r.disc_emp),num:true,cls:()=>"neg"}],ca)},
+    {id:"d",label:"Detalle por periodo",html:tableHTML([{label:"Razón social",get:r=>r.razon,cls:()=>"strong"},{label:"Periodo",get:r=>r.periodo},{label:"Decl.",get:r=>fmtNum(r.emp_decl),num:true},{label:"IMSS",get:r=>fmtNum(r.emp_imss),num:true},{label:"Disc.",get:r=>fmtNum(r.disc_emp),num:true,cls:()=>"neg"}],[...d].sort((a,b)=>b.disc_emp-a.disc_emp))}]);}
+function renderImss(){const base=RAW.detail.filter(r=>+r.isn_imss>0),d=applyFilters(base,"imss");
+  const tot=sum(d,r=>r.disc_imss),estim=sum(d,r=>r.isn_imss),cum=avgCumCapped(d,"isn_decl","isn_imss");
+  const contrib=contribAgg(d).length;
+  document.getElementById("imss-kpis").innerHTML=[
+    kpiCard({tone:"green",icon:"▲",label:"Discrepancia total vs. IMSS",val:fmtMXN(tot),foot:"ISN estimado no enterado"}),
+    kpiCard({tone:"blue",icon:"▦",label:"ISN estimado (IMSS)",val:fmtMXN(estim),foot:"Con base en SDI"}),
+    kpiCard({tone:"amber",icon:"✓",label:"Cumplimiento promedio",val:fmtPct(cum),foot:"Declarado / estimado"}),
+    kpiCard({tone:"blue",icon:"▦",label:"Contribuyentes",val:fmtNum(contrib),foot:"con estimado IMSS"})].join("");
+  document.getElementById("imss-legend").innerHTML=legendHTML([{name:"Declarado",color:C_DECL()},{name:"Estimado IMSS",color:C_IMSS()}]);
+  imssGauge(document.getElementById("imss-chart"),d);
+  imssPeriodGaps(document.getElementById("imss-period-gaps"),d);
+  const ca=contribAgg(d).sort((a,b)=>b.disc_imss-a.disc_imss);
+  tablePanel("imss",[{id:"c",label:"Contribuyentes",html:tableHTML([{label:"Razón social",get:r=>r.razon,cls:()=>"strong"},{label:"RFC",get:r=>r.rfc},{label:"Disc. IMSS",get:r=>fmtMXNfull(r.disc_imss),num:true,cls:()=>"neg"},{label:"Cumpl.",get:r=>fmtPct(r.cum_imss),num:true},{label:"Per.",get:r=>fmtNum(r.n),num:true}],ca)},
+    {id:"d",label:"Detalle",html:tableHTML([{label:"Razón social",get:r=>r.razon,cls:()=>"strong"},{label:"Periodo",get:r=>r.periodo},{label:"Declarado",get:r=>fmtMXNfull(r.isn_decl),num:true},{label:"Estimado",get:r=>fmtMXNfull(r.isn_imss),num:true},{label:"Disc.",get:r=>fmtMXNfull(r.disc_imss),num:true,cls:()=>"neg"}],[...d].sort((a,b)=>b.disc_imss-a.disc_imss))}]);}
+function reglaPill(r){const t=(r.regla_id||"")+" "+(r.regla||"");if(/fuera/i.test(t))return `<span class="pill zero">Fuera padrón</span>`;
+  if(/min/i.test(t))return `<span class="pill min">Debajo mínimo</span>`;if(/imss/i.test(t))return `<span class="pill imss">Debajo IMSS</span>`;return `<span class="pill padron">${esc(r.regla||"—")}</span>`;}
+function renderZona(){const z=applyFilters(RAW.zonif,"zona");
+  const isMin=(x)=>/min/i.test(x.regla_id||x.regla||"")&&!x.fuera_padron,isImss=(x)=>/imss/i.test(x.regla_id||x.regla||"")&&!x.fuera_padron;
+  const rMin=z.filter(isMin),rImss=z.filter(isImss),rFuera=z.filter(x=>x.fuera_padron),totDisc=sum(z,x=>x.disc_min+x.disc_imss);
+  document.getElementById("zona-kpis").innerHTML=[
+    kpiCard({tone:"amber",icon:"Σ",label:"Total de discrepancias",val:fmtMXN(totDisc),foot:"suma territorial"}),
+    kpiCard({tone:"blue",icon:"▤",label:"Debajo del mínimo",val:fmtMXN(sum(rMin,x=>x.disc_min)),foot:"regla: mínimo legal"}),
+    kpiCard({tone:"green",icon:"▦",label:"Debajo del estimado IMSS",val:fmtMXN(sum(rImss,x=>x.disc_imss)),foot:"regla: SDI IMSS"}),
+    kpiCard({tone:"red",icon:"◉",label:"Fuera del padrón",val:fmtNum(rFuera.length),foot:"sin registro patronal"})].join("");
+  document.getElementById("zona-munilegend").innerHTML=legendHTML([{name:"vs. mínimo",color:C_DECL()},{name:"vs. IMSS",color:C_IMSS()}]);
+  embedVAMap(document.getElementById("zona-map"),"ve8164");
+  const mm=new Map();z.forEach(x=>{const k=x.municipio||"—";if(!mm.has(k))mm.set(k,{municipio:k,dmin:0,dimss:0});const o=mm.get(k);o.dmin+=(+x.disc_min||0);o.dimss+=(+x.disc_imss||0);});
+  const muni=[...mm.values()].sort((a,b)=>(b.dmin+b.dimss)-(a.dmin+a.dimss)).slice(0,6);
+  stackedMunicipios(document.getElementById("zona-muni-chart"),muni);
+  const ranked=[...z].map(x=>({...x,total:x.disc_min+x.disc_imss})).sort((a,b)=>b.total-a.total).slice(0,20);
+  tablePanel("zona",[{id:"t",label:"Top 20 discrepancia",html:tableHTML([{label:"Razón social",get:r=>r.razon,cls:()=>"strong"},{label:"Municipio",get:r=>r.municipio},{label:"Regla",get:r=>reglaPill(r),html:true},{label:"vs. mín",get:r=>fmtMXN(r.disc_min),num:true},{label:"vs. IMSS",get:r=>fmtMXN(r.disc_imss),num:true},{label:"Total",get:r=>fmtMXN(r.total),num:true,cls:()=>"neg"}],ranked)},
+    {id:"g",label:"Lista general",html:tableHTML([{label:"Razón social",get:r=>r.razon,cls:()=>"strong"},{label:"Ubicación",get:r=>r.ubicacion||r.municipio},{label:"Tamaño",get:r=>r.tamano},{label:"Regla",get:r=>reglaPill(r),html:true}],z)},
+    {id:"f",label:`Fuera del padrón (${rFuera.length})`,html:tableHTML([{label:"Razón social",get:r=>r.razon,cls:()=>"strong"},{label:"RFC",get:r=>r.rfc},{label:"Municipio",get:r=>r.municipio},{label:"Domicilio",get:r=>r.domicilio}],rFuera)}]);}
+const RENDER={home:renderHome,min:renderMin,emp:renderEmp,imss:renderImss,zona:renderZona};
+function renderPage(scope){try{(RENDER[scope]||(()=>{}))();}catch(e){console.error("render "+scope,e);}}
+
+/* ===== NAV / ARRANQUE ===== */
+document.querySelectorAll(".nav-item").forEach(it=>{it.onclick=()=>{document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  it.classList.add("active");ACTIVE=it.dataset.page;document.getElementById("page-"+ACTIVE).classList.add("active");renderPage(ACTIVE);};});
+document.documentElement.setAttribute("data-theme","light");
+let rz;
+function scheduleRender(){clearTimeout(rz);rz=setTimeout(()=>renderPage(ACTIVE),140);}
+if("ResizeObserver" in window){const ro=new ResizeObserver(scheduleRender);const app=document.querySelector(".app");if(app)ro.observe(app);}
+window.addEventListener("resize",scheduleRender);
+installVAListener();
+setData(makeSample());
+</script>
+</body>
+</html>

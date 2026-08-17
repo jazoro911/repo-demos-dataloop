@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Filtros - Empleados</title>
+
+<style>
+.gob005-emp-filtros {
+  --g5-blue-950:#081F3D; --g5-blue-900:#0B2E59; --g5-blue-800:#144A7A; --g5-blue-700:#1D629D;
+  --g5-blue-100:#EAF4FB; --g5-surface:#FFFFFF; --g5-border:#D6E2ED; --g5-muted:#66788A; --g5-input-bg:#F6FAFD;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; padding: 9px 12px; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Roboto,Arial,sans-serif; background: var(--g5-surface); font-size: 12.5px; }
+.gob005-emp-filtros { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: var(--g5-surface); border: 1px solid var(--g5-border); border-radius: 10px; padding: 9px 12px; }
+.gob005-emp-filtros .fl-lbl { font-size: 10.5px; font-weight: 700; color: #8AA0B4; letter-spacing: .5px; text-transform: uppercase; }
+.gob005-emp-filtros select, .gob005-emp-filtros input { font-family: inherit; font-size: 12.5px; color: #172536; background: var(--g5-input-bg); border: 1px solid var(--g5-border); border-radius: 7px; padding: 6px 9px; min-width: 110px; }
+.gob005-emp-filtros input[type="search"] { min-width: 210px; }
+.gob005-emp-filtros select:focus, .gob005-emp-filtros input:focus { outline: none; border-color: var(--g5-blue-700); }
+.gob005-emp-filtros .chip { margin-left: auto; font-size: 11.5px; color: var(--g5-blue-800); font-weight: 800; background: var(--g5-blue-100); border: 1px solid var(--g5-border); border-radius: 999px; padding: 5px 10px; white-space: nowrap; }
+.gob005-emp-filtros .chip.periodo { margin-left: 0; }
+.gob005-emp-filtros .btn-clear { border: 1px solid var(--g5-border); background: var(--g5-input-bg); color: var(--g5-blue-950); border-radius: 7px; padding: 6px 11px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.gob005-emp-filtros .btn-clear:hover { background: var(--g5-blue-100); }
+</style>
+</head>
+<body>
+
+<div class="gob005-emp-filtros">
+  <span class="fl-lbl">Filtros</span>
+  <span class="chip periodo">Periodo analizado · Oct–Dic 2025</span>
+  <input type="search" id="q" placeholder="Buscar razón social o RFC…" />
+  <select id="actividad"><option value="">Actividad: Todos</option></select>
+  <button class="btn-clear" id="clear">Limpiar</button>
+  <span class="chip" id="chip">— de — registros</span>
+</div>
+
+<script>
+/* ===== DATOS: mismo mapeo del tablero completo gob-005, fuente: CONCILIACION_EMPRESA_PERIODO_V2 ===== */
+var MAP_DETAIL = {
+  rfc: ["rfc"], razon: ["razon social", "razon", "razón"], actividad: ["actividad economica", "actividad", "_ae"]
+};
+function normalize(s) { return String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[\s._]+/g, " ").trim(); }
+function buildColIndex(columns, amap) {
+  var idx = {};
+  Object.keys(amap).forEach(function(f) {
+    for (var i = 0; i < columns.length; i++) {
+      var lbl = normalize(columns[i].label || columns[i].name || "");
+      if (amap[f].some(function(a) { var n = normalize(a); return lbl === n || lbl.includes(n); })) { idx[f] = i; break; }
+    }
+  });
+  return idx;
+}
+function detailFromVA(msg) {
+  var cols = msg.columns || [], data = msg.data || [], idx = buildColIndex(cols, MAP_DETAIL);
+  var g = function(row, f) { return idx[f] != null ? row[idx[f]] : undefined; };
+  return data.map(function(row) { return { rfc: g(row, "rfc"), razon: g(row, "razon"), actividad: g(row, "actividad") }; });
+}
+function uniq(a) { var seen = {}, out = []; a.forEach(function(v) { if (v != null && v !== "" && !seen[v]) { seen[v] = 1; out.push(v); } }); return out.sort(); }
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function(c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+function fmtNum(v) { return v == null || isNaN(v) ? "—" : Math.round(v).toLocaleString("es-MX"); }
+
+var ALL = [];
+var state = { actividad: "", q: "" };
+
+/* IMPORTANTE: este panel filtra su propia copia de los datos y actualiza su contador local.
+   Para que el filtro afecte también al KPI/gráfica/tabla de esta misma página, hay que enlazarlos
+   en SAS VA (acciones/filtros de reporte); este objeto solo emite el estado vía postMessage. */
+function applyAndCount() {
+  var q = state.q.toLowerCase().trim();
+  var out = ALL.filter(function(r) {
+    if (state.actividad && String(r.actividad) !== state.actividad) return false;
+    if (q && ((r.razon || "") + " " + (r.rfc || "")).toLowerCase().indexOf(q) < 0) return false;
+    return true;
+  });
+  document.getElementById("chip").textContent = fmtNum(out.length) + " de " + fmtNum(ALL.length) + " registros";
+  return out;
+}
+function emit() {
+  var m = { type: "filters-applied", scope: "emp", actividad: state.actividad || undefined, q: state.q || undefined };
+  try { if (window.parent) window.parent.postMessage(m, "*"); } catch (e) {}
+}
+function renderOptions() {
+  var sel = document.getElementById("actividad");
+  var vals = uniq(ALL.map(function(r) { return r.actividad; }));
+  sel.innerHTML = '<option value="">Actividad: Todos</option>' + vals.map(function(v) { return '<option>' + esc(v) + '</option>'; }).join("");
+  sel.value = state.actividad;
+}
+
+document.getElementById("q").addEventListener("input", function(e) { state.q = e.target.value || ""; applyAndCount(); emit(); });
+document.getElementById("actividad").addEventListener("change", function(e) { state.actividad = e.target.value || ""; applyAndCount(); emit(); });
+document.getElementById("clear").addEventListener("click", function() {
+  state = { actividad: "", q: "" };
+  document.getElementById("q").value = ""; document.getElementById("actividad").value = "";
+  applyAndCount(); emit();
+});
+
+window.addEventListener('message', function(evt) {
+  var m = evt.data || {};
+  if (!m || typeof m !== 'object' || !Array.isArray(m.columns) || !Array.isArray(m.data)) return;
+  try { ALL = detailFromVA(m); renderOptions(); applyAndCount(); } catch (e) {}
+});
+
+try { if (window.parent) window.parent.postMessage({ type: 'ready', object: 'gob-005-emp-filtros' }, '*'); } catch (e) {}
+
+/* Datos de muestra para previsualización standalone (sin conexión a VA) */
+ALL = [
+  { rfc: "MDG980412AB1", razon: "MADERAS DEL GUADIANA SA DE CV", actividad: "Industria manufacturera" },
+  { rfc: "MCM010203C45", razon: "MINERA CERRO DEL MERCADO SA", actividad: "Minería" },
+  { rfc: "TLE950817HJ2", razon: "TRANSPORTES LERDO SA DE CV", actividad: "Transporte y logística" }
+];
+renderOptions();
+applyAndCount();
+</script>
+
+</body>
+</html>

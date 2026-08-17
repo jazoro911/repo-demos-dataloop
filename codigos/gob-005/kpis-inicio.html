@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>KPIs - Brecha de Recaudación (Inicio)</title>
+
+<style>
+.gob005-kpis-inicio {
+  --g5-blue-950:#081F3D; --g5-blue-900:#0B2E59; --g5-blue-800:#144A7A; --g5-blue-700:#1D629D;
+  --g5-blue-500:#2F80C3; --g5-blue-300:#8DC2E8; --g5-blue-100:#EAF4FB;
+  --g5-surface:#FFFFFF; --g5-border:#D6E2ED; --g5-muted:#66788A; --g5-danger:#C84A4A;
+  --g5-c-decl:var(--g5-blue-900); --g5-c-min:var(--g5-blue-700); --g5-c-imss:var(--g5-blue-500);
+  --g5-c-decl-2:#DCECF7; --g5-c-min-2:#EAF4FB; --g5-c-imss-2:#D9EDF9; --g5-neg-2:#F8EAEA;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 10px;
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Roboto,Arial,sans-serif;
+  background: #fff;
+  height: 100vh;
+}
+
+.gob005-kpis-inicio {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  height: 100%;
+}
+
+.gob005-kpis-inicio__error {
+  grid-column: 1 / -1;
+  color: #b91c1c;
+  font-size: 11px;
+  display: none;
+  white-space: pre-wrap;
+  margin-bottom: 4px;
+}
+
+.g5-kpi {
+  position: relative;
+  overflow: hidden;
+  background: var(--g5-surface);
+  border: 1px solid var(--g5-border);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(8,31,61,.04), 0 4px 14px rgba(8,31,61,.055);
+  padding: 12px 14px 12px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.g5-kpi .accent { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+.g5-kpi.blue .accent { background: var(--g5-c-decl); }
+.g5-kpi.amber .accent { background: var(--g5-c-min); }
+.g5-kpi.green .accent { background: var(--g5-c-imss); }
+.g5-kpi.red .accent { background: var(--g5-danger); }
+
+.g5-kpi .k-ic {
+  position: absolute; top: 11px; right: 12px; width: 28px; height: 28px;
+  border-radius: 8px; display: grid; place-items: center;
+}
+.g5-kpi.blue .k-ic { background: var(--g5-c-decl-2); color: var(--g5-c-decl); }
+.g5-kpi.amber .k-ic { background: var(--g5-c-min-2); color: var(--g5-c-min); }
+.g5-kpi.green .k-ic { background: var(--g5-c-imss-2); color: var(--g5-c-imss); }
+.g5-kpi.red .k-ic { background: var(--g5-neg-2); color: var(--g5-danger); }
+.g5-kpi .k-ic svg { width: 17px; height: 17px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+.g5-kpi .k-lbl { font-size: 12.5px; color: var(--g5-muted); font-weight: 700; padding-right: 34px; min-height: 2.3em; display: flex; align-items: flex-start; line-height: 1.25; }
+.g5-kpi .k-val { font-size: clamp(22px,2vw,30px); font-weight: 900; letter-spacing: -.5px; margin: 4px 0 1px; font-variant-numeric: tabular-nums; color: var(--g5-blue-900); }
+.g5-kpi.red .k-val { color: var(--g5-danger); }
+.g5-kpi .k-foot { font-size: 11.5px; color: #8AA0B4; }
+
+@media (max-width: 760px) { .gob005-kpis-inicio { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+
+<div class="gob005-kpis-inicio" id="wrap">
+  <div class="gob005-kpis-inicio__error" id="error"></div>
+
+  <div class="g5-kpi blue">
+    <div class="accent"></div>
+    <div class="k-ic"><svg viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M17 7.5c-.8-1.2-2.4-2-4.4-2-2.3 0-4.1 1.1-4.1 2.8 0 4.1 9 1.8 9 6.5 0 1.9-1.9 3.2-4.5 3.2-2.2 0-4-.8-5-2.1"/></svg></div>
+    <div class="k-lbl">Monto de discrepancias ISN causado vs. ISN mínimo</div>
+    <div class="k-val" id="v0">—</div>
+    <div class="k-foot">ISN declarado por debajo del mínimo legal</div>
+  </div>
+
+  <div class="g5-kpi amber">
+    <div class="accent"></div>
+    <div class="k-ic"><svg viewBox="0 0 24 24"><path d="M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M17 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/><path d="M3.5 20c.7-3.3 2.7-5 5.5-5s4.8 1.7 5.5 5"/><path d="M14.5 16.2c2.6.2 4.4 1.4 5 3.8"/></svg></div>
+    <div class="k-lbl">Suma de discrepancia de empleados</div>
+    <div class="k-val" id="v1">—</div>
+    <div class="k-foot">Empleados IMSS − declarados</div>
+  </div>
+
+  <div class="g5-kpi green">
+    <div class="accent"></div>
+    <div class="k-ic"><svg viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M17 7.5c-.8-1.2-2.4-2-4.4-2-2.3 0-4.1 1.1-4.1 2.8 0 4.1 9 1.8 9 6.5 0 1.9-1.9 3.2-4.5 3.2-2.2 0-4-.8-5-2.1"/></svg></div>
+    <div class="k-lbl">Monto de discrepancias ISN causado vs. ISN estimado IMSS</div>
+    <div class="k-val" id="v2">—</div>
+    <div class="k-foot">Contra el SDI registrado en IMSS</div>
+  </div>
+
+  <div class="g5-kpi red">
+    <div class="accent"></div>
+    <div class="k-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg></div>
+    <div class="k-lbl">Fuera del padrón IMSS</div>
+    <div class="k-val" id="v3">—</div>
+    <div class="k-foot">contribuyentes zonificados</div>
+  </div>
+</div>
+
+<script>
+/* ===== DATOS: campo interno -> posibles etiquetas/nombres de columna que manda SAS VA =====
+   Mismo mapeo que usa el tablero completo gob-005 (brecha_recaudacion-durango.html) */
+var MAP_DETAIL = {
+  disc_min:  ["disc vs isn minimo", "discrepancia vs minimo", "disc vs minimo"],
+  disc_imss: ["disc vs isn imss", "discrepancia vs imss"],
+  disc_emp:  ["discrepancia de empleados"]
+};
+var MAP_ZONIF = {
+  regla_id: ["regla id", "regla_id"],
+  regla:    ["regla rota", "regla txt"]
+};
+
+function normalize(s) {
+  return String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[\s._]+/g, " ").trim();
+}
+function buildColIndex(columns, amap) {
+  var idx = {};
+  Object.keys(amap).forEach(function(f) {
+    for (var i = 0; i < columns.length; i++) {
+      var lbl = normalize(columns[i].label || columns[i].name || "");
+      if (amap[f].some(function(a) { var n = normalize(a); return lbl === n || lbl.includes(n); })) { idx[f] = i; break; }
+    }
+  });
+  return idx;
+}
+function detectSchema(columns) {
+  var labels = columns.map(function(c) { return normalize(c.label || c.name || ""); });
+  function any() {
+    var ks = Array.prototype.slice.call(arguments);
+    return labels.some(function(l) { return ks.some(function(k) { return l.includes(k); }); });
+  }
+  if (any("regla", "latitud", "longitud", "clasificacion del inegi", "ubicacion", "domicilio", "discrepancia min pos", "discrepancia imss pos")) return "zonif";
+  if (any("impuesto causado", "empleados declarados", "empleados en el imss", "disc vs isn", "discrepancia de empleados", "cumplimiento isn", "periodo inicio")) return "detail";
+  return null;
+}
+var toNum = function(v) { if (v == null || v === "") return undefined; var n = +String(v).replace(/[^0-9.\-]/g, ""); return isNaN(n) ? undefined : n; };
+
+function fmtMXN(v) {
+  if (v == null || isNaN(v)) return "—";
+  var a = Math.abs(v);
+  if (a >= 1e9) return "$" + (v / 1e9).toFixed(2) + " MMM";
+  if (a >= 1e6) return "$" + (v / 1e6).toFixed(2) + " M";
+  if (a >= 1e3) return "$" + (v / 1e3).toFixed(1) + " K";
+  return "$" + Math.round(v).toLocaleString("es-MX");
+}
+function fmtNum(v) { return v == null || isNaN(v) ? "—" : Math.round(v).toLocaleString("es-MX"); }
+function sum(arr, f) { return arr.reduce(function(s, x) { return s + (+f(x) || 0); }, 0); }
+
+var RAW = { detail: [], zonif: [] };
+
+function detailFromVA(msg) {
+  var cols = msg.columns || [], data = msg.data || [], idx = buildColIndex(cols, MAP_DETAIL);
+  var g = function(row, f) { return idx[f] != null ? row[idx[f]] : undefined; };
+  return data.map(function(row) {
+    return { disc_min: toNum(g(row, "disc_min")) || 0, disc_imss: toNum(g(row, "disc_imss")) || 0, disc_emp: toNum(g(row, "disc_emp")) || 0 };
+  });
+}
+function zonifFromVA(msg) {
+  var cols = msg.columns || [], data = msg.data || [], idx = buildColIndex(cols, MAP_ZONIF);
+  var g = function(row, f) { return idx[f] != null ? row[idx[f]] : undefined; };
+  return data.map(function(row) {
+    var rid = String(g(row, "regla_id") || "") + " " + String(g(row, "regla") || "");
+    return { fuera_padron: /fuera/i.test(rid) ? 1 : 0 };
+  });
+}
+
+function render() {
+  var d = RAW.detail, z = RAW.zonif;
+  document.getElementById("v0").textContent = fmtMXN(sum(d, function(r) { return r.disc_min; }));
+  document.getElementById("v1").textContent = fmtNum(sum(d, function(r) { return r.disc_emp; }));
+  document.getElementById("v2").textContent = fmtMXN(sum(d, function(r) { return r.disc_imss; }));
+  document.getElementById("v3").textContent = fmtNum(z.filter(function(x) { return x.fuera_padron; }).length);
+}
+
+/* Este objeto necesita AMBAS fuentes de datos de VA (detalle de conciliación + zonificación),
+   porque el 4o KPI (Fuera del padrón) viene de zonificación y los otros 3 del detalle.
+   Se debe conectar como Data Driven Content y asignarle las dos consultas/fuentes, o bien
+   duplicar este objeto una vez por cada fuente si SAS VA solo permite una consulta por objeto. */
+window.addEventListener('message', function(evt) {
+  var m = evt.data || {};
+  if (!m || typeof m !== 'object' || !Array.isArray(m.columns) || !Array.isArray(m.data)) return;
+  try {
+    var schema = detectSchema(m.columns);
+    if (schema === 'detail') { RAW.detail = detailFromVA(m); render(); }
+    else if (schema === 'zonif') { RAW.zonif = zonifFromVA(m); render(); }
+    document.getElementById('error').style.display = 'none';
+  } catch (e) {
+    document.getElementById('error').textContent = e.message;
+    document.getElementById('error').style.display = 'block';
+  }
+});
+
+try {
+  if (window.parent) window.parent.postMessage({ type: 'ready', object: 'gob-005-kpis-inicio' }, '*');
+} catch (e) {}
+
+/* Valores de muestra para previsualización standalone (sin conexión a VA) */
+document.getElementById('v0').textContent = '$335,976 M';
+document.getElementById('v1').textContent = '128,540';
+document.getElementById('v2').textContent = '$384.68 M';
+document.getElementById('v3').textContent = '1,247';
+</script>
+
+</body>
+</html>

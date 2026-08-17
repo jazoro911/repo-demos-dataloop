@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>KPIs - Empleados</title>
+
+<style>
+.gob005-kpis-emp {
+  --g5-blue-950:#081F3D; --g5-blue-900:#0B2E59; --g5-blue-800:#144A7A; --g5-blue-700:#1D629D;
+  --g5-blue-500:#2F80C3; --g5-blue-100:#EAF4FB;
+  --g5-surface:#FFFFFF; --g5-border:#D6E2ED; --g5-muted:#66788A;
+  --g5-c-decl:var(--g5-blue-900); --g5-c-min:var(--g5-blue-700); --g5-c-imss:var(--g5-blue-500);
+  --g5-c-decl-2:#DCECF7; --g5-c-min-2:#EAF4FB; --g5-c-imss-2:#D9EDF9;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; padding: 10px; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Roboto,Arial,sans-serif; background: #fff; height: 100vh; }
+.gob005-kpis-emp { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; height: 100%; }
+.gob005-kpis-emp__error { grid-column: 1 / -1; color: #b91c1c; font-size: 11px; display: none; white-space: pre-wrap; margin-bottom: 4px; }
+.g5-kpi { position: relative; overflow: hidden; background: var(--g5-surface); border: 1px solid var(--g5-border); border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(8,31,61,.04), 0 4px 14px rgba(8,31,61,.055); padding: 12px 14px 12px 18px; display: flex; flex-direction: column; justify-content: center; }
+.g5-kpi .accent { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+.g5-kpi.blue .accent { background: var(--g5-c-decl); }
+.g5-kpi.green .accent { background: var(--g5-c-imss); }
+.g5-kpi.amber .accent { background: var(--g5-c-min); }
+.g5-kpi .k-ic { position: absolute; top: 11px; right: 12px; width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; }
+.g5-kpi.blue .k-ic { background: var(--g5-c-decl-2); color: var(--g5-c-decl); }
+.g5-kpi.green .k-ic { background: var(--g5-c-imss-2); color: var(--g5-c-imss); }
+.g5-kpi.amber .k-ic { background: var(--g5-c-min-2); color: var(--g5-c-min); }
+.g5-kpi .k-ic svg { width: 17px; height: 17px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.g5-kpi .k-lbl { font-size: 12.5px; color: var(--g5-muted); font-weight: 700; padding-right: 34px; min-height: 2.3em; display: flex; align-items: flex-start; line-height: 1.25; }
+.g5-kpi .k-val { font-size: clamp(22px,2vw,30px); font-weight: 900; letter-spacing: -.5px; margin: 4px 0 1px; font-variant-numeric: tabular-nums; color: var(--g5-blue-900); }
+.g5-kpi .k-foot { font-size: 11.5px; color: #8AA0B4; }
+@media (max-width: 760px) { .gob005-kpis-emp { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+
+<div class="gob005-kpis-emp">
+  <div class="gob005-kpis-emp__error" id="error"></div>
+
+  <div class="g5-kpi blue">
+    <div class="accent"></div>
+    <div class="k-ic"><svg viewBox="0 0 24 24"><path d="M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M17 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/><path d="M3.5 20c.7-3.3 2.7-5 5.5-5s4.8 1.7 5.5 5"/><path d="M14.5 16.2c2.6.2 4.4 1.4 5 3.8"/></svg></div>
+    <div class="k-lbl">Empleados no declarados</div>
+    <div class="k-val" id="v0">—</div>
+    <div class="k-foot">IMSS − declarados</div>
+  </div>
+
+  <div class="g5-kpi green">
+    <div class="accent"></div>
+    <div class="k-ic"><svg viewBox="0 0 24 24"><path d="M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M17 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/><path d="M3.5 20c.7-3.3 2.7-5 5.5-5s4.8 1.7 5.5 5"/><path d="M14.5 16.2c2.6.2 4.4 1.4 5 3.8"/></svg></div>
+    <div class="k-lbl">Empleados en IMSS</div>
+    <div class="k-val" id="v1">—</div>
+    <div class="k-foot">Registro patronal</div>
+  </div>
+
+  <div class="g5-kpi amber">
+    <div class="accent"></div>
+    <div class="k-ic"><svg viewBox="0 0 24 24"><path d="M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M17 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/><path d="M3.5 20c.7-3.3 2.7-5 5.5-5s4.8 1.7 5.5 5"/><path d="M14.5 16.2c2.6.2 4.4 1.4 5 3.8"/></svg></div>
+    <div class="k-lbl">Empleados declarados</div>
+    <div class="k-val" id="v2">—</div>
+    <div class="k-foot">En declaración ISN</div>
+  </div>
+
+  <div class="g5-kpi blue">
+    <div class="accent"></div>
+    <div class="k-ic"><svg viewBox="0 0 24 24"><path d="M19 5 5 19"/><circle cx="7.5" cy="7.5" r="2"/><circle cx="16.5" cy="16.5" r="2"/></svg></div>
+    <div class="k-lbl">Brecha de plantilla</div>
+    <div class="k-val" id="v3">—</div>
+    <div class="k-foot">No declarados / IMSS</div>
+  </div>
+</div>
+
+<script>
+/* ===== DATOS: mismo mapeo del tablero completo gob-005, fuente: CONCILIACION_EMPRESA_PERIODO_V2 ===== */
+var MAP_DETAIL = {
+  emp_decl: ["num empleados declarados", "numero empleados decl", "empleados declarados"],
+  emp_imss: ["num empleados en el imss", "empleados en el imss", "empleados imss"],
+  disc_emp: ["discrepancia de empleados"]
+};
+function normalize(s) { return String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[\s._]+/g, " ").trim(); }
+function buildColIndex(columns, amap) {
+  var idx = {};
+  Object.keys(amap).forEach(function(f) {
+    for (var i = 0; i < columns.length; i++) {
+      var lbl = normalize(columns[i].label || columns[i].name || "");
+      if (amap[f].some(function(a) { var n = normalize(a); return lbl === n || lbl.includes(n); })) { idx[f] = i; break; }
+    }
+  });
+  return idx;
+}
+var toNum = function(v) { if (v == null || v === "") return undefined; var n = +String(v).replace(/[^0-9.\-]/g, ""); return isNaN(n) ? undefined : n; };
+
+function detailFromVA(msg) {
+  var cols = msg.columns || [], data = msg.data || [], idx = buildColIndex(cols, MAP_DETAIL);
+  var g = function(row, f) { return idx[f] != null ? row[idx[f]] : undefined; };
+  return data.map(function(row) {
+    var emp_decl = toNum(g(row, "emp_decl")) || 0, emp_imss = toNum(g(row, "emp_imss")) || 0;
+    return { emp_decl: emp_decl, emp_imss: emp_imss, disc_emp: toNum(g(row, "disc_emp")) != null ? toNum(g(row, "disc_emp")) : Math.max(0, emp_imss - emp_decl) };
+  });
+}
+function fmtNum(v) { return v == null || isNaN(v) ? "—" : Math.round(v).toLocaleString("es-MX"); }
+function fmtPct(v) { return v == null || isNaN(v) ? "—" : v.toFixed(1) + "%"; }
+function sum(arr, f) { return arr.reduce(function(s, x) { return s + (+f(x) || 0); }, 0); }
+
+function render(d) {
+  var totEmp = sum(d, function(r) { return r.disc_emp; }), decl = sum(d, function(r) { return r.emp_decl; }), imss = sum(d, function(r) { return r.emp_imss; });
+  var pct = imss ? totEmp / imss * 100 : 0;
+  document.getElementById("v0").textContent = fmtNum(totEmp);
+  document.getElementById("v1").textContent = fmtNum(imss);
+  document.getElementById("v2").textContent = fmtNum(decl);
+  document.getElementById("v3").textContent = fmtPct(pct);
+}
+
+window.addEventListener('message', function(evt) {
+  var m = evt.data || {};
+  if (!m || typeof m !== 'object' || !Array.isArray(m.columns) || !Array.isArray(m.data)) return;
+  try {
+    render(detailFromVA(m));
+    document.getElementById('error').style.display = 'none';
+  } catch (e) {
+    document.getElementById('error').textContent = e.message;
+    document.getElementById('error').style.display = 'block';
+  }
+});
+
+try { if (window.parent) window.parent.postMessage({ type: 'ready', object: 'gob-005-emp-kpis' }, '*'); } catch (e) {}
+
+/* Valores de muestra para previsualización standalone (sin conexión a VA) */
+document.getElementById('v0').textContent = '128,540';
+document.getElementById('v1').textContent = '486,200';
+document.getElementById('v2').textContent = '357,660';
+document.getElementById('v3').textContent = '26.4%';
+</script>
+
+</body>
+</html>

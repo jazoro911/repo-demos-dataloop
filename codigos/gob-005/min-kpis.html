@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>KPIs - ISN vs. mínimo</title>
+
+<style>
+.gob005-kpis-min {
+  --g5-blue-950:#081F3D; --g5-blue-900:#0B2E59; --g5-blue-800:#144A7A; --g5-blue-700:#1D629D;
+  --g5-blue-500:#2F80C3; --g5-blue-300:#8DC2E8; --g5-blue-100:#EAF4FB;
+  --g5-surface:#FFFFFF; --g5-border:#D6E2ED; --g5-muted:#66788A; --g5-danger:#C84A4A;
+  --g5-c-decl:var(--g5-blue-900); --g5-c-min:var(--g5-blue-700); --g5-c-imss:var(--g5-blue-500);
+  --g5-c-decl-2:#DCECF7; --g5-c-min-2:#EAF4FB; --g5-c-imss-2:#D9EDF9;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body { margin: 0; padding: 10px; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Roboto,Arial,sans-serif; background: #fff; height: 100vh; }
+
+.gob005-kpis-min { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; height: 100%; }
+.gob005-kpis-min__error { grid-column: 1 / -1; color: #b91c1c; font-size: 11px; display: none; white-space: pre-wrap; margin-bottom: 4px; }
+
+.g5-kpi { position: relative; overflow: hidden; background: var(--g5-surface); border: 1px solid var(--g5-border); border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(8,31,61,.04), 0 4px 14px rgba(8,31,61,.055); padding: 12px 14px 12px 18px; display: flex; flex-direction: column; justify-content: center; }
+.g5-kpi .accent { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+.g5-kpi.amber .accent { background: var(--g5-c-min); }
+.g5-kpi.blue .accent { background: var(--g5-c-decl); }
+.g5-kpi.green .accent { background: var(--g5-c-imss); }
+.g5-kpi .k-ic { position: absolute; top: 11px; right: 12px; width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; }
+.g5-kpi.amber .k-ic { background: var(--g5-c-min-2); color: var(--g5-c-min); }
+.g5-kpi.blue .k-ic { background: var(--g5-c-decl-2); color: var(--g5-c-decl); }
+.g5-kpi.green .k-ic { background: var(--g5-c-imss-2); color: var(--g5-c-imss); }
+.g5-kpi .k-ic svg { width: 17px; height: 17px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.g5-kpi .k-lbl { font-size: 12.5px; color: var(--g5-muted); font-weight: 700; padding-right: 34px; min-height: 2.3em; display: flex; align-items: flex-start; line-height: 1.25; }
+.g5-kpi .k-val { font-size: clamp(22px,2vw,30px); font-weight: 900; letter-spacing: -.5px; margin: 4px 0 1px; font-variant-numeric: tabular-nums; color: var(--g5-blue-900); }
+.g5-kpi .k-foot { font-size: 11.5px; color: #8AA0B4; }
+
+@media (max-width: 760px) { .gob005-kpis-min { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+
+<div class="gob005-kpis-min">
+  <div class="gob005-kpis-min__error" id="error"></div>
+
+  <div class="g5-kpi amber">
+    <div class="accent"></div>
+    <div class="k-ic"><svg viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M17 7.5c-.8-1.2-2.4-2-4.4-2-2.3 0-4.1 1.1-4.1 2.8 0 4.1 9 1.8 9 6.5 0 1.9-1.9 3.2-4.5 3.2-2.2 0-4-.8-5-2.1"/></svg></div>
+    <div class="k-lbl">Discrepancia total vs. mínimo</div>
+    <div class="k-val" id="v0">—</div>
+    <div class="k-foot">ISN no enterado bajo el mínimo</div>
+  </div>
+
+  <div class="g5-kpi blue">
+    <div class="accent"></div>
+    <div class="k-ic"><svg viewBox="0 0 24 24"><path d="M4 4h7v7H4z"/><path d="M13 4h7v7h-7z"/><path d="M4 13h7v7H4z"/><path d="M13 13h7v7h-7z"/></svg></div>
+    <div class="k-lbl">Contribuyentes bajo el mínimo</div>
+    <div class="k-val" id="v1">—</div>
+    <div class="k-foot">con declaración por debajo</div>
+  </div>
+
+  <div class="g5-kpi green">
+    <div class="accent"></div>
+    <div class="k-ic"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>
+    <div class="k-lbl">Cumplimiento promedio</div>
+    <div class="k-val" id="v2">—</div>
+    <div class="k-foot">Declarado / mínimo</div>
+  </div>
+
+  <div class="g5-kpi blue">
+    <div class="accent"></div>
+    <div class="k-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M8 16 16 8"/></svg></div>
+    <div class="k-lbl">Declaraciones en $0</div>
+    <div class="k-val" id="v3">—</div>
+    <div class="k-foot">Periodos declarados en cero</div>
+  </div>
+</div>
+
+<script>
+/* ===== DATOS: mismo mapeo del tablero completo gob-005, fuente: CONCILIACION_EMPRESA_PERIODO_V2 ===== */
+var MAP_DETAIL = {
+  rfc: ["rfc"], razon: ["razon social", "razon", "razón"],
+  isn_decl: ["impuesto causado declarado", "causado declarado"],
+  isn_min: ["impuesto causado minimo", "causado minimo"],
+  disc_min: ["disc vs isn minimo", "discrepancia vs minimo", "disc vs minimo"],
+  fdecl_cero: ["flag decl cero", "declaracion en cero", "decl cero"]
+};
+
+function normalize(s) { return String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[\s._]+/g, " ").trim(); }
+function buildColIndex(columns, amap) {
+  var idx = {};
+  Object.keys(amap).forEach(function(f) {
+    for (var i = 0; i < columns.length; i++) {
+      var lbl = normalize(columns[i].label || columns[i].name || "");
+      if (amap[f].some(function(a) { var n = normalize(a); return lbl === n || lbl.includes(n); })) { idx[f] = i; break; }
+    }
+  });
+  return idx;
+}
+var toNum = function(v) { if (v == null || v === "") return undefined; var n = +String(v).replace(/[^0-9.\-]/g, ""); return isNaN(n) ? undefined : n; };
+var truthy = function(v) { var s = String(v == null ? "" : v).toLowerCase(); return s === "1" || s === "s" || s === "si" || s === "sí" || s === "true" || s === "y"; };
+
+function detailFromVA(msg) {
+  var cols = msg.columns || [], data = msg.data || [], idx = buildColIndex(cols, MAP_DETAIL);
+  var g = function(row, f) { return idx[f] != null ? row[idx[f]] : undefined; };
+  return data.map(function(row) {
+    var isn_decl = toNum(g(row, "isn_decl")) || 0, isn_min = toNum(g(row, "isn_min")) || 0;
+    return {
+      rfc: g(row, "rfc"), razon: g(row, "razon"), isn_decl: isn_decl, isn_min: isn_min,
+      disc_min: toNum(g(row, "disc_min")) != null ? toNum(g(row, "disc_min")) : Math.max(0, isn_min - isn_decl),
+      declara_cero: truthy(g(row, "fdecl_cero")) || isn_decl === 0 ? 1 : 0
+    };
+  });
+}
+
+function fmtMXN(v) {
+  if (v == null || isNaN(v)) return "—";
+  var a = Math.abs(v);
+  if (a >= 1e9) return "$" + (v / 1e9).toFixed(2) + " MMM";
+  if (a >= 1e6) return "$" + (v / 1e6).toFixed(2) + " M";
+  if (a >= 1e3) return "$" + (v / 1e3).toFixed(1) + " K";
+  return "$" + Math.round(v).toLocaleString("es-MX");
+}
+function fmtNum(v) { return v == null || isNaN(v) ? "—" : Math.round(v).toLocaleString("es-MX"); }
+function fmtPct(v) { return v == null || isNaN(v) ? "—" : v.toFixed(1) + "%"; }
+function sum(arr, f) { return arr.reduce(function(s, x) { return s + (+f(x) || 0); }, 0); }
+
+function avgCumCapped(rows, dF, eF) {
+  var v = rows.filter(function(r) { return +r[eF] > 0; });
+  if (!v.length) return null;
+  return sum(v, function(r) { return Math.min(100, (+r[dF] || 0) / (+r[eF]) * 100); }) / v.length;
+}
+function countBelow(rows, dF, eF) {
+  var m = new Map();
+  rows.forEach(function(r) {
+    var k = r.rfc || r.razon; if (!k) return;
+    if (!m.has(k)) m.set(k, { d: 0, e: 0 });
+    var o = m.get(k); o.d += (+r[dF] || 0); o.e += (+r[eF] || 0);
+  });
+  var out = 0; m.forEach(function(o) { if (o.e > 0 && o.d < o.e * 0.999) out++; });
+  return out;
+}
+
+function render(d) {
+  document.getElementById("v0").textContent = fmtMXN(sum(d, function(r) { return r.disc_min; }));
+  document.getElementById("v1").textContent = fmtNum(countBelow(d, "isn_decl", "isn_min"));
+  document.getElementById("v2").textContent = fmtPct(avgCumCapped(d, "isn_decl", "isn_min"));
+  document.getElementById("v3").textContent = fmtNum(d.filter(function(r) { return r.declara_cero; }).length);
+}
+
+window.addEventListener('message', function(evt) {
+  var m = evt.data || {};
+  if (!m || typeof m !== 'object' || !Array.isArray(m.columns) || !Array.isArray(m.data)) return;
+  try {
+    render(detailFromVA(m));
+    document.getElementById('error').style.display = 'none';
+  } catch (e) {
+    document.getElementById('error').textContent = e.message;
+    document.getElementById('error').style.display = 'block';
+  }
+});
+
+try {
+  if (window.parent) window.parent.postMessage({ type: 'ready', object: 'gob-005-min-kpis' }, '*');
+} catch (e) {}
+
+/* Valores de muestra para previsualización standalone (sin conexión a VA) */
+document.getElementById('v0').textContent = '$335,976 M';
+document.getElementById('v1').textContent = '8,432';
+document.getElementById('v2').textContent = '41.2%';
+document.getElementById('v3').textContent = '3,158';
+</script>
+
+</body>
+</html>

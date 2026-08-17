@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Distribución de hallazgos (Inicio)</title>
+
+<style>
+.gob005-donut-hallazgos {
+  --g5-blue-950:#081F3D; --g5-blue-900:#0B2E59; --g5-blue-700:#1D629D; --g5-blue-500:#2F80C3;
+  --g5-surface:#FFFFFF; --g5-muted:#66788A; --g5-danger:#C84A4A;
+  --g5-c-decl:var(--g5-blue-900); --g5-c-imss:var(--g5-blue-500);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 14px 16px;
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Roboto,Arial,sans-serif;
+  background: var(--g5-surface);
+  height: 100vh;
+  font-size: 13px;
+}
+
+.gob005-donut-hallazgos { height: 100%; display: flex; flex-direction: column; }
+.gob005-donut-hallazgos__title { font-size: 15px; font-weight: 800; color: var(--g5-blue-950); margin: 0 0 1px; }
+.gob005-donut-hallazgos__sub { color: var(--g5-muted); font-size: 11.5px; margin-bottom: 12px; }
+.gob005-donut-hallazgos__error { color: #b91c1c; font-size: 11px; display: none; white-space: pre-wrap; margin-bottom: 6px; }
+.gob005-donut-hallazgos__body { flex: 1 1 0; display: flex; align-items: center; justify-content: center; }
+
+.d-row { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-top: 6px; }
+.d-sw { width: 11px; height: 11px; border-radius: 3px; flex: 0 0 auto; }
+.d-name { flex: 1; color: var(--g5-blue-950); }
+.d-pct { color: var(--g5-muted); }
+</style>
+</head>
+<body>
+
+<div class="gob005-donut-hallazgos">
+  <div class="gob005-donut-hallazgos__title">Distribución de hallazgos</div>
+  <div class="gob005-donut-hallazgos__sub">RFC detectados por tipo de discrepancia</div>
+  <div class="gob005-donut-hallazgos__error" id="error"></div>
+  <div class="gob005-donut-hallazgos__body" id="body"></div>
+</div>
+
+<script>
+/* ===== DATOS: campo interno -> posibles etiquetas/nombres de columna que manda SAS VA =====
+   Este objeto necesita AMBAS fuentes: detalle (CONCILIACION_EMPRESA_PERIODO_V2) para los conteos
+   "debajo del mínimo" / "debajo del estimado IMSS", y zonificación (ZONIFICACION) para "fuera del padrón". */
+var MAP_DETAIL = {
+  rfc: ["rfc"], razon: ["razon social", "razon", "razón"],
+  isn_decl: ["impuesto causado declarado", "causado declarado"],
+  isn_min:  ["impuesto causado minimo", "causado minimo"],
+  isn_imss: ["impuesto causado estimado", "causado estimado"]
+};
+var MAP_ZONIF = { regla_id: ["regla id", "regla_id"], regla: ["regla rota", "regla txt"] };
+
+function normalize(s) {
+  return String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[\s._]+/g, " ").trim();
+}
+function buildColIndex(columns, amap) {
+  var idx = {};
+  Object.keys(amap).forEach(function(f) {
+    for (var i = 0; i < columns.length; i++) {
+      var lbl = normalize(columns[i].label || columns[i].name || "");
+      if (amap[f].some(function(a) { var n = normalize(a); return lbl === n || lbl.includes(n); })) { idx[f] = i; break; }
+    }
+  });
+  return idx;
+}
+function detectSchema(columns) {
+  var labels = columns.map(function(c) { return normalize(c.label || c.name || ""); });
+  function any() {
+    var ks = Array.prototype.slice.call(arguments);
+    return labels.some(function(l) { return ks.some(function(k) { return l.includes(k); }); });
+  }
+  if (any("regla", "latitud", "longitud", "clasificacion del inegi", "ubicacion", "domicilio", "discrepancia min pos", "discrepancia imss pos")) return "zonif";
+  if (any("impuesto causado", "empleados declarados", "empleados en el imss", "disc vs isn", "discrepancia de empleados", "cumplimiento isn", "periodo inicio")) return "detail";
+  return null;
+}
+var toNum = function(v) { if (v == null || v === "") return undefined; var n = +String(v).replace(/[^0-9.\-]/g, ""); return isNaN(n) ? undefined : n; };
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function(c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+function fmtNum(v) { return v == null || isNaN(v) ? "—" : Math.round(v).toLocaleString("es-MX"); }
+function sum(arr, f) { return arr.reduce(function(s, x) { return s + (+f(x) || 0); }, 0); }
+
+var RAW = { detail: [], zonif: [] };
+
+function detailFromVA(msg) {
+  var cols = msg.columns || [], data = msg.data || [], idx = buildColIndex(cols, MAP_DETAIL);
+  var g = function(row, f) { return idx[f] != null ? row[idx[f]] : undefined; };
+  return data.map(function(row) {
+    return { rfc: g(row, "rfc"), razon: g(row, "razon"), isn_decl: toNum(g(row, "isn_decl")) || 0, isn_min: toNum(g(row, "isn_min")) || 0, isn_imss: toNum(g(row, "isn_imss")) || 0 };
+  });
+}
+function zonifFromVA(msg) {
+  var cols = msg.columns || [], data = msg.data || [], idx = buildColIndex(cols, MAP_ZONIF);
+  var g = function(row, f) { return idx[f] != null ? row[idx[f]] : undefined; };
+  return data.map(function(row) {
+    var rid = String(g(row, "regla_id") || "") + " " + String(g(row, "regla") || "");
+    return { fuera_padron: /fuera/i.test(rid) ? 1 : 0 };
+  });
+}
+
+/* Cuenta contribuyentes cuyo declarado (dF) queda por debajo de la referencia (eF), agregando primero por RFC/razón */
+function countBelow(rows, dF, eF) {
+  var m = new Map();
+  rows.forEach(function(r) {
+    var k = r.rfc || r.razon; if (!k) return;
+    if (!m.has(k)) m.set(k, { d: 0, e: 0 });
+    var o = m.get(k);
+    o.d += (+r[dF] || 0); o.e += (+r[eF] || 0);
+  });
+  var out = 0;
+  m.forEach(function(o) { if (o.e > 0 && o.d < o.e * 0.999) out++; });
+  return out;
+}
+
+function donut(host, parts) {
+  var total = sum(parts, function(p) { return p.val; }) || 1;
+  var R = 62, r = 39, cx = 76, cy = 76, a0 = -Math.PI / 2, paths = "";
+  parts.forEach(function(p) {
+    var fr = p.val / total, a1 = a0 + fr * Math.PI * 2, lg = fr > 0.5 ? 1 : 0;
+    var x0 = cx + R * Math.cos(a0), y0 = cy + R * Math.sin(a0), x1 = cx + R * Math.cos(a1), y1 = cy + R * Math.sin(a1);
+    var xi0 = cx + r * Math.cos(a1), yi0 = cy + r * Math.sin(a1), xi1 = cx + r * Math.cos(a0), yi1 = cy + r * Math.sin(a0);
+    paths += '<path d="M' + x0 + ' ' + y0 + ' A' + R + ' ' + R + ' 0 ' + lg + ' 1 ' + x1 + ' ' + y1 + ' L' + xi0 + ' ' + yi0 + ' A' + r + ' ' + r + ' 0 ' + lg + ' 0 ' + xi1 + ' ' + yi1 + ' Z" fill="' + p.color + '"></path>';
+    a0 = a1;
+  });
+  var rows = parts.map(function(p) {
+    return '<div class="d-row"><span class="d-sw" style="background:' + p.color + '"></span>' +
+      '<span class="d-name">' + esc(p.name) + '</span><b>' + fmtNum(p.val) + '</b>' +
+      '<span class="d-pct">' + (p.val / total * 100).toFixed(0) + '%</span></div>';
+  }).join("");
+  host.innerHTML = '<div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap;width:100%">' +
+    '<svg width="152" height="152" viewBox="0 0 152 152" style="flex:0 0 auto">' + paths +
+    '<text x="76" y="72" text-anchor="middle" font-size="11" fill="#66788A">Total</text>' +
+    '<text x="76" y="90" text-anchor="middle" font-size="14" font-weight="800" fill="#172536">' + fmtNum(total) + '</text></svg>' +
+    '<div style="flex:1;min-width:180px">' + rows + '</div></div>';
+}
+
+function render() {
+  var d = RAW.detail, z = RAW.zonif;
+  donut(document.getElementById('body'), [
+    { name: "Debajo del mínimo", val: countBelow(d, "isn_decl", "isn_min"), color: "#0B2E59" },
+    { name: "Debajo del estimado IMSS", val: countBelow(d.filter(function(r) { return +r.isn_imss > 0; }), "isn_decl", "isn_imss"), color: "#2F80C3" },
+    { name: "Fuera del padrón", val: z.filter(function(x) { return x.fuera_padron; }).length, color: "#C84A4A" }
+  ]);
+}
+
+window.addEventListener('message', function(evt) {
+  var m = evt.data || {};
+  if (!m || typeof m !== 'object' || !Array.isArray(m.columns) || !Array.isArray(m.data)) return;
+  try {
+    var schema = detectSchema(m.columns);
+    if (schema === 'detail') { RAW.detail = detailFromVA(m); render(); }
+    else if (schema === 'zonif') { RAW.zonif = zonifFromVA(m); render(); }
+    document.getElementById('error').style.display = 'none';
+  } catch (e) {
+    document.getElementById('error').textContent = e.message;
+    document.getElementById('error').style.display = 'block';
+  }
+});
+
+try {
+  if (window.parent) window.parent.postMessage({ type: 'ready', object: 'gob-005-donut-hallazgos' }, '*');
+} catch (e) {}
+
+/* Datos de muestra para previsualización standalone (sin conexión a VA).
+   Nota: se pinta directo con donut(), sin tocar la función render() de arriba,
+   para no perder la lógica real cuando lleguen datos de VA. */
+donut(document.getElementById('body'), [
+  { name: "Debajo del mínimo", val: 812, color: "#0B2E59" },
+  { name: "Debajo del estimado IMSS", val: 265, color: "#2F80C3" },
+  { name: "Fuera del padrón", val: 170, color: "#C84A4A" }
+]);
+</script>
+
+</body>
+</html>

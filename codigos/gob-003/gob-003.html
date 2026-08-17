@@ -143,6 +143,7 @@
             width: 100%;
             display: block;
             object-fit: cover;
+            object-position: top;
             max-height: 420px;
         }
         .carousel-img-wrap .slide-badge {
@@ -310,6 +311,524 @@
             letter-spacing: .04em;
             vertical-align: middle;
         }
+
+        /* ══════════════════════════════════════════════════════════
+           "DENTRO DEL FOLDER" — mismo estilo/layout que gob-001 y
+           gob-002: folder-tag en el header, tarjeta con acento del
+           folder y línea de cliente. El carrusel de 5 pestañas y su
+           lógica de copiar se quedan tal cual (aún no se separan los
+           objetos de este código en piezas individuales).
+           ══════════════════════════════════════════════════════════ */
+        :root {
+            --folder-color: #3BB273;
+        }
+
+        .zona-principal {
+            background: linear-gradient(180deg, color-mix(in srgb, var(--folder-color) 16%, var(--color-fondo)) 0px, var(--color-fondo) 260px);
+        }
+
+        .header {
+            background-color: color-mix(in srgb, var(--folder-color) 18%, var(--color-fondo-tarjeta));
+            border-bottom: 3px solid var(--folder-color);
+            flex-wrap: wrap;
+            row-gap: 10px;
+        }
+
+        .folder-tag {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 10px;
+            background: var(--folder-color);
+            color: #ffffff;
+            padding: 6px 14px;
+            border-radius: 999px;
+            box-shadow: 0 2px 6px rgba(0,0,0,.15);
+            max-width: 100%;
+        }
+
+        .folder-tag-icono {
+            font-size: 12px;
+        }
+
+        .folder-tag-fecha {
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .tarjeta {
+            border-left: 4px solid var(--folder-color);
+        }
+
+        /* Cliente, debajo del título */
+        .folder-cliente {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-texto-claro);
+            margin: 2px 0 16px 0;
+        }
+
+        /* Toggle ADMIN / USUARIO — junto al título. La vista que se
+           está presentando en ese momento se resalta en azul; la otra
+           queda en gris apagado. */
+        .vista-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        .vista-btn {
+            background: none;
+            border: none;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: .03em;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 2px 4px;
+            transition: color .15s ease;
+        }
+
+        .vista-btn:hover {
+            color: #64748b;
+        }
+
+        .vista-btn.activa {
+            color: #0486C2;
+        }
+
+        .vista-btn.activa:hover {
+            color: #0486C2;
+        }
+
+        .vista-separador {
+            font-size: 12px;
+            color: #cbd5e1;
+        }
+
+        /* Fila: carrusel de 5 pestañas a la izquierda, acciones
+           (Código / lupa / copiar) a la derecha. 60% para el
+           carrusel, 40% para la columna de acciones. */
+        .demo-preview-row {
+            display: grid;
+            grid-template-columns: 60fr 40fr;
+            align-items: stretch;
+            gap: 16px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .demo-preview-izquierda {
+            min-width: 0;
+        }
+
+        .demo-preview-acciones {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 0;
+            min-height: 0;
+        }
+
+        .demo-preview-acciones .acciones-botones {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .accion-demo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: none;
+            text-decoration: none;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+            box-sizing: border-box;
+            cursor: pointer;
+            transition: background .15s, box-shadow .15s ease;
+        }
+
+        .accion-codigo {
+            background: linear-gradient(135deg, var(--folder-color) 0%, color-mix(in srgb, var(--folder-color) 65%, black) 100%);
+            color: #ffffff;
+            box-shadow: 0 2px 6px rgba(0,0,0,.15);
+        }
+
+        .accion-codigo:hover {
+            box-shadow: 0 4px 10px rgba(0,0,0,.2);
+        }
+
+        .accion-lupa {
+            background: var(--color-fondo-tarjeta);
+            border: 1px solid var(--color-borde);
+            color: var(--color-texto);
+            font-size: 16px;
+            width: 38px;
+            height: 38px;
+            padding: 0;
+        }
+
+        .accion-lupa:hover {
+            border-color: var(--folder-color);
+            color: var(--folder-color);
+        }
+
+        .fila-lupa-copiar {
+            display: flex;
+            gap: 10px;
+        }
+
+        .accion-copiar {
+            background: linear-gradient(135deg, #0486C2 0%, #035f8a 100%);
+            color: #ffffff;
+            font-size: 16px;
+            width: 38px;
+            height: 38px;
+            padding: 0;
+            box-shadow: 0 2px 6px rgba(4, 134, 194, .35);
+        }
+
+        .accion-copiar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(4, 134, 194, .45);
+        }
+
+        @media (max-width: 700px) {
+            .demo-preview-row {
+                grid-template-columns: 1fr;
+                overflow: visible;
+            }
+
+            .visor-codigo {
+                flex: none;
+                height: 320px !important;
+                margin-top: 10px;
+            }
+        }
+
+        /* Visor de código — se abre con la lupa 🔍, línea por línea.
+           Muestra el archivo de la pestaña activa del carrusel. Vive
+           DENTRO de demo-preview-row: el renglón tiene una altura fija
+           (fijada por JS) y overflow:hidden, así que el visor nunca la
+           rebasa — crece como máximo hasta llenar el espacio que le
+           queda en la columna derecha, con scroll interno. */
+        .visor-codigo {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            min-width: 0;
+            width: 100%;
+            border-radius: var(--radio-md);
+            overflow: hidden;
+            border: 1px solid #334155;
+            box-sizing: border-box;
+        }
+
+        .visor-codigo.abierto {
+            display: flex;
+        }
+
+        .visor-codigo-barra {
+            background: linear-gradient(90deg, #072b40 0%, #0486C2 100%);
+            color: #e0f2fe;
+            padding: 10px 16px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .visor-codigo-cuerpo {
+            background: #1e293b;
+            flex: 1;
+            min-height: 0;
+            min-width: 0;
+            overflow-x: auto;
+            overflow-y: auto;
+        }
+
+        .visor-codigo-linea {
+            display: flex;
+            width: max-content;
+            min-width: 100%;
+            font-family: 'SF Mono', 'Fira Code', 'Courier New', Courier, monospace;
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        .visor-codigo-linea:hover {
+            background: rgba(255,255,255,.04);
+        }
+
+        .visor-codigo-numero {
+            flex-shrink: 0;
+            width: 46px;
+            text-align: right;
+            padding-right: 12px;
+            margin-right: 12px;
+            color: #475569;
+            user-select: none;
+            border-right: 1px solid #334155;
+        }
+
+        .visor-codigo-contenido {
+            white-space: pre;
+            color: #e2e8f0;
+            padding-right: 16px;
+        }
+
+        .visor-codigo-cargando,
+        .visor-codigo-error {
+            padding: 20px;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .visor-codigo-error {
+            color: #f87171;
+        }
+
+        /* Sección de carrusel de objetos */
+        .seccion-carrusel-objetos {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid var(--color-borde);
+        }
+
+        .seccion-carrusel-objetos h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--color-texto);
+            margin-bottom: 10px;
+        }
+
+        .arco-objetos {
+            position: relative;
+            height: 190px;
+            overflow: hidden;
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%);
+        }
+
+        .arco-objetos-pista {
+            position: absolute;
+            inset: 0;
+        }
+
+        .objeto-arco {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            will-change: transform;
+        }
+
+        .objeto-arco-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            width: 128px;
+            padding: 14px 10px;
+            border-radius: var(--radio-md);
+            background: var(--color-fondo-tarjeta);
+            border: 1px solid var(--color-borde);
+            box-shadow: 0 4px 10px rgba(0,0,0,.08);
+            text-align: center;
+            cursor: pointer;
+            box-sizing: border-box;
+            transform: translate(-50%, -50%) scale(1);
+            transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+        }
+
+        .objeto-arco-icono {
+            font-size: 22px;
+        }
+
+        .objeto-arco-nombre {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--color-texto);
+            line-height: 1.25;
+        }
+
+        .objeto-arco-tipo {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            color: #ffffff;
+            background: var(--folder-color);
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
+        .objeto-arco-card.seleccionado {
+            transform: translate(-50%, -50%) scale(1.32);
+            border-color: var(--folder-color);
+            box-shadow: 0 10px 24px rgba(0,0,0,.28);
+            z-index: 5;
+        }
+
+        /* CARRITO (gob-003 no tenía carrito antes) */
+        .carrito-flotante {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #006341;
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 99, 65, 0.25);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .carrito-flotante:hover {
+            background: #005030;
+        }
+
+        .modal-carrito {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-carrito.activo {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #006341;
+            padding-bottom: 12px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 18px;
+            color: #1C334F;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6B8AAB;
+        }
+
+        .carrito-lista {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 16px 0;
+        }
+
+        .carrito-item {
+            background: #f8f9fa;
+            padding: 10px;
+            margin-bottom: 6px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid #006341;
+            font-size: 11px;
+        }
+
+        .carrito-item-nombre {
+            font-weight: 600;
+            color: #1C334F;
+        }
+
+        .carrito-item-btn {
+            background: #fee2e2;
+            color: #9b1c2e;
+            border: none;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 9px;
+            cursor: pointer;
+        }
+
+        .carrito-vacio {
+            text-align: center;
+            color: #6B8AAB;
+            padding: 16px;
+            font-size: 12px;
+        }
+
+        .modal-botones {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-modal {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #C5D5E8;
+            background: white;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .btn-modal.primary {
+            background: #006341;
+            color: white;
+            border-color: #006341;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            background: #22c55e;
+            color: white;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            z-index: 2000;
+        }
     </style>
 </head>
 
@@ -324,7 +843,7 @@
          ============================================ -->
     <div class="sidebar-rail">
         <button class="rail-boton rail-logo" id="btn-toggle-sidebar" onclick="toggleSidebar()" aria-label="Abrir navegación">
-            <img src="../../previews/icono_dataloop.svg" alt="Dataloop">
+            <img src="../../../previews/icono_dataloop.svg" alt="Dataloop">
         </button>
         <button class="rail-boton rail-tema" id="btn-tema" onclick="toggleTema()" aria-label="Cambiar tema">
             <span id="icono-tema">🌙</span>
@@ -339,7 +858,7 @@
         <button class="sidebar-cerrar" onclick="cerrarSidebar()" aria-label="Cerrar navegación">×</button>
 
         <a href="../../index.html" class="sidebar-logo">
-            <img src="../../previews/icono_dataloop.svg" alt="Dataloop" class="sidebar-logo-img">
+            <img src="../../../previews/icono_dataloop.svg" alt="Dataloop" class="sidebar-logo-img">
             <span class="logo-texto">Dataloop</span>
         </a>
         <input type="text" class="sidebar-buscador" placeholder="🔍 Buscar código..." id="buscador-sidebar">
@@ -372,71 +891,34 @@
 
     <div class="header">
         <a href="../../index.html" class="logo">Repositorio de Códigos</a>
-        <span class="descripcion">Repositorio Interno de Código</span>
+        <div class="folder-tag">
+            <span class="folder-tag-icono">📁</span>
+            <span class="folder-tag-fecha">2026-07-16</span>
+        </div>
     </div>
 
     <div class="contenido">
 
-        <a href="../../categorias/gobierno.html" class="boton-volver">← Volver al repositorio</a>
+        <a href="../../categorias/gobierno.html" class="boton-volver">← Gobierno</a>
 
         <div class="tarjeta">
 
-            <h1 class="tarjeta-titulo">Fiscalización Comercio Exterior · Tamaulipas
-                <span style="font-size:13px;font-weight:600;color:#6B8AAB;margin-left:8px;">Vista Admin</span>
+            <h1 class="tarjeta-titulo">Fiscalización Comercio Exterior
+                <span class="vista-toggle">
+                    <button type="button" class="vista-btn activa" id="btn-vista-admin" onclick="cambiarVista('admin')">ADMIN</button>
+                    <span class="vista-separador">·</span>
+                    <button type="button" class="vista-btn" id="btn-vista-usuario" onclick="cambiarVista('usuario')">USUARIO</button>
+                </span>
             </h1>
 
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:15px;">
-                <span class="etiqueta-lenguaje">html</span>
-                <span style="color:#64748b;font-size:14px;">Data Driven Content · SAS VA · 5 pestañas</span>
-            </div>
-
-            <p class="tarjeta-descripcion">
-                Dashboard multi-pestaña para fiscalización de comercio exterior en aduanas de Tamaulipas.
-                Vista de Administrador con acceso completo a las 5 pestañas: Centro de Control (DDOs SAS),
-                Regularización Espontánea, No Regularización, Retornos Simulados y Buscador Integral.
-                El archivo principal (<code>concatTamaulipas_A</code>) orquesta el diseño, el sistema de pestañas
-                y llama a los HTMLs de cada sección como Data Driven Content.
-            </p>
-
-            <div class="etiquetas">
-                <span class="etiqueta">#tamaulipas</span>
-                <span class="etiqueta">#aduanas</span>
-                <span class="etiqueta">#fiscalización</span>
-                <span class="etiqueta">#comercio-exterior</span>
-                <span class="etiqueta">#multi-pestaña</span>
-                <span class="etiqueta">#admin</span>
-                <span class="etiqueta">#sas-va</span>
-            </div>
-
-            <div class="info-meta">
-                <span><strong>Autor:</strong> Dataloop Team</span>
-                <span><strong>Fecha:</strong> 2025-06-10</span>
-            </div>
-
-            <div class="instrucciones">
-                <h2>📋 Instrucciones de Uso</h2>
-                <p>Este proyecto se compone de tres tipos de archivos:</p>
-                <ul style="margin-top:8px;margin-left:18px;font-size:13px;line-height:1.9;color:#444;">
-                    <li><strong>🗂️ HTML Principal — <code>concatTamaulipas_A.html</code>:</strong> Orquestador. Define el topbar, el sistema de pestañas y carga los DDOs. Es el único archivo que se despliega directamente en SAS VA.</li>
-                    <li><strong>🔗 DDOs — <code>IMM_NOREG.html</code>, <code>IMM_NORET.html</code>, <code>IMM_RETSIM.html</code>:</strong> HTMLs que se cargan primero como Data Driven Content dentro de un reporte de SAS VA para recibir los datos. Luego son llamados por el archivo principal vía <code>createReportObject()</code>.</li>
-                    <li><strong>⚙️ Embebido — Buscador Integral:</strong> HTML incluido directamente dentro del archivo principal como <code>srcdoc</code>. No requiere archivo separado.</li>
-                </ul>
-                <p style="margin-top:8px;color:#6B8AAB;font-size:12px;">
-                    ⚠️ El botón <strong>Abrir Demo</strong> abre el archivo principal en el navegador. Sin conexión a SAS VA los paneles de datos aparecerán vacíos — solo el Buscador Integral funciona de forma autónoma.
-                </p>
-            </div>
+            <p class="folder-cliente">Tamaulipas - IMMEX</p>
 
             <!-- ══ BLOQUE CÓDIGO CON CARRUSEL ══ -->
-            <div class="bloque-codigo">
-                <div class="barra-archivo">
-                    <span>CÓDIGO</span>
-                    <div style="display:flex;gap:10px;align-items:center;">
-                        <button class="btn-copiar" id="btnCopiarMain">📋 Copiar archivo principal</button>
-                        <button class="btn-run" id="btnRun">▶ Abrir Demo</button>
-                    </div>
-                </div>
-                <div class="codigo-status" id="status-main"></div>
+            <div class="codigo-status" id="status-main"></div>
 
+              <!-- Carrusel (izquierda) + acciones / visor de código (derecha) -->
+              <div class="demo-preview-row" id="demo-preview-row">
+                <div class="demo-preview-izquierda" id="demo-preview-izquierda">
                 <!-- Carrusel -->
                 <div class="carousel" id="carousel">
                     <div class="carousel-slides">
@@ -541,6 +1023,52 @@
                     </div>
                 </div>
                 <div class="codigo-status" id="status-soporte"></div>
+                </div>
+
+                <div class="demo-preview-acciones">
+                    <div class="acciones-botones">
+                        <a href="concatTamaulipas_A.html" target="_blank" class="accion-demo accion-codigo">💻 Código</a>
+                        <div class="fila-lupa-copiar">
+                            <button type="button" class="accion-demo accion-lupa" onclick="toggleVisorCodigo()" title="Ver código línea por línea" aria-label="Ver código línea por línea">🔍</button>
+                            <button type="button" class="accion-demo accion-copiar" id="btn-copiar-codigo" onclick="copiarCodigoFuente()" title="Copiar código" aria-label="Copiar código" style="display:none;">📋</button>
+                        </div>
+                    </div>
+
+                    <!-- VISOR DE CÓDIGO — muestra el archivo de la pestaña
+                         activa del carrusel (cambia según data-target) -->
+                    <div class="visor-codigo" id="visor-codigo">
+                        <div class="visor-codigo-barra">
+                            <span id="visor-codigo-nombre">📝 concatTamaulipas_A.html</span>
+                        </div>
+                        <div class="visor-codigo-cuerpo" id="visor-codigo-cuerpo">
+                            <p class="visor-codigo-cargando">Cargando código…</p>
+                        </div>
+                    </div>
+                </div>
+              </div>
+
+            <p class="tarjeta-descripcion" style="margin-top: 20px;">
+                Dashboard multi-pestaña para fiscalización de comercio exterior en aduanas de Tamaulipas.
+                Vista de Administrador con acceso completo a las 5 pestañas: Centro de Control (DDOs SAS),
+                Regularización Espontánea, No Regularización, Retornos Simulados y Buscador Integral.
+                El archivo principal (<code>concatTamaulipas_A</code>) orquesta el diseño, el sistema de pestañas
+                y llama a los HTMLs de cada sección como Data Driven Content.
+            </p>
+
+            <div class="info-meta">
+                <span><strong>Autor:</strong> mguerrero</span>
+                <span><strong>Fecha:</strong> 2026-07-16</span>
+                <span><strong>Ruta:</strong> /Public/DEMO_IMMEX</span>
+            </div>
+
+            <!-- Carrusel en arco de los objetos de este código: el
+                 archivo principal y los 3 DDOs (el buscador embebido no
+                 tiene archivo separado, así que no se agrega aquí). -->
+            <div class="seccion-carrusel-objetos">
+                <h3>Objetos</h3>
+                <div class="arco-objetos" id="arco-objetos">
+                    <div class="arco-objetos-pista" id="arco-objetos-pista"></div>
+                </div>
             </div>
 
             <div class="seccion-video">
@@ -565,6 +1093,24 @@
 
     </div>
 
+    <!-- CARRITO FLOTANTE -->
+    <button class="carrito-flotante" onclick="abrirCarrito()"><span>🛒</span><span id="carrito-count">0</span></button>
+
+    <!-- MODAL CARRITO -->
+    <div class="modal-carrito" id="modal-carrito" onclick="if(event.target===this)cerrarCarrito()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>🛒 Mi Carrito</h2>
+                <button class="modal-close" onclick="cerrarCarrito()">X</button>
+            </div>
+            <ul class="carrito-lista" id="carrito-lista"><div class="carrito-vacio">Tu carrito esta vacio</div></ul>
+            <div class="modal-botones">
+                <button class="btn-modal" onclick="limpiarCarrito()">Limpiar</button>
+                <button class="btn-modal primary" onclick="descargarCarrito()" id="btn-descargar" disabled>Descargar</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         /* ── Rutas de los archivos (ajusta si cambia la estructura de carpetas) ── */
         var RUTAS = {
@@ -576,6 +1122,33 @@
 
         /* Cache de contenido pre-cargado */
         var cache = {};
+
+        /* ── Vista ADMIN / USUARIO ──
+           Solo cambia el archivo principal (orquestador) y las capturas
+           del carrusel — los DDOs (IMM_NOREG/NORET/RETSIM) son los mismos
+           para ambas vistas. El Buscador Integral (slide sin data-target)
+           solo existe en Admin. */
+        var vistaActual = 'admin';
+
+        var RUTAS_MAIN = {
+            admin:   './concatTamaulipas_A.html',
+            usuario: './concatTamaulipas_U.html'
+        };
+
+        var IMAGENES_VISTA = {
+            admin: {
+                main:   '../../previews/gob-003/Centro-control.png',
+                noreg:  '../../previews/gob-003/reg-espontanea.png',
+                noret:  '../../previews/gob-003/no-reg.png',
+                retsim: '../../previews/gob-003/retornos-simulados.png'
+            },
+            usuario: {
+                main:   '../../previews/gob-003/centro-control-u.png',
+                noreg:  '../../previews/gob-003/reg-espontanea-u.png',
+                noret:  '../../previews/gob-003/no-reg-u.png',
+                retsim: '../../previews/gob-003/retornos-simulados-u.png'
+            }
+        };
 
         /* Pre-cargar todos los archivos al abrir la página */
         Object.keys(RUTAS).forEach(function(key) {
@@ -629,6 +1202,12 @@
         var btnNext = document.getElementById('btnNext');
         var current = 0;
 
+        /* La pestaña "Buscador Integral" (índice 4) solo existe en la
+           vista Admin — en Usuario el carrusel tiene 4 pestañas, no 5. */
+        function indiceMaximo() {
+            return vistaActual === 'usuario' ? 3 : slides.length - 1;
+        }
+
         function irA(idx) {
             slides[current].classList.remove('activo');
             dots[current].classList.remove('activo');
@@ -636,34 +1215,27 @@
             slides[current].classList.add('activo');
             dots[current].classList.add('activo');
             btnPrev.disabled = current === 0;
-            btnNext.disabled = current === slides.length - 1;
+            btnNext.disabled = current === indiceMaximo();
+
+            fijarAlturaDemoPreviewRow();
+            var visor = document.getElementById('visor-codigo');
+            if (visor && visor.classList.contains('abierto')) {
+                mostrarCodigoActual();
+            }
         }
 
         btnPrev.addEventListener('click', function() { if (current > 0) irA(current - 1); });
-        btnNext.addEventListener('click', function() { if (current < slides.length - 1) irA(current + 1); });
+        btnNext.addEventListener('click', function() { if (current < indiceMaximo()) irA(current + 1); });
         dots.forEach(function(dot) {
             dot.addEventListener('click', function() { irA(parseInt(this.getAttribute('data-idx'))); });
         });
 
-        /* Botones de la barra superior */
-        document.getElementById('btnCopiarMain').addEventListener('click', function() {
-            if (!cache['main']) {
-                document.getElementById('status-main').textContent = '⚠️ Archivo aún cargando, reintenta en un momento.';
-                setTimeout(function() { document.getElementById('status-main').textContent = ''; }, 2500);
-                return;
-            }
-            copiarTexto(cache['main'], this);
-        });
-        document.getElementById('btnRun').addEventListener('click', function() {
-            if (!cache['main']) {
-                document.getElementById('status-main').textContent = '⚠️ Archivo aún cargando, reintenta en un momento.';
-                return;
-            }
-            var win = window.open('', '_blank');
-            win.document.open();
-            win.document.write(cache['main']);
-            win.document.close();
-        });
+        /* Los antiguos botones "Copiar archivo principal" / "Abrir Demo"
+           de la barra superior ya no existen — ahora son el botón
+           "💻 Código" y la lupa "🔍" de demo-preview-acciones (ver más
+           abajo: toggleVisorCodigo / accion-codigo). Los botones
+           "📋 Copiar" de cada pestaña del carrusel siguen funcionando
+           igual que antes con el bloque de abajo. */
 
         /* Asignar eventos a todos los botones por data-target */
         document.querySelectorAll('.btn-copiar[data-target]').forEach(function(btn) {
@@ -695,6 +1267,512 @@
                 win.document.close();
             });
         });
+
+        /* ══════════════════════════════════════════════
+           VISOR DE CÓDIGO — se abre con la lupa 🔍, línea por línea.
+           Muestra el archivo de la pestaña activa del carrusel (usa el
+           mismo cache/RUTAS que ya precarga la página). El buscador
+           embebido no tiene archivo propio, así que muestra un aviso.
+           ══════════════════════════════════════════════ */
+        var visorCodigoCargado = false;
+        var codigoFuenteTexto = '';
+
+        function targetActual() {
+            return slides[current].getAttribute('data-target');
+        }
+
+        function nombreArchivoActual() {
+            var key = targetActual();
+            if (!key) return 'Buscador Integral (embebido, sin archivo separado)';
+            return RUTAS[key].replace('./', '');
+        }
+
+        function toggleVisorCodigo() {
+            var visor = document.getElementById('visor-codigo');
+            var btnCopiar = document.getElementById('btn-copiar-codigo');
+            if (!visor) return;
+
+            var estaAbierto = visor.classList.contains('abierto');
+
+            if (estaAbierto) {
+                visor.classList.remove('abierto');
+                if (btnCopiar) btnCopiar.style.display = 'none';
+                return;
+            }
+
+            fijarAlturaDemoPreviewRow();
+            visor.classList.add('abierto');
+            if (btnCopiar) btnCopiar.style.display = targetActual() ? 'flex' : 'none';
+            mostrarCodigoActual();
+        }
+
+        function mostrarCodigoActual() {
+            var cuerpo = document.getElementById('visor-codigo-cuerpo');
+            var nombreEl = document.getElementById('visor-codigo-nombre');
+            var btnCopiar = document.getElementById('btn-copiar-codigo');
+            if (!cuerpo) return;
+
+            var key = targetActual();
+            if (nombreEl) nombreEl.textContent = '📝 ' + nombreArchivoActual();
+
+            if (!key) {
+                cuerpo.innerHTML = '<p class="visor-codigo-cargando">Este objeto está embebido dentro del archivo principal — no tiene código propio para mostrar aquí.</p>';
+                codigoFuenteTexto = '';
+                if (btnCopiar) btnCopiar.style.display = 'none';
+                return;
+            }
+
+            if (btnCopiar && document.getElementById('visor-codigo').classList.contains('abierto')) {
+                btnCopiar.style.display = 'flex';
+            }
+
+            if (cache[key]) {
+                cuerpo.innerHTML = renderizarCodigoConLineas(cache[key]);
+                codigoFuenteTexto = cache[key];
+                return;
+            }
+
+            cuerpo.innerHTML = '<p class="visor-codigo-cargando">Cargando código…</p>';
+            fetch(RUTAS[key])
+                .then(function (respuesta) {
+                    if (!respuesta.ok) throw new Error('No se pudo cargar el archivo (' + respuesta.status + ')');
+                    return respuesta.text();
+                })
+                .then(function (texto) {
+                    cache[key] = texto;
+                    if (targetActual() === key) {
+                        cuerpo.innerHTML = renderizarCodigoConLineas(texto);
+                        codigoFuenteTexto = texto;
+                    }
+                })
+                .catch(function (error) {
+                    cuerpo.innerHTML = '<p class="visor-codigo-error">⚠️ No se pudo cargar el código: '
+                        + escaparHtml(error.message) + '</p>';
+                });
+        }
+
+        /* Cambia entre la vista Admin y la vista Usuario: resalta el
+           botón activo en azul, cambia las capturas del carrusel, oculta
+           la pestaña de Buscador Integral (solo existe en Admin) y
+           apunta el visor de código / botón "Código" al archivo
+           principal correspondiente (concatTamaulipas_A o _U). */
+        function cambiarVista(vista) {
+            if (vista === vistaActual) return;
+            vistaActual = vista;
+
+            document.getElementById('btn-vista-admin').classList.toggle('activa', vista === 'admin');
+            document.getElementById('btn-vista-usuario').classList.toggle('activa', vista === 'usuario');
+
+            slides.forEach(function (slide) {
+                var key = slide.getAttribute('data-target');
+                if (!key) return; // Buscador Integral no tiene captura propia
+                var img = slide.querySelector('.carousel-img-wrap img');
+                if (img && IMAGENES_VISTA[vista][key]) {
+                    img.src = IMAGENES_VISTA[vista][key];
+                }
+            });
+
+            var slideBuscador = slides[4];
+            var dotBuscador = dots[4];
+            if (vista === 'usuario') {
+                slideBuscador.style.display = 'none';
+                dotBuscador.style.display = 'none';
+                if (current > indiceMaximo()) irA(0);
+            } else {
+                slideBuscador.style.display = '';
+                dotBuscador.style.display = '';
+            }
+            btnNext.disabled = current === indiceMaximo();
+
+            RUTAS.main = RUTAS_MAIN[vista];
+            delete cache.main;
+            var nombreMain = slides[0].querySelector('.carousel-nombre');
+            if (nombreMain) nombreMain.textContent = RUTAS.main.replace('./', '');
+            var accionCodigo = document.querySelector('.accion-codigo');
+            if (accionCodigo) accionCodigo.setAttribute('href', RUTAS.main.replace('./', ''));
+
+            if (targetActual() === 'main') {
+                var visor = document.getElementById('visor-codigo');
+                if (visor && visor.classList.contains('abierto')) {
+                    mostrarCodigoActual();
+                }
+            }
+
+            fijarAlturaDemoPreviewRow();
+        }
+
+        function copiarCodigoFuente() {
+            if (!codigoFuenteTexto) return;
+
+            // navigator.clipboard solo funciona en contexto seguro
+            // (https o localhost) — si la página se abre como archivo
+            // local (file://) o el navegador no lo soporta, usamos un
+            // textarea temporal + execCommand como respaldo.
+            if (window.isSecureContext && navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(codigoFuenteTexto)
+                    .then(function () { mostrarToast('Código copiado al portapapeles'); })
+                    .catch(function () { copiarConRespaldo(codigoFuenteTexto); });
+            } else {
+                copiarConRespaldo(codigoFuenteTexto);
+            }
+        }
+
+        function copiarConRespaldo(texto) {
+            var ta = document.createElement('textarea');
+            ta.value = texto;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            ta.setSelectionRange(0, texto.length);
+
+            var exito = false;
+            try { exito = document.execCommand('copy'); } catch (e) { exito = false; }
+            document.body.removeChild(ta);
+
+            mostrarToast(exito ? 'Código copiado al portapapeles' : 'No se pudo copiar automáticamente — selecciona el código manualmente');
+        }
+
+        // El renglón demo-preview-row mantiene una altura fija (igual a
+        // la altura del carrusel + su navegación). El visor de código
+        // vive dentro de ese renglón y nunca lo rebasa: como máximo
+        // llena el espacio que le queda debajo de los botones, con
+        // scroll interno.
+        function fijarAlturaDemoPreviewRow() {
+            var row = document.getElementById('demo-preview-row');
+            var izquierda = document.getElementById('demo-preview-izquierda');
+            if (!row || !izquierda) return;
+
+            if (window.innerWidth <= 700) {
+                row.style.height = ''; // en móvil el renglón se apila, sin altura fija
+                return;
+            }
+
+            row.style.height = izquierda.offsetHeight + 'px';
+        }
+
+        (function () {
+            var imagenes = document.querySelectorAll('.carousel-img-wrap img');
+            imagenes.forEach(function (img) {
+                if (!img.complete) {
+                    img.addEventListener('load', fijarAlturaDemoPreviewRow);
+                }
+            });
+            window.addEventListener('resize', fijarAlturaDemoPreviewRow);
+        })();
+
+        function escaparHtml(texto) {
+            return texto
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function resaltarLineaHtml(linea) {
+            return linea.replace(
+                /(&lt;!--[\s\S]*?--&gt;)|(&lt;\/?[a-zA-Z][\w:-]*)|(&quot;[^&]*?&quot;)/g,
+                function (coincidencia, comentario, etiqueta, cadena) {
+                    if (comentario) return '<span class="comment">' + comentario + '</span>';
+                    if (etiqueta) return '<span class="keyword">' + etiqueta + '</span>';
+                    if (cadena) return '<span class="string">' + cadena + '</span>';
+                    return coincidencia;
+                }
+            );
+        }
+
+        function renderizarCodigoConLineas(texto) {
+            var lineas = escaparHtml(texto).split('\n');
+            var html = '';
+
+            for (var i = 0; i < lineas.length; i++) {
+                var numero = i + 1;
+                var contenido = resaltarLineaHtml(lineas[i]) || '&nbsp;';
+                html += '<div class="visor-codigo-linea">'
+                    + '<span class="visor-codigo-numero">' + numero + '</span>'
+                    + '<span class="visor-codigo-contenido">' + contenido + '</span>'
+                    + '</div>';
+            }
+
+            return html;
+        }
+
+        /* ══════════════════════════════════════════════
+           CARRITO — gob-003 no tenía carrito antes. Los "objetos" aquí
+           son los archivos reales (principal + 3 DDOs); el buscador
+           embebido no tiene archivo separado, así que no se agrega.
+           ══════════════════════════════════════════════ */
+        var carrito = [];
+
+        var OBJETOS = [
+            { id: 'main',   nombre: 'concatTamaulipas_A.html (HTML Principal)', variables: [
+                'No recibe datos vía postMessage — es el orquestador: inyecta <sas-report-object> por objectName fijo (ve8, ve931, ve165, ve348, ve323, ve613, ve296, ve657 en la pestaña principal; ve202/ve415/ve511 en pestañas 2-4)',
+                'La pestaña "Buscador Integral" es un iframe aislado con datos de ejemplo hardcodeados (objeto CASOS + tabla INPC), no depende de SAS VA'
+            ]},
+            { id: 'noreg',  nombre: 'IMM_NOREG.html · Regularización Espontánea', variables: [
+                'OJO: el comentario interno del archivo dice "OBJETO: IMM_REGESP_DASH" — verificar con el equipo si el nombre de archivo está intercambiado con noret',
+                'Mensaje esperado: {columns, data} (acepta varias envolturas: data/payload/detail/result/results/resultData/vaData/reportData)',
+                'Requiere las 28 variables de PUBLIC.IMM_CENTRO (id_caso, id_empresa, razon_social, fecha_caso, periodo, escenario, escenario_desc, subescenario, subesc_desc, aduana, tipo_aduana, sector, municipio, severidad, severidad_ord, prioridad, prioridad_ord, nivel_certeza, valor_afect, mto_impacto, mto_accionable, mto_regularizado, mto_revision, multa_min, multa_max, flag_ieps, flag_efos, flag_clas_incor)',
+                'Críticas (sin ellas muestra "Faltan variables críticas"): id_caso, id_empresa, razon_social, fecha_caso, escenario, subesc_desc, aduana, mto_regularizado, mto_impacto, valor_afect',
+                'Necesita recibir escenario = REG_ESP (y, si existe, NO_REG)'
+            ]},
+            { id: 'noret',  nombre: 'IMM_NORET.html · No Regularización', variables: [
+                'OJO: el comentario interno del archivo dice "OBJETO: IMM_NOREG_DASH" — verificar con el equipo si el nombre de archivo está intercambiado con noreg',
+                'Mensaje esperado: {columns, data} o {columns, rows} o {columnNames, data}',
+                'Requiere las mismas 28 variables de PUBLIC.IMM_CENTRO que noreg/retsim',
+                'Críticas: id_caso, id_empresa, razon_social, escenario, subesc_desc, mto_accionable, mto_impacto, mto_regularizado, valor_afect',
+                'Necesita recibir escenario NO_REG y REG_ESP (usa REG_ESP para antecedentes de regularización por empresa)'
+            ]},
+            { id: 'retsim', nombre: 'IMM_RETSIM.html · Retornos Simulados', variables: [
+                'Mensaje esperado: {columns, data} (con alias metadata/data también soportado)',
+                'Requiere las mismas 28 variables de PUBLIC.IMM_CENTRO que noreg/noret',
+                'Críticas: id_caso, id_empresa, razon_social, escenario, aduana, nivel_certeza, mto_revision, flag_efos, prioridad',
+                'Necesita ver filas con escenario RET_SIM y/o flag_efos activo — no filtrar globalmente escenario ni flag_efos'
+            ]}
+        ];
+
+        function cargarCarrito() {
+            carrito = JSON.parse(localStorage.getItem('carrito-gob-003') || '[]');
+            actualizarUI();
+        }
+
+        function guardarCarrito() {
+            localStorage.setItem('carrito-gob-003', JSON.stringify(carrito));
+            actualizarUI();
+        }
+
+        function agregarCarrito(id) {
+            if (carrito.includes(id)) {
+                carrito = carrito.filter(function(item) { return item !== id; });
+                mostrarToast('Removido del carrito');
+            } else {
+                carrito.push(id);
+                mostrarToast('Agregado al carrito');
+            }
+            guardarCarrito();
+        }
+
+        function actualizarUI() {
+            document.getElementById('carrito-count').textContent = carrito.length;
+            document.getElementById('btn-descargar').disabled = carrito.length === 0;
+        }
+
+        function abrirCarrito() {
+            var lista = document.getElementById('carrito-lista');
+            if (carrito.length === 0) {
+                lista.innerHTML = '<div class="carrito-vacio">Tu carrito esta vacio</div>';
+            } else {
+                var html = '';
+                for (var i = 0; i < carrito.length; i++) {
+                    var id = carrito[i];
+                    var obj = null;
+                    for (var j = 0; j < OBJETOS.length; j++) {
+                        if (OBJETOS[j].id === id) {
+                            obj = OBJETOS[j];
+                            break;
+                        }
+                    }
+                    if (obj) {
+                        html += '<li class="carrito-item"><span class="carrito-item-nombre">' + obj.nombre + '</span><button class="carrito-item-btn" onclick="agregarCarrito(' + "'" + id + "'" + '); abrirCarrito();">X</button></li>';
+                    }
+                }
+                lista.innerHTML = html;
+            }
+            document.getElementById('modal-carrito').classList.add('activo');
+        }
+
+        function cerrarCarrito() {
+            document.getElementById('modal-carrito').classList.remove('activo');
+        }
+
+        function limpiarCarrito() {
+            if (confirm('Limpiar carrito?')) {
+                carrito = [];
+                guardarCarrito();
+                cerrarCarrito();
+                mostrarToast('Carrito limpiado');
+            }
+        }
+
+        function mostrarToast(msg) {
+            var toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(function() { toast.remove(); }, 2000);
+        }
+
+        function descargarCarrito() {
+            if (carrito.length === 0) return;
+
+            var promesas = carrito.map(function (id) {
+                if (cache[id]) {
+                    return Promise.resolve({ id: id, codigo: cache[id] });
+                }
+                return fetch(RUTAS[id])
+                    .then(function (r) { return r.text(); })
+                    .then(function (texto) { cache[id] = texto; return { id: id, codigo: texto }; })
+                    .catch(function () { return { id: id, codigo: '<!-- ERROR: no se pudo cargar ' + id + ' -->' }; });
+            });
+
+            Promise.all(promesas).then(function (resultados) {
+                generarTextoCarrito(resultados);
+            });
+        }
+
+        // Arma un .txt con el código de cada objeto del carrito, uno
+        // debajo del otro. El nombre de cada objeto va como comentario
+        // HTML (<!-- nombre -->) dentro del propio código, no como texto
+        // aparte, para que no interfiera al copiar y pegar directo en SAS.
+        // Se usa texto plano (no PDF) porque las fuentes estándar de
+        // jsPDF pierden caracteres Unicode especiales — un .txt siempre
+        // conserva el código exacto.
+        // Arma, por objeto, un comentario con las variables/columnas que
+        // necesita para funcionar (lo que se le pasa vía postMessage
+        // desde SAS VA), justo antes de su código.
+        function bloqueVariables(id) {
+            var obj = OBJETOS.find(function (o) { return o.id === id; });
+            if (!obj || !obj.variables || !obj.variables.length) return '';
+            var lineas = obj.variables.map(function (v) { return '  - ' + v; });
+            return '<!--\n  Variables necesarias para que este objeto funcione:\n' + lineas.join('\n') + '\n-->\n';
+        }
+
+        function generarTextoCarrito(resultados) {
+            var partes = resultados.map(function (resultado) {
+                var obj = OBJETOS.find(function (o) { return o.id === resultado.id; });
+                var nombre = obj ? obj.nombre : resultado.id;
+                return '<!-- ' + nombre + ' -->\n' + bloqueVariables(resultado.id) + resultado.codigo;
+            });
+            descargarTexto(partes.join('\n\n'), 'gob-003-objetos.txt');
+        }
+
+        function descargarTexto(texto, nombreArchivo) {
+            var blob = new Blob([texto], { type: 'text/plain;charset=utf-8' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = nombreArchivo;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+            mostrarToast('Archivo descargado');
+        }
+
+        /* ══════════════════════════════════════════════
+           CARRUSEL EN ARCO — los 4 objetos con archivo propio (el
+           principal y los 3 DDOs). Se mueven solos de izquierda a
+           derecha, se desvanecen en las orillas y se agrandan al
+           resaltarse con el mouse. Al hacer click se agregan/quitan
+           del carrito (no hay hotspots en imagen para sincronizar,
+           como sí los hay en gob-001/gob-002).
+           ══════════════════════════════════════════════ */
+        (function () {
+            var OBJETOS_ARCO = [
+                { id: 'main',   icono: '🗂️', nombre: 'concatTamaulipas_A.html', tipo: 'Principal' },
+                { id: 'noreg',  icono: '🔗', nombre: 'Regularización Espontánea', tipo: 'DDO' },
+                { id: 'noret',  icono: '🔗', nombre: 'No Regularización',         tipo: 'DDO' },
+                { id: 'retsim', icono: '🔗', nombre: 'Retornos Simulados',        tipo: 'DDO' }
+            ];
+
+            var ESPACIO = 170;
+            var VELOCIDAD = 26;
+            var ALTO_ARCO = 46;
+
+            var contenedor = document.getElementById('arco-objetos');
+            var pista = document.getElementById('arco-objetos-pista');
+
+            if (contenedor && pista) {
+                var tarjetas = [];
+                var anchoContenedor = 0;
+                var anchoTotal = 0;
+                var ultimoTick = null;
+
+                var construirPista = function () {
+                    anchoContenedor = contenedor.offsetWidth;
+                    if (anchoContenedor <= 0) return;
+
+                    var vueltas = Math.ceil((anchoContenedor * 2) / (ESPACIO * OBJETOS_ARCO.length)) + 1;
+                    var totalTarjetas = OBJETOS_ARCO.length * Math.max(vueltas, 2);
+
+                    pista.innerHTML = '';
+                    tarjetas = [];
+
+                    for (var i = 0; i < totalTarjetas; i++) {
+                        var datos = OBJETOS_ARCO[i % OBJETOS_ARCO.length];
+
+                        var outer = document.createElement('div');
+                        outer.className = 'objeto-arco';
+                        outer.dataset.objeto = datos.id;
+
+                        var card = document.createElement('div');
+                        card.className = 'objeto-arco-card';
+                        card.innerHTML =
+                            '<span class="objeto-arco-icono">' + datos.icono + '</span>'
+                            + '<span class="objeto-arco-nombre">' + datos.nombre + '</span>'
+                            + '<span class="objeto-arco-tipo">' + datos.tipo + '</span>';
+
+                        (function (idObjeto) {
+                            card.addEventListener('mouseenter', function () { resaltarObjetoArco(idObjeto, true); });
+                            card.addEventListener('mouseleave', function () { resaltarObjetoArco(idObjeto, false); });
+                            card.addEventListener('click', function () { agregarCarrito(idObjeto); });
+                        })(datos.id);
+
+                        outer.appendChild(card);
+                        pista.appendChild(outer);
+
+                        tarjetas.push({ el: outer, x: i * ESPACIO });
+                    }
+
+                    anchoTotal = totalTarjetas * ESPACIO;
+                };
+
+                var animar = function (tiempo) {
+                    if (ultimoTick === null) ultimoTick = tiempo;
+                    var dt = (tiempo - ultimoTick) / 1000;
+                    ultimoTick = tiempo;
+
+                    var mitad = anchoContenedor / 2;
+
+                    for (var i = 0; i < tarjetas.length; i++) {
+                        var t = tarjetas[i];
+                        t.x += VELOCIDAD * dt;
+                        if (t.x > anchoContenedor + ESPACIO) {
+                            t.x -= anchoTotal;
+                        }
+
+                        var posRelativa = mitad > 0 ? (t.x - mitad) / mitad : 0;
+                        posRelativa = Math.max(-1, Math.min(1, posRelativa));
+                        var y = -ALTO_ARCO * (1 - posRelativa * posRelativa);
+
+                        t.el.style.transform = 'translate(' + t.x + 'px,' + y + 'px)';
+                    }
+
+                    requestAnimationFrame(animar);
+                };
+
+                window.resaltarObjetoArco = function (idObjeto, activar) {
+                    var seleccionados = pista.querySelectorAll('.objeto-arco[data-objeto="' + idObjeto + '"] .objeto-arco-card');
+                    for (var i = 0; i < seleccionados.length; i++) {
+                        seleccionados[i].classList.toggle('seleccionado', activar);
+                    }
+                };
+
+                construirPista();
+                requestAnimationFrame(animar);
+
+                var reconstruyendoTimeout;
+                window.addEventListener('resize', function () {
+                    clearTimeout(reconstruyendoTimeout);
+                    reconstruyendoTimeout = setTimeout(construirPista, 200);
+                });
+            }
+        })();
+
+        cargarCarrito();
     </script>
 
 </body>

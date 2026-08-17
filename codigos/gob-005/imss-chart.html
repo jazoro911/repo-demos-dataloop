@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Gráfica - Evolución del cumplimiento vs. IMSS</title>
+
+<style>
+.gob005-chart-imss {
+  --g5-blue-950:#081F3D; --g5-blue-900:#0B2E59; --g5-blue-700:#1D629D; --g5-blue-100:#EAF4FB;
+  --g5-surface:#FFFFFF; --g5-border:#D6E2ED; --g5-muted:#66788A; --g5-line-2:#E4EDF4;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; padding: 14px 16px; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Roboto,Arial,sans-serif; background: var(--g5-surface); height: 100vh; font-size: 13px; }
+.gob005-chart-imss { height: 100%; display: flex; flex-direction: column; }
+.gob005-chart-imss__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.gob005-chart-imss__title { font-size: 15px; font-weight: 800; color: var(--g5-blue-950); margin: 0 0 1px; }
+.gob005-chart-imss__sub { color: var(--g5-muted); font-size: 11.5px; }
+.gob005-chart-imss__error { color: #b91c1c; font-size: 11px; display: none; white-space: pre-wrap; margin-bottom: 6px; }
+.gob005-chart-imss__body { flex: 1 1 0; min-height: 0; }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; }
+.legend .lg { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--g5-blue-950); font-weight: 600; }
+.legend .sw { width: 11px; height: 11px; border-radius: 3px; }
+.axis-txt { fill: var(--g5-muted); font-size: 11px; font-family: inherit; }
+.grid-line { stroke: var(--g5-line-2); stroke-width: 1; }
+</style>
+</head>
+<body>
+
+<div class="gob005-chart-imss">
+  <div class="gob005-chart-imss__head">
+    <div>
+      <div class="gob005-chart-imss__title">Evolución del cumplimiento frente al IMSS</div>
+      <div class="gob005-chart-imss__sub">Declarado / estimado IMSS</div>
+    </div>
+    <span class="legend"><span class="lg"><span class="sw" style="background:#0B2E59"></span>% Cumplimiento</span></span>
+  </div>
+  <div class="gob005-chart-imss__error" id="error"></div>
+  <div class="gob005-chart-imss__body" id="chart"></div>
+</div>
+
+<script>
+/* ===== DATOS: mismo mapeo del tablero completo gob-005, fuente: CONCILIACION_EMPRESA_PERIODO_V2 =====
+   Nota: en el HTML combinado original esta gráfica ignoraba los datos entrantes y siempre mostraba
+   valores de muestra fijos (DEMO_IMSS). Aquí sí se calcula a partir de los datos reales que llegan de
+   VA, igual que el resto de gráficas — para que este objeto sea funcional como Data Driven Content. */
+var PERIOD_SCOPE = { year: "2025", months: [10, 11, 12] };
+function periodLabelFromMonth(n) { return n === 10 ? "Octubre 2025" : n === 11 ? "Noviembre 2025" : n === 12 ? "Diciembre 2025" : "—"; }
+function mesNumOf(v) {
+  if (v == null || v === "") return 0;
+  var s = String(v).trim();
+  var sep = s.indexOf("-") >= 0 ? "-" : (s.indexOf("/") >= 0 ? "/" : "");
+  if (sep) { var p = s.split(sep); if (p.length >= 2 && p[0].length === 4) { var mo = parseInt(p[1], 10); if (mo >= 1 && mo <= 12) return mo; } }
+  if (s.length <= 2) { var n = parseInt(s, 10); if (n >= 1 && n <= 12) return n; }
+  var d = new Date(s); return isNaN(d) ? 0 : d.getMonth() + 1;
+}
+var MAP_DETAIL = {
+  anio: ["ano", "anio", "ejercicio"], periodo: ["periodo inicio", "periodo"],
+  isn_decl: ["impuesto causado declarado", "causado declarado"],
+  isn_imss: ["impuesto causado estimado", "causado estimado"]
+};
+function normalize(s) { return String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[\s._]+/g, " ").trim(); }
+function buildColIndex(columns, amap) {
+  var idx = {};
+  Object.keys(amap).forEach(function(f) {
+    for (var i = 0; i < columns.length; i++) {
+      var lbl = normalize(columns[i].label || columns[i].name || "");
+      if (amap[f].some(function(a) { var n = normalize(a); return lbl === n || lbl.includes(n); })) { idx[f] = i; break; }
+    }
+  });
+  return idx;
+}
+var toNum = function(v) { if (v == null || v === "") return undefined; var n = +String(v).replace(/[^0-9.\-]/g, ""); return isNaN(n) ? undefined : n; };
+
+function detailFromVA(msg) {
+  var cols = msg.columns || [], data = msg.data || [], idx = buildColIndex(cols, MAP_DETAIL);
+  var g = function(row, f) { return idx[f] != null ? row[idx[f]] : undefined; };
+  return data.map(function(row) {
+    var anio = g(row, "anio") != null ? String(g(row, "anio")) : "", pini = g(row, "periodo") != null ? String(g(row, "periodo")) : "";
+    var mnum = mesNumOf(pini) || mesNumOf(anio + "-" + pini);
+    var isn_imss = toNum(g(row, "isn_imss")) || 0;
+    return { mesNum: mnum, isn_decl: toNum(g(row, "isn_decl")) || 0, isn_imss: isn_imss };
+  }).filter(function(r) { return r.isn_imss > 0; });
+}
+function sum(arr, f) { return arr.reduce(function(s, x) { return s + (+f(x) || 0); }, 0); }
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function(c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+function fmtMXNfull(v) { return v == null || isNaN(v) ? "—" : v.toLocaleString("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }); }
+
+function imssGauge(host, rows) {
+  var pts = PERIOD_SCOPE.months.map(function(m) {
+    var r = rows.filter(function(x) { return x.mesNum === m; });
+    var decl = sum(r, function(x) { return x.isn_decl; }), est = sum(r, function(x) { return x.isn_imss; });
+    return { m: m, label: periodLabelFromMonth(m), short: (m === 10 ? "Oct" : m === 11 ? "Nov" : "Dic"), decl: decl, est: est, gap: Math.max(0, est - decl), pct: est ? Math.min(100, decl / est * 100) : 100 };
+  });
+  var avg = pts.length ? (sum(pts, function(p) { return p.pct; }) / pts.length) : 0;
+  var W = Math.max(320, host.clientWidth || 560), H = Math.max(180, host.clientHeight || 250);
+  var mL = 48, mR = 20, mT = 18, mB = 34, plotW = Math.max(1, W - mL - mR), plotH = Math.max(1, H - mT - mB);
+  var X = function(i) { return mL + (pts.length <= 1 ? plotW / 2 : plotW * i / (pts.length - 1)); };
+  var Y = function(v) { return mT + plotH - plotH * Math.max(0, Math.min(100, v)) / 100; };
+  var line = pts.map(function(p, i) { return (i ? "L" : "M") + X(i).toFixed(1) + "," + Y(p.pct).toFixed(1); }).join(" ");
+  var area = "M" + X(0).toFixed(1) + "," + Y(0) + " " + pts.map(function(p, i) { return "L" + X(i).toFixed(1) + "," + Y(p.pct).toFixed(1); }).join(" ") + " L" + X(pts.length - 1).toFixed(1) + "," + Y(0) + " Z";
+  var svg = "";
+  [0, 25, 50, 75, 100].forEach(function(v) {
+    var y = Y(v);
+    svg += '<line class="grid-line" x1="' + mL + '" y1="' + y + '" x2="' + (mL + plotW) + '" y2="' + y + '"></line><text class="axis-txt" x="' + (mL - 8) + '" y="' + (y + 4) + '" text-anchor="end">' + v + '%</text>';
+  });
+  var yAvg = Y(avg);
+  svg += '<path d="' + area + '" fill="#EAF4FB" fill-opacity=".7"></path>' +
+    '<line x1="' + mL + '" y1="' + yAvg + '" x2="' + (mL + plotW) + '" y2="' + yAvg + '" stroke="#2F80C3" stroke-dasharray="5 5" stroke-width="1.6"></line>' +
+    '<text x="' + (mL + plotW - 4) + '" y="' + (yAvg - 6) + '" text-anchor="end" font-size="10.8" font-weight="800" fill="#1D629D">Cumplimiento promedio</text>' +
+    '<path d="' + line + '" fill="none" stroke="#0B2E59" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"></path>';
+  pts.forEach(function(p, i) {
+    var tt = esc(p.label) + " · Declarado: " + fmtMXNfull(p.decl) + " · Estimado IMSS: " + fmtMXNfull(p.est) + " · Brecha: " + fmtMXNfull(p.gap) + " · Cumplimiento: " + p.pct.toFixed(1) + "%";
+    svg += '<circle cx="' + X(i) + '" cy="' + Y(p.pct) + '" r="5" fill="#0B2E59" stroke="#fff" stroke-width="1.6"><title>' + tt + '</title></circle>' +
+      '<text x="' + X(i) + '" y="' + (Y(p.pct) - 10) + '" text-anchor="middle" font-size="11.2" font-weight="850" fill="#0B2E59">' + p.pct.toFixed(1) + '%</text>' +
+      '<text class="axis-txt" x="' + X(i) + '" y="' + (H - 11) + '" text-anchor="' + (i === 0 ? "start" : i === pts.length - 1 ? "end" : "middle") + '">' + esc(p.short) + '</text>';
+  });
+  host.innerHTML = '<svg width="100%" height="100%" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">' + svg + '</svg>';
+}
+
+window.addEventListener('message', function(evt) {
+  var m = evt.data || {};
+  if (!m || typeof m !== 'object' || !Array.isArray(m.columns) || !Array.isArray(m.data)) return;
+  try {
+    window.__lastRows = detailFromVA(m);
+    imssGauge(document.getElementById('chart'), window.__lastRows);
+    document.getElementById('error').style.display = 'none';
+  } catch (e) {
+    document.getElementById('error').textContent = e.message;
+    document.getElementById('error').style.display = 'block';
+  }
+});
+window.addEventListener('resize', function() { if (window.__lastRows) imssGauge(document.getElementById('chart'), window.__lastRows); });
+
+try { if (window.parent) window.parent.postMessage({ type: 'ready', object: 'gob-005-imss-chart' }, '*'); } catch (e) {}
+
+/* Datos de muestra para previsualización standalone (sin conexión a VA) */
+window.__lastRows = [
+  { mesNum: 10, isn_decl: 264650000, isn_imss: 395000000 },
+  { mesNum: 11, isn_decl: 282900000, isn_imss: 410000000 },
+  { mesNum: 12, isn_decl: 308670000, isn_imss: 435900000 }
+];
+imssGauge(document.getElementById('chart'), window.__lastRows);
+</script>
+
+</body>
+</html>

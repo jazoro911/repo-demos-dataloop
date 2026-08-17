@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Filtros - ISN vs. mínimo</title>
+
+<style>
+.gob005-min-filtros {
+  --g5-blue-950:#081F3D; --g5-blue-900:#0B2E59; --g5-blue-800:#144A7A; --g5-blue-700:#1D629D;
+  --g5-blue-100:#EAF4FB; --g5-surface:#FFFFFF; --g5-border:#D6E2ED; --g5-muted:#66788A; --g5-input-bg:#F6FAFD;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 9px 12px;
+  font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Roboto,Arial,sans-serif;
+  background: var(--g5-surface);
+  font-size: 12.5px;
+}
+
+.gob005-min-filtros {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  background: var(--g5-surface); border: 1px solid var(--g5-border); border-radius: 10px; padding: 9px 12px;
+}
+
+.gob005-min-filtros .fl-lbl { font-size: 10.5px; font-weight: 700; color: #8AA0B4; letter-spacing: .5px; text-transform: uppercase; }
+
+.gob005-min-filtros select, .gob005-min-filtros input {
+  font-family: inherit; font-size: 12.5px; color: #172536; background: var(--g5-input-bg);
+  border: 1px solid var(--g5-border); border-radius: 7px; padding: 6px 9px; min-width: 110px;
+}
+.gob005-min-filtros input[type="search"] { min-width: 210px; }
+.gob005-min-filtros select:focus, .gob005-min-filtros input:focus { outline: none; border-color: var(--g5-blue-700); }
+
+.gob005-min-filtros .chip {
+  margin-left: auto; font-size: 11.5px; color: var(--g5-blue-800); font-weight: 800;
+  background: var(--g5-blue-100); border: 1px solid var(--g5-border); border-radius: 999px; padding: 5px 10px; white-space: nowrap;
+}
+.gob005-min-filtros .chip.periodo { margin-left: 0; }
+
+.gob005-min-filtros .btn-clear {
+  border: 1px solid var(--g5-border); background: var(--g5-input-bg); color: var(--g5-blue-950);
+  border-radius: 7px; padding: 6px 11px; font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.gob005-min-filtros .btn-clear:hover { background: var(--g5-blue-100); }
+</style>
+</head>
+<body>
+
+<div class="gob005-min-filtros" id="wrap">
+  <span class="fl-lbl">Filtros</span>
+  <span class="chip periodo">Periodo analizado · Oct–Dic 2025</span>
+  <input type="search" id="q" placeholder="Buscar razón social o RFC…" />
+  <select id="actividad"><option value="">Actividad: Todos</option></select>
+  <button class="btn-clear" id="clear">Limpiar</button>
+  <span class="chip" id="chip">— de — registros</span>
+</div>
+
+<script>
+/* ===== DATOS: mismo mapeo del tablero completo gob-005, fuente: CONCILIACION_EMPRESA_PERIODO_V2 ===== */
+var MESES = ["", "01 - Enero", "02 - Febrero", "03 - Marzo", "04 - Abril", "05 - Mayo", "06 - Junio", "07 - Julio", "08 - Agosto", "09 - Septiembre", "10 - Octubre", "11 - Noviembre", "12 - Diciembre"];
+var PERIOD_SCOPE = { year: "2025", months: [10, 11, 12] };
+
+function mesNumOf(v) {
+  if (v == null || v === "") return 0;
+  var s = String(v).trim();
+  var sep = s.indexOf("-") >= 0 ? "-" : (s.indexOf("/") >= 0 ? "/" : "");
+  if (sep) { var p = s.split(sep); if (p.length >= 2 && p[0].length === 4) { var mo = parseInt(p[1], 10); if (mo >= 1 && mo <= 12) return mo; } }
+  var ns = normalize(s), names = { enero:1,febrero:2,marzo:3,abril:4,mayo:5,junio:6,julio:7,agosto:8,septiembre:9,setiembre:9,octubre:10,noviembre:11,diciembre:12 };
+  for (var k in names) { if (ns.indexOf(k) >= 0) return names[k]; }
+  if (s.length <= 2) { var n = parseInt(s, 10); if (n >= 1 && n <= 12) return n; }
+  var d = new Date(s); return isNaN(d) ? 0 : d.getMonth() + 1;
+}
+function yearOfRow(row) {
+  var vals = [row.anio, row.periodo, row.periodicidad].map(function(v) { return String(v || ""); });
+  for (var i = 0; i < vals.length; i++) { var m = vals[i].match(/20\d{2}/); if (m) return m[0]; }
+  return "";
+}
+function monthOfRow(row) { return Number(row && (row.mesNum || mesNumOf(row.periodo) || mesNumOf(row.mes) || mesNumOf(row.anio))) || 0; }
+function isInPeriodScope(row) {
+  var y = yearOfRow(row) || PERIOD_SCOPE.year, m = monthOfRow(row);
+  return String(y) === PERIOD_SCOPE.year && PERIOD_SCOPE.months.indexOf(Number(m)) >= 0;
+}
+
+var MAP_DETAIL = {
+  rfc: ["rfc"], razon: ["razon social", "razon", "razón"], actividad: ["actividad economica", "actividad", "_ae"],
+  anio: ["ano", "anio", "ejercicio"], periodo: ["periodo inicio", "periodo"], periodicidad: ["periodicidad"],
+  isn_decl: ["impuesto causado declarado", "causado declarado"],
+  isn_min: ["impuesto causado minimo", "causado minimo"],
+  disc_min: ["disc vs isn minimo", "discrepancia vs minimo", "disc vs minimo"],
+  fdecl_cero: ["flag decl cero", "declaracion en cero", "decl cero"]
+};
+
+function normalize(s) { return String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[\s._]+/g, " ").trim(); }
+function buildColIndex(columns, amap) {
+  var idx = {};
+  Object.keys(amap).forEach(function(f) {
+    for (var i = 0; i < columns.length; i++) {
+      var lbl = normalize(columns[i].label || columns[i].name || "");
+      if (amap[f].some(function(a) { var n = normalize(a); return lbl === n || lbl.includes(n); })) { idx[f] = i; break; }
+    }
+  });
+  return idx;
+}
+var toNum = function(v) { if (v == null || v === "") return undefined; var n = +String(v).replace(/[^0-9.\-]/g, ""); return isNaN(n) ? undefined : n; };
+var truthy = function(v) { var s = String(v == null ? "" : v).toLowerCase(); return s === "1" || s === "s" || s === "si" || s === "sí" || s === "true" || s === "y"; };
+
+function detailFromVA(msg) {
+  var cols = msg.columns || [], data = msg.data || [], idx = buildColIndex(cols, MAP_DETAIL);
+  var g = function(row, f) { return idx[f] != null ? row[idx[f]] : undefined; };
+  return data.map(function(row) {
+    var isn_decl = toNum(g(row, "isn_decl")) || 0, isn_min = toNum(g(row, "isn_min")) || 0;
+    var anio = g(row, "anio") != null ? String(g(row, "anio")) : "", pini = g(row, "periodo") != null ? String(g(row, "periodo")) : "";
+    var mnum = mesNumOf(pini) || mesNumOf(anio + "-" + pini);
+    return {
+      rfc: g(row, "rfc"), razon: g(row, "razon"), actividad: g(row, "actividad"), anio, periodo: pini,
+      mesNum: mnum, isn_decl: isn_decl, isn_min: isn_min,
+      disc_min: toNum(g(row, "disc_min")) != null ? toNum(g(row, "disc_min")) : Math.max(0, isn_min - isn_decl),
+      declara_cero: truthy(g(row, "fdecl_cero")) || isn_decl === 0 ? 1 : 0
+    };
+  });
+}
+function uniq(a) { var seen = {}, out = []; a.forEach(function(v) { if (v != null && v !== "" && !seen[v]) { seen[v] = 1; out.push(v); } }); return out.sort(); }
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function(c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+function fmtNum(v) { return v == null || isNaN(v) ? "—" : Math.round(v).toLocaleString("es-MX"); }
+
+var ALL = [];
+var state = { actividad: "", q: "" };
+
+/* IMPORTANTE: este panel de filtros filtra su propia copia de los datos y actualiza el contador local.
+   Para que el filtro afecte también al KPI/gráfica/tabla de esta misma página, hay que enlazarlos en
+   SAS VA (acciones/filtros de reporte, o parámetros compartidos) — este objeto solo emite el estado
+   elegido vía postMessage; la propagación entre objetos DDC depende de la configuración del reporte. */
+function applyAndCount() {
+  var q = state.q.toLowerCase().trim();
+  var out = ALL.filter(function(r) {
+    if (state.actividad && String(r.actividad) !== state.actividad) return false;
+    if (q && ((r.razon || "") + " " + (r.rfc || "")).toLowerCase().indexOf(q) < 0) return false;
+    return true;
+  });
+  document.getElementById("chip").textContent = fmtNum(out.length) + " de " + fmtNum(ALL.length) + " registros";
+  return out;
+}
+function emit() {
+  var m = { type: "filters-applied", scope: "min", actividad: state.actividad || undefined, q: state.q || undefined };
+  try { if (window.parent) window.parent.postMessage(m, "*"); } catch (e) {}
+}
+function renderOptions() {
+  var sel = document.getElementById("actividad");
+  var vals = uniq(ALL.map(function(r) { return r.actividad; }));
+  sel.innerHTML = '<option value="">Actividad: Todos</option>' + vals.map(function(v) { return '<option>' + esc(v) + '</option>'; }).join("");
+  sel.value = state.actividad;
+}
+
+document.getElementById("q").addEventListener("input", function(e) { state.q = e.target.value || ""; applyAndCount(); emit(); });
+document.getElementById("actividad").addEventListener("change", function(e) { state.actividad = e.target.value || ""; applyAndCount(); emit(); });
+document.getElementById("clear").addEventListener("click", function() {
+  state = { actividad: "", q: "" };
+  document.getElementById("q").value = ""; document.getElementById("actividad").value = "";
+  applyAndCount(); emit();
+});
+
+window.addEventListener('message', function(evt) {
+  var m = evt.data || {};
+  if (!m || typeof m !== 'object' || !Array.isArray(m.columns) || !Array.isArray(m.data)) return;
+  try {
+    ALL = detailFromVA(m).filter(isInPeriodScope);
+    renderOptions();
+    applyAndCount();
+  } catch (e) {}
+});
+
+try {
+  if (window.parent) window.parent.postMessage({ type: 'ready', object: 'gob-005-min-filtros' }, '*');
+} catch (e) {}
+
+/* Datos de muestra para previsualización standalone (sin conexión a VA) */
+ALL = [
+  { rfc: "MDG980412AB1", razon: "MADERAS DEL GUADIANA SA DE CV", actividad: "Industria manufacturera", disc_min: 0 },
+  { rfc: "MCM010203C45", razon: "MINERA CERRO DEL MERCADO SA", actividad: "Minería", disc_min: 0 },
+  { rfc: "TLE950817HJ2", razon: "TRANSPORTES LERDO SA DE CV", actividad: "Transporte y logística", disc_min: 0 }
+];
+renderOptions();
+applyAndCount();
+</script>
+
+</body>
+</html>

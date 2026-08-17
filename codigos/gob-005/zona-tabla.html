@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Tabla - Zonificación</title>
+
+<style>
+.gob005-tabla-zona {
+  --g5-blue-950:#081F3D; --g5-blue-900:#0B2E59; --g5-blue-700:#1D629D; --g5-blue-100:#EAF4FB;
+  --g5-surface:#FFFFFF; --g5-border:#D6E2ED; --g5-muted:#66788A; --g5-line-2:#E4EDF4; --g5-danger:#C84A4A; --g5-min-2:#EAF4FB; --g5-imss-2:#D9EDF9; --g5-neg-2:#F8EAEA; --g5-paper-3:#EAF4FB;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; padding: 14px 16px; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Roboto,Arial,sans-serif; background: var(--g5-surface); height: 100vh; font-size: 12.5px; }
+.gob005-tabla-zona { height: 100%; display: flex; flex-direction: column; }
+.gob005-tabla-zona__error { color: #b91c1c; font-size: 11px; display: none; white-space: pre-wrap; margin-bottom: 6px; }
+.tabs { display: flex; gap: 4px; margin-bottom: 8px; flex: 0 0 auto; flex-wrap: wrap; }
+.tab { font-size: 11.5px; font-weight: 600; padding: 5px 10px; border-radius: 7px; cursor: pointer; color: var(--g5-muted); border: 1px solid transparent; }
+.tab.active { background: var(--g5-blue-100); color: var(--g5-blue-700); }
+.tabpane { display: none; flex: 1 1 0; min-height: 0; flex-direction: column; }
+.tabpane.active { display: flex; }
+.tbl-scroll { flex: 1 1 0; min-height: 0; overflow: auto; border-radius: 8px; border: 1px solid var(--g5-line-2); }
+table.dt { width: 100%; border-collapse: collapse; font-size: 12.5px; table-layout: fixed; }
+table.dt th, table.dt td { padding: 7px 11px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+table.dt thead th { position: sticky; top: 0; background: var(--g5-blue-950); color: #fff; font-weight: 800; font-size: 11px; letter-spacing: .3px; text-transform: uppercase; z-index: 1; }
+table.dt tbody tr { border-bottom: 1px solid var(--g5-line-2); }
+table.dt tbody tr:nth-child(even) { background: #F3F7FB; }
+table.dt tbody tr:hover { background: #D9EFF7; }
+table.dt td.num { text-align: right; font-variant-numeric: tabular-nums; }
+table.dt th:first-child, table.dt td:first-child { width: 30%; }
+table.dt td.neg { color: #087FA3; font-weight: 700; }
+table.dt td.strong { font-weight: 700; }
+.company-name { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; white-space: normal; overflow: hidden; line-height: 1.15; }
+.muted { color: var(--g5-muted); }
+.pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 700; }
+.pill.min { background: var(--g5-min-2); color: #1D629D; }
+.pill.imss { background: var(--g5-imss-2); color: #2F80C3; }
+.pill.zero { background: var(--g5-neg-2); color: var(--g5-danger); }
+.pill.padron { background: var(--g5-paper-3); color: var(--g5-muted); }
+</style>
+</head>
+<body>
+
+<div class="gob005-tabla-zona">
+  <div class="gob005-tabla-zona__error" id="error"></div>
+  <div class="tabs">
+    <span class="tab active" data-tab="t">Top 20 discrepancia</span>
+    <span class="tab" data-tab="g">Lista general</span>
+    <span class="tab" data-tab="f" id="tab-f">Fuera del padrón (0)</span>
+  </div>
+  <div class="tabpane active" data-pane="t" id="pane-t"></div>
+  <div class="tabpane" data-pane="g" id="pane-g"></div>
+  <div class="tabpane" data-pane="f" id="pane-f"></div>
+</div>
+
+<script>
+/* ===== DATOS: mismo mapeo del tablero completo gob-005, fuente: ZONIFICACION ===== */
+var MAP_ZONIF = {
+  rfc: ["rfc"], razon: ["razon social", "razon", "razón"],
+  ubicacion: ["ubicacion"], domicilio: ["domicilio completo", "domicilio"],
+  municipio: ["municipio"], tamano: ["clasificacion del inegi", "clasificacion", "tamano", "tamaño", "estrato"],
+  disc_min: ["discrepancia vs minimo", "discrepancia min pos", "disc vs isn minimo", "discrepancia min"],
+  disc_imss: ["discrepancia vs imss", "discrepancia imss pos", "disc vs isn imss", "discrepancia imss"],
+  regla_id: ["regla id", "regla_id"], regla: ["regla rota", "regla txt"]
+};
+function normalize(s) { return String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[\s._]+/g, " ").trim(); }
+function buildColIndex(columns, amap) {
+  var idx = {};
+  Object.keys(amap).forEach(function(f) {
+    for (var i = 0; i < columns.length; i++) {
+      var lbl = normalize(columns[i].label || columns[i].name || "");
+      if (amap[f].some(function(a) { var n = normalize(a); return lbl === n || lbl.includes(n); })) { idx[f] = i; break; }
+    }
+  });
+  return idx;
+}
+var toNum = function(v) { if (v == null || v === "") return undefined; var n = +String(v).replace(/[^0-9.\-]/g, ""); return isNaN(n) ? undefined : n; };
+
+function zonifFromVA(msg) {
+  var cols = msg.columns || [], data = msg.data || [], idx = buildColIndex(cols, MAP_ZONIF);
+  var g = function(row, f) { return idx[f] != null ? row[idx[f]] : undefined; };
+  return data.map(function(row) {
+    var rid = String(g(row, "regla_id") || "");
+    var regla = g(row, "regla") || rid;
+    return {
+      rfc: g(row, "rfc"), razon: g(row, "razon"), ubicacion: g(row, "ubicacion") || g(row, "municipio"),
+      domicilio: g(row, "domicilio"), municipio: g(row, "municipio"), tamano: g(row, "tamano"),
+      disc_min: toNum(g(row, "disc_min")) || 0, disc_imss: toNum(g(row, "disc_imss")) || 0,
+      regla: regla, fuera_padron: /fuera/i.test(rid + " " + regla) ? 1 : 0
+    };
+  });
+}
+
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function(c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+function fmtMXN(v) {
+  if (v == null || isNaN(v)) return "—";
+  var a = Math.abs(v);
+  if (a >= 1e9) return "$" + (v / 1e9).toFixed(2) + " MMM";
+  if (a >= 1e6) return "$" + (v / 1e6).toFixed(2) + " M";
+  if (a >= 1e3) return "$" + (v / 1e3).toFixed(1) + " K";
+  return "$" + Math.round(v).toLocaleString("es-MX");
+}
+function reglaPill(r) {
+  var t = (r.regla || "");
+  if (/fuera/i.test(t)) return '<span class="pill zero">Fuera padrón</span>';
+  if (/min/i.test(t)) return '<span class="pill min">Debajo mínimo</span>';
+  if (/imss/i.test(t)) return '<span class="pill imss">Debajo IMSS</span>';
+  return '<span class="pill padron">' + esc(t || "—") + '</span>';
+}
+
+function tableHTML(cols, rows, max) {
+  max = max || 400;
+  var head = cols.map(function(c) { return '<th' + (c.num ? ' style="text-align:right"' : '') + '>' + esc(c.label) + '</th>'; }).join("");
+  var body = rows.slice(0, max).map(function(r) {
+    return "<tr>" + cols.map(function(c) {
+      var v = c.get(r), cls = c.num ? "num" : ""; if (c.cls) cls += " " + c.cls(r);
+      if (c.label === "Razón social") return '<td class="' + cls + '" title="' + esc(v) + '"><span class="company-name">' + esc(v) + '</span></td>';
+      if (c.html) return '<td class="' + cls + '">' + v + '</td>';
+      return '<td class="' + cls + '">' + esc(v) + '</td>';
+    }).join("") + "</tr>";
+  }).join("");
+  return '<div class="tbl-scroll"><table class="dt"><thead><tr>' + head + '</tr></thead><tbody>' +
+    (body || '<tr><td colspan="' + cols.length + '" class="muted" style="padding:16px">Sin registros.</td></tr>') + '</tbody></table></div>';
+}
+
+function render(z) {
+  var rFuera = z.filter(function(x) { return x.fuera_padron; });
+  document.getElementById('tab-f').textContent = 'Fuera del padrón (' + rFuera.length + ')';
+
+  var ranked = z.map(function(x) { return Object.assign({}, x, { total: x.disc_min + x.disc_imss }); }).sort(function(a, b) { return b.total - a.total; }).slice(0, 20);
+  document.getElementById('pane-t').innerHTML = tableHTML([
+    { label: "Razón social", get: function(r) { return r.razon; }, cls: function() { return "strong"; } },
+    { label: "Municipio", get: function(r) { return r.municipio; } },
+    { label: "Regla", get: function(r) { return reglaPill(r); }, html: true },
+    { label: "vs. mín", get: function(r) { return fmtMXN(r.disc_min); }, num: true },
+    { label: "vs. IMSS", get: function(r) { return fmtMXN(r.disc_imss); }, num: true },
+    { label: "Total", get: function(r) { return fmtMXN(r.total); }, num: true, cls: function() { return "neg"; } }
+  ], ranked);
+
+  document.getElementById('pane-g').innerHTML = tableHTML([
+    { label: "Razón social", get: function(r) { return r.razon; }, cls: function() { return "strong"; } },
+    { label: "Ubicación", get: function(r) { return r.ubicacion || r.municipio; } },
+    { label: "Tamaño", get: function(r) { return r.tamano; } },
+    { label: "Regla", get: function(r) { return reglaPill(r); }, html: true }
+  ], z);
+
+  document.getElementById('pane-f').innerHTML = tableHTML([
+    { label: "Razón social", get: function(r) { return r.razon; }, cls: function() { return "strong"; } },
+    { label: "RFC", get: function(r) { return r.rfc; } },
+    { label: "Municipio", get: function(r) { return r.municipio; } },
+    { label: "Domicilio", get: function(r) { return r.domicilio; } }
+  ], rFuera);
+}
+
+document.querySelectorAll('.tab').forEach(function(tb) {
+  tb.addEventListener('click', function() {
+    document.querySelectorAll('.tab').forEach(function(x) { x.classList.toggle('active', x === tb); });
+    document.querySelectorAll('.tabpane').forEach(function(p) { p.classList.toggle('active', p.dataset.pane === tb.dataset.tab); });
+  });
+});
+
+window.addEventListener('message', function(evt) {
+  var m = evt.data || {};
+  if (!m || typeof m !== 'object' || !Array.isArray(m.columns) || !Array.isArray(m.data)) return;
+  try {
+    render(zonifFromVA(m));
+    document.getElementById('error').style.display = 'none';
+  } catch (e) {
+    document.getElementById('error').textContent = e.message;
+    document.getElementById('error').style.display = 'block';
+  }
+});
+
+try { if (window.parent) window.parent.postMessage({ type: 'ready', object: 'gob-005-zona-tabla' }, '*'); } catch (e) {}
+
+/* Datos de muestra para previsualización standalone (sin conexión a VA) */
+render([
+  { rfc: "MDG980412AB1", razon: "MADERAS DEL GUADIANA SA DE CV", ubicacion: "Durango, Zona Centro", domicilio: "Calle 100 No. 11, Col. Centro, Durango, Dgo.", municipio: "Durango", tamano: "Grande", disc_min: 165000, disc_imss: 0, regla: "Debajo del mínimo", fuera_padron: 0 },
+  { rfc: "MCM010203C45", razon: "MINERA CERRO DEL MERCADO SA", ubicacion: "Durango, Zona Norte", domicilio: "Calle 107 No. 14, Col. Centro, Durango, Dgo.", municipio: "Durango", tamano: "Grande", disc_min: 0, disc_imss: 138000, regla: "Debajo del estimado IMSS", fuera_padron: 0 },
+  { rfc: "TLE950817HJ2", razon: "TRANSPORTES LERDO SA DE CV", ubicacion: "Gómez Palacio, Zona Centro", domicilio: "Calle 121 No. 20, Col. Centro, Gómez Palacio, Dgo.", municipio: "Gómez Palacio", tamano: "Mediana", disc_min: 92000, disc_imss: 0, regla: "Fuera del padrón IMSS", fuera_padron: 1 }
+]);
+</script>
+
+</body>
+</html>
