@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dataloop - Vida & PPR · SKANDIA (seg-001)</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <!-- Aplica el tema guardado (claro/oscuro) antes de pintar la página, para evitar parpadeos -->
+    <script>
+        (function () {
+            var tema = localStorage.getItem('tema-dataloop') || 'claro';
+            document.documentElement.setAttribute('data-theme', tema);
+        })();
+    </script>
+    <style>
+        /* ══════════════════════════════════════════════════════════
+           "DENTRO DEL FOLDER" — mismo estilo/layout que gob-001..005.
+           Esta demo es 100% SAS (reporte nativo de SAS Visual Analytics,
+           sin ningún archivo HTML propio) — color de carpeta = demos SAS
+           sin HTML adicional. No hay código para ver/copiar ni objetos
+           separables, así que no lleva visor de código ni carrito: solo
+           el carrusel de las 3 capturas del reporte.
+           ══════════════════════════════════════════════════════════ */
+        :root {
+            --folder-color: #0486C2;
+        }
+
+        .zona-principal {
+            background: linear-gradient(180deg, color-mix(in srgb, var(--folder-color) 16%, var(--color-fondo)) 0px, var(--color-fondo) 260px);
+        }
+
+        .header {
+            background-color: color-mix(in srgb, var(--folder-color) 18%, var(--color-fondo-tarjeta));
+            border-bottom: 3px solid var(--folder-color);
+            flex-wrap: wrap;
+            row-gap: 10px;
+        }
+
+        .folder-tag {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 10px;
+            background: var(--folder-color);
+            color: #ffffff;
+            padding: 6px 14px;
+            border-radius: 999px;
+            box-shadow: 0 2px 6px rgba(0,0,0,.15);
+            max-width: 100%;
+        }
+
+        .folder-tag-icono {
+            font-size: 12px;
+        }
+
+        .folder-tag-fecha {
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .tarjeta {
+            border-left: 4px solid var(--folder-color);
+        }
+
+        /* Cliente, debajo del título */
+        .folder-cliente {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--color-texto-claro);
+            margin: 2px 0 16px 0;
+        }
+
+        /* Sin columna de acciones (no hay código que ver/copiar) — el
+           carrusel ocupa todo el ancho de la fila. */
+        .demo-preview-row {
+            margin-bottom: 10px;
+        }
+
+        .carousel {
+            position: relative;
+            max-width: 720px;
+            margin: 0 auto;
+            background: var(--color-fondo-tarjeta);
+            border: 1px solid var(--color-borde);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .carousel-slides {
+            position: relative;
+        }
+
+        .carousel-slide {
+            display: none;
+        }
+
+        .carousel-slide.activo {
+            display: block;
+        }
+
+        .carousel-slide img {
+            width: 100%;
+            display: block;
+            object-fit: cover;
+            object-position: top;
+            max-height: 460px;
+        }
+
+        .carousel-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 16px;
+            background: var(--color-fondo-tarjeta);
+            border-top: 1px solid var(--color-borde);
+        }
+
+        .carousel-dots {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .carousel-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #c5d5e8;
+            cursor: pointer;
+            transition: all .2s;
+            border: none;
+            padding: 0;
+        }
+
+        .carousel-dot.activo {
+            width: 22px;
+            border-radius: 4px;
+            background: var(--folder-color);
+        }
+
+        .btn-nav {
+            background: var(--color-fondo-tarjeta);
+            border: 1px solid var(--color-borde);
+            color: var(--color-texto);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .btn-nav:disabled {
+            opacity: .35;
+            cursor: default;
+        }
+
+        .btn-nav:hover:not(:disabled) {
+            border-color: var(--folder-color);
+            color: var(--folder-color);
+        }
+
+        .carousel-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--color-texto-claro);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .aviso-sas-nativo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 14px;
+            padding: 10px 14px;
+            background: color-mix(in srgb, var(--folder-color) 10%, var(--color-fondo-tarjeta));
+            border: 1px solid color-mix(in srgb, var(--folder-color) 30%, var(--color-borde));
+            border-radius: 8px;
+            font-size: 12px;
+            color: var(--color-texto-claro);
+        }
+    </style>
+</head>
+
+<script src="../../global-search.js"></script>   <!-- desde codigos/seg-001/ -->
+<script src="../global-search.js"></script>        <!-- desde categorias/ -->
+<script src="global-search.js"></script>           <!-- desde raíz (index.html) -->
+
+<body>
+
+        <!-- ============================================
+         RIEL LATERAL (siempre visible)
+         ============================================ -->
+    <div class="sidebar-rail">
+        <button class="rail-boton rail-logo" id="btn-toggle-sidebar" onclick="toggleSidebar()" aria-label="Abrir navegación">
+            <img src="../../previews/icono_dataloop.svg" alt="Dataloop">
+        </button>
+        <button class="rail-boton rail-tema" id="btn-tema" onclick="toggleTema()" aria-label="Cambiar tema">
+            <span id="icono-tema">🌙</span>
+        </button>
+    </div>
+
+    <!-- Fondo oscuro detrás de la navegación cuando está abierta -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="cerrarSidebar()"></div>
+
+    <nav class="sidebar" id="sidebar">
+
+        <button class="sidebar-cerrar" onclick="cerrarSidebar()" aria-label="Cerrar navegación">×</button>
+
+        <a href="../../index.html" class="sidebar-logo">
+            <img src="../../previews/icono_dataloop.svg" alt="Dataloop" class="sidebar-logo-img">
+            <span class="logo-texto">Dataloop</span>
+        </a>
+        <input type="text" class="sidebar-buscador" placeholder="🔍 Buscar código..." id="buscador-sidebar">
+        <a href="../../index.html" class="sidebar-link">
+            <span class="icono">📊</span> Dashboard
+        </a>
+        <div class="sidebar-seccion">Casos de Uso</div>
+        <a href="../../categorias/financial-crimes.html" class="sidebar-categoria">
+            <span class="icono">🔒</span> Financial Crimes
+        </a>
+        <a href="../../categorias/gobierno.html" class="sidebar-categoria">
+            <span class="icono">🏛️</span> Gobierno
+        </a>
+        <a href="../../categorias/retail.html" class="sidebar-categoria">
+            <span class="icono">🛒</span> Retail
+        </a>
+        <a href="../../categorias/analytics.html" class="sidebar-categoria activa">
+            <span class="icono">📈</span> Analytics
+        </a>
+        <div class="sidebar-footer">
+            <div class="avatar">R</div>
+            <div class="admin-info">
+                <div class="nombre">Repository Admin</div>
+                <div class="detalle">16 códigos disponibles</div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="zona-principal">
+
+    <div class="header">
+        <a href="../../index.html" class="logo">Repositorio de Códigos</a>
+        <div class="folder-tag">
+            <span class="folder-tag-icono">📁</span>
+            <span class="folder-tag-fecha">2026-01-20</span>
+        </div>
+    </div>
+
+    <div class="contenido">
+
+        <a href="../../categorias/analytics.html" class="boton-volver">← Analytics</a>
+
+        <div class="tarjeta">
+
+            <h1 class="tarjeta-titulo">Vida & PPR</h1>
+
+            <p class="folder-cliente">SKANDIA</p>
+
+            <!-- Carrusel de la demo (sin columna de acciones — no hay
+                 código propio que ver/copiar en un reporte SAS nativo) -->
+            <div class="demo-preview-row" id="demo-preview-row">
+                <div class="carousel">
+                    <div class="preview-container" id="preview-container">
+                        <div class="carousel-slides">
+                            <div class="carousel-slide activo">
+                                <img src="../../previews/seg-001/cobertura.png" alt="Vida & PPR — Cobertura" id="preview-image">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="../../previews/seg-001/segmentacion.png" alt="Vida & PPR — Segmentación">
+                            </div>
+                            <div class="carousel-slide">
+                                <img src="../../previews/seg-001/ventas.png" alt="Vida & PPR — Ventas">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="carousel-nav">
+                        <button type="button" class="btn-nav" id="btnPrev" disabled aria-label="Vista anterior">‹</button>
+                        <div class="carousel-dots">
+                            <button type="button" class="carousel-dot activo" data-idx="0" aria-label="Cobertura"></button>
+                            <button type="button" class="carousel-dot" data-idx="1" aria-label="Segmentación"></button>
+                            <button type="button" class="carousel-dot" data-idx="2" aria-label="Ventas"></button>
+                        </div>
+                        <span class="carousel-label" id="carousel-label">Cobertura</span>
+                        <button type="button" class="btn-nav" id="btnNext" aria-label="Vista siguiente">›</button>
+                    </div>
+                </div>
+
+                <div class="aviso-sas-nativo">
+                    <span>ℹ️</span>
+                    <span>Reporte nativo de SAS Visual Analytics — no tiene código HTML propio para ver, copiar o descargar.</span>
+                </div>
+            </div>
+
+            <p class="tarjeta-descripcion" style="margin-top: 20px;">Segmentación de clientes y análisis de venta de pólizas de Vida y PPR (Plan Personal de Retiro) para Skandia, construido 100% en SAS Visual Analytics — vistas de Cobertura, Segmentación y Ventas.</p>
+
+            <div class="info-meta">
+                <span><strong>Autor:</strong> Juan Lugo Acebo</span>
+                <span><strong>Fecha:</strong> 2026-01-20</span>
+                <span><strong>Ruta:</strong> /My Folder/Dashboards/SKANDIA</span>
+            </div>
+
+            <div class="seccion-video">
+                <h2>🎬 Video Demo</h2>
+                <div class="video-container">
+                    <div class="video-wrapper">
+                        <div class="video-placeholder">
+                            <div class="placeholder-icono">🎥</div>
+                            <p>No hay video disponible para este código.</p>
+                            <p style="font-size: 12px; margin-top: 5px;">Agrega un video pegando un iframe de YouTube o un archivo .mp4</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="footer">
+        Dataloop · Repositorio Interno · 2025
+    </div>
+
+    </div>
+
+    <script>
+        /* ── Carrusel de capturas ── */
+        var slides = document.querySelectorAll('.carousel-slide');
+        var dots = document.querySelectorAll('.carousel-dot');
+        var btnPrev = document.getElementById('btnPrev');
+        var btnNext = document.getElementById('btnNext');
+        var etiquetasCarrusel = ['Cobertura', 'Segmentación', 'Ventas'];
+        var current = 0;
+
+        function irA(idx) {
+            slides[current].classList.remove('activo');
+            dots[current].classList.remove('activo');
+            current = idx;
+            slides[current].classList.add('activo');
+            dots[current].classList.add('activo');
+            btnPrev.disabled = current === 0;
+            btnNext.disabled = current === slides.length - 1;
+            document.getElementById('carousel-label').textContent = etiquetasCarrusel[current];
+        }
+
+        btnPrev.addEventListener('click', function (e) { e.stopPropagation(); if (current > 0) irA(current - 1); });
+        btnNext.addEventListener('click', function (e) { e.stopPropagation(); if (current < slides.length - 1) irA(current + 1); });
+        dots.forEach(function (dot) {
+            dot.addEventListener('click', function (e) {
+                e.stopPropagation();
+                irA(parseInt(this.getAttribute('data-idx')));
+            });
+        });
+    </script>
+
+</body>
+</html>
